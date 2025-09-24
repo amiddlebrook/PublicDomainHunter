@@ -19,7 +19,9 @@ from app.api import router as api_router
 from app.auth_api import router as auth_router
 from app.file_api import router as file_router
 from app.analytics_api import router as analytics_router
+from app.websocket_api import router as websocket_router
 from app.alert_processor import get_alert_processor
+from app.real_time_service import get_real_time_service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -41,11 +43,16 @@ async def lifespan(app: FastAPI):
     alert_processor = get_alert_processor()
     await alert_processor.start()
 
+    # Start real-time service
+    real_time_service = get_real_time_service()
+    await real_time_service.start()
+
     yield
 
     # Shutdown
     logger.info("Shutting down Public Domain Hunter API...")
     await alert_processor.stop()
+    await real_time_service.stop()
 
 # Create FastAPI app
 app = FastAPI(
@@ -69,6 +76,7 @@ app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 app.include_router(api_router, prefix="/api/v1", tags=["works"])
 app.include_router(file_router, prefix="/api/files", tags=["files"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(websocket_router, prefix="/api/ws", tags=["websockets"])
 
 @app.get("/")
 async def root():

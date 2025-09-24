@@ -17,6 +17,7 @@ from app.models import Work, Alert, User, WorkMetric
 from app.email_service import get_email_service
 from app.trends_service import get_trends_service
 from app.amazon_service import get_amazon_service
+from app.real_time_service import get_real_time_service
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class AlertProcessor:
         self.email_service = get_email_service()
         self.trends_service = get_trends_service()
         self.amazon_service = get_amazon_service()
+        self.real_time_service = get_real_time_service()
         self.is_running = False
 
     async def start(self):
@@ -201,6 +203,9 @@ class AlertProcessor:
             },
             'timestamp': datetime.utcnow().isoformat()
         }
+
+        # Send real-time notification
+        await self.real_time_service.send_alert_notification(user.id, alert_data)
 
         # Send email notification
         if self.email_service.is_available():

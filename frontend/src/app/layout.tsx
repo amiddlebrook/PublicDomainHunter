@@ -17,8 +17,8 @@ import {
   LogOut,
   Upload
 } from 'lucide-react'
-import { clsx } from 'clsx'
 import { useAuth } from '@/contexts/AuthContext'
+import RealTimeNotification from '@/components/RealTimeNotification'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -140,7 +140,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* Separator */}
           <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
 
-          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
               <h1 className="text-lg font-semibold text-gray-900">
                 {navigation.find(item => item.href === pathname)?.name || 'Dashboard'}
@@ -161,6 +160,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </button>
               <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />
               <div className="flex items-center gap-x-4 lg:gap-x-6">
+                <RealTimeNotification />
                 {isAuthenticated && user ? (
                   <div className="relative">
                     <button
