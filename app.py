@@ -15,6 +15,7 @@ import logging
 
 from app.database import create_tables
 from app.api import router as api_router
+from app.auth_api import router as auth_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,6 +52,7 @@ app.add_middleware(
 )
 
 # Include API routes
+app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 app.include_router(api_router, prefix="/api/v1", tags=["works"])
 
 @app.get("/")

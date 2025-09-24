@@ -13,9 +13,11 @@ import {
   X,
   Home,
   BarChart3,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react'
 import { clsx } from 'clsx'
+import { useAuth } from '@/contexts/AuthContext'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -28,7 +30,14 @@ const navigation = [
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { user, logout, isAuthenticated } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    window.location.href = '/login'
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -150,12 +159,58 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </button>
               <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />
               <div className="flex items-center gap-x-4 lg:gap-x-6">
-                <button
-                  type="button"
-                  className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                >
-                  <User className="h-6 w-6" />
-                </button>
+                {isAuthenticated && user ? (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    >
+                      <User className="h-6 w-6" />
+                      <span className="text-sm font-medium text-gray-700">{user.username}</span>
+                    </button>
+
+                    {userMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                        <div className="py-1">
+                          <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                            <div className="font-medium">{user.full_name || user.username}</div>
+                            <div className="text-gray-500">{user.email}</div>
+                          </div>
+                          <Link
+                            href="/profile"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            Profile Settings
+                          </Link>
+                          <button
+                            onClick={handleLogout}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <LogOut className="inline mr-2 h-4 w-4" />
+                            Sign out
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href="/login"
+                      className="text-sm font-medium text-gray-700 hover:text-gray-500"
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="text-sm font-medium text-primary-600 hover:text-primary-500"
+                    >
+                      Sign up
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>

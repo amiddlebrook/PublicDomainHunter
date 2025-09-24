@@ -18,8 +18,7 @@ from app.schemas import (
     WorkMetricResponse, SearchResponse,
     AlertCreate, AlertResponse, TrendData, CompetitionAnalysis
 )
-from app.trends_service import get_trends_service
-from app.amazon_service import get_amazon_service
+from app.auth import get_current_active_user, get_current_active_superuser
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +39,7 @@ async def get_works(
     year_to: Optional[int] = None,
     sort_by: str = Query("created_at", regex="^(created_at|title|author|public_domain_year)$"),
     sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Get all public domain works with optional filtering and sorting."""
@@ -73,7 +73,11 @@ async def get_work(work_id: int, db: Session = Depends(get_db)):
     return work
 
 @router.post("/works", response_model=WorkResponse, status_code=status.HTTP_201_CREATED)
-async def create_work(work: WorkCreate, db: Session = Depends(get_db)):
+async def create_work(
+    work: WorkCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Create a new public domain work with automatic trend analysis."""
     # Check if work already exists
     existing = db.query(Work).filter(
@@ -87,7 +91,7 @@ async def create_work(work: WorkCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Work already exists")
 
     # Create the work
-    db_work = Work(**work.dict())
+    db_work = Work(**work.dict(), user_id=current_user.id)
     db.add(db_work)
     db.commit()
     db.refresh(db_work)
@@ -95,7 +99,7 @@ async def create_work(work: WorkCreate, db: Session = Depends(get_db)):
     # Trigger background analysis
     # analyze_work_background(db_work.id, db)
 
-    logger.info(f"Created new work: {db_work.title}")
+    logger.info(f"Created new work: {db_work.title} by user {current_user.username}")
     return db_work
 
 @router.put("/works/{work_id}", response_model=WorkResponse)
@@ -137,6 +141,7 @@ async def search_works(
     limit: int = Query(50, ge=1, le=100),
     include_trends: bool = Query(True, description="Include trend analysis"),
     include_competition: bool = Query(False, description="Include competition analysis"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Advanced search for public domain works with optional analytics."""
@@ -286,35 +291,49 @@ async def refresh_work_metrics(work_id: int, background_tasks: BackgroundTasks, 
 
 # Alerts endpoints
 @router.post("/alerts", response_model=AlertResponse, status_code=status.HTTP_201_CREATED)
-async def create_alert(alert: AlertCreate, db: Session = Depends(get_db)):
+async def create_alert(
+    alert: AlertCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Create a new alert for a user."""
-    # TODO: Add user authentication
     work = db.query(Work).filter(Work.id == alert.work_id, Work.status == "active").first()
     if not work:
         raise HTTPException(status_code=404, detail="Work not found")
 
-    db_alert = Alert(**alert.dict())
+    db_alert = Alert(**alert.dict(), user_id=current_user.id)
     db.add(db_alert)
     db.commit()
     db.refresh(db_alert)
 
-    logger.info(f"Created new alert for work {alert.work_id}")
+    logger.info(f"Created new alert for work {alert.work_id} by user {current_user.username}")
     return db_alert
 
 @router.get("/alerts", response_model=List[AlertResponse])
 async def get_alerts(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Get all alerts."""
-    alerts = db.query(Alert).filter(Alert.is_active == True).offset(skip).limit(limit).all()
+    """Get all alerts for the current user."""
+    alerts = db.query(Alert).filter(
+        Alert.user_id == current_user.id,
+        Alert.is_active == True
+    ).offset(skip).limit(limit).all()
     return alerts
 
 @router.delete("/alerts/{alert_id}")
-async def delete_alert(alert_id: int, db: Session = Depends(get_db)):
+async def delete_alert(
+    alert_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Delete an alert."""
-    alert = db.query(Alert).filter(Alert.id == alert_id).first()
+    alert = db.query(Alert).filter(
+        Alert.id == alert_id,
+        Alert.user_id == current_user.id
+    ).first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
 
