@@ -14,7 +14,8 @@ import {
   Home,
   BarChart3,
   Settings,
-  LogOut
+  LogOut,
+  Upload
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useAuth } from '@/contexts/AuthContext'
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Search', href: '/search', icon: Search },
   { name: 'Works', href: '/works', icon: BookOpen },
+  { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Trends', href: '/trends', icon: TrendingUp },
   { name: 'Alerts', href: '/alerts', icon: Bell },

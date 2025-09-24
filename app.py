@@ -17,6 +17,7 @@ import asyncio
 from app.database import create_tables
 from app.api import router as api_router
 from app.auth_api import router as auth_router
+from app.file_api import router as file_router
 from app.alert_processor import get_alert_processor
 
 # Configure logging
@@ -65,6 +66,7 @@ app.add_middleware(
 # Include API routes
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 app.include_router(api_router, prefix="/api/v1", tags=["works"])
+app.include_router(file_router, prefix="/api/files", tags=["files"])
 
 @app.get("/")
 async def root():
