@@ -12,10 +12,12 @@ from contextlib import asynccontextmanager
 import uvicorn
 from typing import List, Optional
 import logging
+import asyncio
 
 from app.database import create_tables
 from app.api import router as api_router
 from app.auth_api import router as auth_router
+from app.alert_processor import get_alert_processor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,10 +31,19 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info("Starting Public Domain Hunter API...")
-    create_tables()  # Create database tables on startup
+
+    # Create database tables
+    create_tables()
+
+    # Start alert processor
+    alert_processor = get_alert_processor()
+    await alert_processor.start()
+
     yield
+
     # Shutdown
     logger.info("Shutting down Public Domain Hunter API...")
+    await alert_processor.stop()
 
 # Create FastAPI app
 app = FastAPI(

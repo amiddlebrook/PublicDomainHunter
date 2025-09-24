@@ -1,0 +1,22 @@
+<h2>New Public Domain Work Alert!</h2>
+
+<div class="alert-box">
+    <h3>{{ alert.alert_type.replace('_', ' ').title() }}</h3>
+    <p>A new work matching your criteria has been discovered.</p>
+</div>
+
+<div class="work-card">
+    <h4>{{ alert.work.title }}</h4>
+    <p><strong>Author:</strong> {{ alert.work.author or 'Unknown' }}</p>
+    <p><strong>Public Domain Year:</strong> {{ alert.work.public_domain_year }}</p>
+    <p><strong>Media Type:</strong> {{ alert.work.media_type.title() }}</p>
+    {% if alert.work.metadata.trend_score %}
+    <p><strong>Trend Score:</strong> {{ alert.work.metadata.trend_score|round(1) }}/100</p>
+    {% endif %}
+</div>
+
+<div style="text-align: center; margin: 20px 0;">
+    <a href="{{ work_url }}" class="button">View Work Details</a>
+</div>
+
+<p>This alert was triggered based on your saved search criteria. You can manage your alerts in your dashboard.</p>

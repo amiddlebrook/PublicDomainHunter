@@ -1,0 +1,22 @@
+NEW PUBLIC DOMAIN WORK ALERT!
+
+{{ alert.alert_type.replace('_', ' ').upper() }}
+
+A new work matching your criteria has been discovered.
+
+WORK DETAILS:
+Title: {{ alert.work.title }}
+Author: {{ alert.work.author or 'Unknown' }}
+Public Domain Year: {{ alert.work.public_domain_year }}
+Media Type: {{ alert.work.media_type.title() }}
+{% if alert.work.metadata.trend_score %}
+Trend Score: {{ alert.work.metadata.trend_score|round(1) }}/100
+{% endif %}
+
+View Work Details: {{ work_url }}
+
+This alert was triggered based on your saved search criteria.
+You can manage your alerts in your dashboard.
+
+---
+This email was sent by Public Domain Hunter

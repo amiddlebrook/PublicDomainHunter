@@ -1,0 +1,55 @@
+<h2>Weekly Public Domain Digest</h2>
+
+<p>Hello {{ user_email.split('@')[0] }},</p>
+
+<p>Here's your weekly summary of public domain activity and insights from Public Domain Hunter.</p>
+
+<h3>📈 This Week's Highlights</h3>
+
+{% if digest.new_works %}
+<h4>New Public Domain Works</h4>
+<div class="alert-box">
+    <p><strong>{{ digest.new_works|length }} new works</strong> entered the public domain this week</p>
+</div>
+{% endif %}
+
+{% if digest.top_trending %}
+<h4>🔥 Trending This Week</h4>
+{% for work in digest.top_trending[:5] %}
+<div class="work-card">
+    <h5>{{ work.title }}</h5>
+    <p><strong>Author:</strong> {{ work.author or 'Unknown' }}</p>
+    {% if work.metadata.trend_score %}
+    <p><strong>Trend Score:</strong> {{ work.metadata.trend_score|round(1) }}/100</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if digest.market_opportunities %}
+<h4>💼 Market Opportunities</h4>
+{% for opportunity in digest.market_opportunities[:3] %}
+<div class="work-card">
+    <h5>{{ opportunity.title }}</h5>
+    <p><strong>Monetization Potential:</strong> {{ opportunity.monetization_score|round(1) }}/100</p>
+    <p><strong>Competition Level:</strong> {{ opportunity.competition_level }}</p>
+</div>
+{% endfor %}
+{% endif %}
+
+<h3>📊 Your Activity Summary</h3>
+<ul>
+    {% if digest.user_stats %}
+    <li><strong>Works Viewed:</strong> {{ digest.user_stats.works_viewed }}</li>
+    <li><strong>Alerts Created:</strong> {{ digest.user_stats.alerts_created }}</li>
+    <li><strong>Searches Performed:</strong> {{ digest.user_stats.searches_performed }}</li>
+    {% endif %}
+</ul>
+
+<div style="text-align: center; margin: 20px 0;">
+    <a href="{{ dashboard_url }}" class="button">View Full Dashboard</a>
+</div>
+
+<p>Stay tuned for more updates next week!</p>
+
+<p>Best regards,<br>The Public Domain Hunter Team</p>

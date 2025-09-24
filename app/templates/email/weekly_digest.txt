@@ -1,0 +1,48 @@
+WEEKLY PUBLIC DOMAIN DIGEST
+
+Hello {{ user_email.split('@')[0] }},
+
+Here's your weekly summary of public domain activity and insights from Public Domain Hunter.
+
+THIS WEEK'S HIGHLIGHTS
+{% if digest.new_works %}
+NEW PUBLIC DOMAIN WORKS
+{{ digest.new_works|length }} new works entered the public domain this week
+{% endif %}
+
+{% if digest.top_trending %}
+TRENDING THIS WEEK
+{% for work in digest.top_trending[:5] %}
+{{ work.title }}
+Author: {{ work.author or 'Unknown' }}
+{% if work.metadata.trend_score %}
+Trend Score: {{ work.metadata.trend_score|round(1) }}/100
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if digest.market_opportunities %}
+MARKET OPPORTUNITIES
+{% for opportunity in digest.market_opportunities[:3] %}
+{{ opportunity.title }}
+Monetization Potential: {{ opportunity.monetization_score|round(1) }}/100
+Competition Level: {{ opportunity.competition_level }}
+{% endfor %}
+{% endif %}
+
+YOUR ACTIVITY SUMMARY
+{% if digest.user_stats %}
+- Works Viewed: {{ digest.user_stats.works_viewed }}
+- Alerts Created: {{ digest.user_stats.alerts_created }}
+- Searches Performed: {{ digest.user_stats.searches_performed }}
+{% endif %}
+
+View Full Dashboard: {{ dashboard_url }}
+
+Stay tuned for more updates next week!
+
+Best regards,
+The Public Domain Hunter Team
+
+---
+This email was sent by Public Domain Hunter

@@ -1,0 +1,30 @@
+WELCOME TO PUBLIC DOMAIN HUNTER!
+
+Hello {{ username }},
+
+Welcome to Public Domain Hunter! We're excited to have you join our community of publishers, researchers, and content creators who are passionate about discovering and utilizing public domain works.
+
+WHAT'S NEXT?
+- Complete Your Profile: Add your information to personalize your experience
+- Set Up Alerts: Create custom alerts to get notified about new public domain works
+- Explore the Dashboard: View analytics and insights about public domain content
+- Search & Discover: Use our advanced search to find works that interest you
+
+Go to Dashboard: {{ login_url }}
+
+KEY FEATURES:
+- Comprehensive public domain work catalog
+- Real-time trend analysis and market insights
+- Customizable alerts for new opportunities
+- Advanced search with filtering and analytics
+- Competition analysis and monetization potential
+
+If you have any questions or need help getting started, feel free to reach out to our support team.
+
+Happy hunting!
+
+Best regards,
+The Public Domain Hunter Team
+
+---
+This email was sent by Public Domain Hunter
