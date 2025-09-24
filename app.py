@@ -22,6 +22,7 @@ from app.analytics_api import router as analytics_router
 from app.websocket_api import router as websocket_router
 from app.search_api import router as search_router
 from app.ai_insights_api import router as ai_insights_router
+from app.reporting_api import router as reporting_router
 from app.alert_processor import get_alert_processor
 from app.real_time_service import get_real_time_service
 
@@ -81,6 +82,7 @@ app.include_router(analytics_router, prefix="/api/analytics", tags=["analytics"]
 app.include_router(websocket_router, prefix="/api/ws", tags=["websockets"])
 app.include_router(search_router, prefix="/api/search", tags=["search"])
 app.include_router(ai_insights_router, prefix="/api/ai", tags=["ai-insights"])
+app.include_router(reporting_router, prefix="/api/reports", tags=["reporting"])
 
 @app.get("/")
 async def root():
