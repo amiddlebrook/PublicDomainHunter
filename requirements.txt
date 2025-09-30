@@ -27,3 +27,5 @@ pandas>=2.1.0
 matplotlib>=3.8.0
 seaborn>=0.12.0
 plotly>=5.17.0
+redis>=4.5.0
+aiohttp>=3.8.0

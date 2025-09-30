@@ -128,3 +128,6 @@ Thumbs.db
 
 # Project specific
 *.pdf
+
+# Frontend environment variables (with real values)
+frontend/.env.local
