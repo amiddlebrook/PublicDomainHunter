@@ -1,0 +1,77 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auth/register",
+        "responseMode": "lastNode",
+        "options": {
+          "responseFormat": "json"
+        }
+      },
+      "name": "Register User",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auth/login",
+        "responseMode": "lastNode",
+        "options": {
+          "responseFormat": "json"
+        }
+      },
+      "name": "Login User",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        250,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "auth/me",
+        "responseMode": "lastNode",
+        "options": {
+          "responseFormat": "json"
+        }
+      },
+      "name": "Get Current User",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        250,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Register User": {
+      "main": [[
+        {
+          "node": "Login User",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Login User": {
+      "main": [[
+        {
+          "node": "Get Current User",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    }
+  },
+  "active": true,
+  "settings": {}
+}
