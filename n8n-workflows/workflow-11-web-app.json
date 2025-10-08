@@ -1,0 +1,33 @@
+{
+  "name": "Web UI - Single Page App (served from webhook)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "",
+        "responseMode": "responseNode"
+      },
+      "name": "GET / (Serve SPA)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n  <title>Public Domain Hunter</title>\n  <style>body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0}header{background:#222;color:#fff;padding:1rem}main{padding:1rem} .card{border:1px solid #ddd;padding:0.75rem;margin-bottom:0.5rem}</style>\n</head>\n<body>\n  <header><h1>Public Domain Hunter</h1></header>\n  <main>\n    <section>\n      <input id=\"q\" placeholder=\"Search works...\" style=\"width:60%\" />\n      <button id=\"search\">Search</button>\n    </section>\n    <section id=\"results\"></section>\n  </main>\n  <script>\n    const apiBase = window.location.origin + '/webhook';\n    document.getElementById('search').addEventListener('click', async ()=>{\n      const q = document.getElementById('q').value;\n      const r = await fetch(`${apiBase}/search?q=${encodeURIComponent(q)}`);\n      const data = await r.json();\n      const out = document.getElementById('results'); out.innerHTML = '';\n      if(!Array.isArray(data) || data.length===0){ out.innerHTML = '<p>No results</p>'; return }\n      for(const item of data){ const el = document.createElement('div'); el.className='card'; el.innerHTML = `<h3>${item.title}</h3><p>Author: ${item.author||'—'}</p><p>${item.snippet || ''}</p>`; out.appendChild(el) }\n    });\n  </script>\n</body>\n</html>"
+      },
+      "name": "Serve SPA Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "GET / (Serve SPA)": {
+      "main": [[{ "node": "Serve SPA Response" }]]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

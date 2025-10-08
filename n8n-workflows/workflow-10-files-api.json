@@ -1,0 +1,107 @@
+{
+  "name": "API - Files",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "files/upload",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true,
+          "binaryPropertyName": "data"
+        }
+      },
+      "name": "POST /files/upload",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [220, 220]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = JSON.parse($input.item.json.body || '{}'); const filename = body.filename || $binary.data?.fileName || ('upload_' + Date.now()); const work_id = body.work_id || null; const size = $binary.data?.data?.length || 0; return [{ json: { filename, work_id, size } }];"
+      },
+      "name": "Prepare File Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 220]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO files (work_id, filename, file_path, file_size, mime_type, metadata, created_at) VALUES ($1,$2,$3,$4,$5,$6,NOW()) RETURNING *;",
+        "queryParameters": "={{ [$json.work_id, $json.filename, $json.filename, $json.size, $binary.data ? $binary.data.mimeType : 'application/octet-stream', JSON.stringify({ source: 'n8n-upload' })] }}"
+      },
+      "name": "Insert File Record",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [620, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json[0]) }}",
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "name": "Return File Record",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [820, 220]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "files/:id",
+        "responseMode": "responseNode"
+      },
+      "name": "GET /files/:id",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [220, 460]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM files WHERE id = $1;",
+        "queryParameters": "={{ [$json.params.id] }}"
+      },
+      "name": "Get File Record",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [420, 460]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.length ? JSON.stringify($json[0]) : JSON.stringify({ error: 'File not found' }) }}",
+        "options": {
+          "responseCode": "={{ $json.length ? 200 : 404 }}"
+        }
+      },
+      "name": "Return File Record or 404",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [620, 460]
+    }
+  ],
+  "connections": {
+    "POST /files/upload": {
+      "main": [[{ "node": "Prepare File Metadata" }]]
+    },
+    "Prepare File Metadata": {
+      "main": [[{ "node": "Insert File Record" }]]
+    },
+    "Insert File Record": {
+      "main": [[{ "node": "Return File Record" }]]
+    },
+    "GET /files/:id": {
+      "main": [[{ "node": "Get File Record" }]]
+    },
+    "Get File Record": {
+      "main": [[{ "node": "Return File Record or 404" }]]
+    }
+  },
+  "active": false,
+  "settings": {}
+}
