@@ -1,0 +1,224 @@
+{
+  "name": "API - Works CRUD",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "works",
+        "responseMode": "responseNode"
+      },
+      "name": "GET /works",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "works/:id",
+        "responseMode": "responseNode"
+      },
+      "name": "GET /works/:id",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "works",
+        "responseMode": "responseNode",
+        "options": { "rawBody": true }
+      },
+      "name": "POST /works",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "httpMethod": "PUT",
+        "path": "works/:id",
+        "responseMode": "responseNode",
+        "options": { "rawBody": true }
+      },
+      "name": "PUT /works/:id",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 800]
+    },
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "works/:id",
+        "responseMode": "responseNode"
+      },
+      "name": "DELETE /works/:id",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 1000]
+    },
+
+    {
+      "parameters": {
+        "functionCode": "const q = $input.item.json.query || {}; const skip = parseInt(q.skip||0); const limit = parseInt(q.limit||100); const media = q.media_type; const author = q.author; const yearFrom = q.year_from; const yearTo = q.year_to; const sortBy = q.sort_by || 'created_at'; const sortOrder = q.sort_order === 'asc' ? 'ASC' : 'DESC'; let sql = \"SELECT id, title, author, public_domain_year, media_type, metadata, created_at, updated_at FROM works WHERE status = 'active'\"; const params = []; let i = 1; if(media){ sql += ` AND media_type = $${i++}`; params.push(media);} if(author){ sql += ` AND author ILIKE $${i++}`; params.push(`%${author}%`);} if(yearFrom){ sql += ` AND public_domain_year >= $${i++}`; params.push(yearFrom);} if(yearTo){ sql += ` AND public_domain_year <= $${i++}`; params.push(yearTo);} sql += ` ORDER BY ${sortBy} ${sortOrder} LIMIT $${i++} OFFSET $${i++}`; params.push(limit, skip); return [{ json: { query: sql, params } }];"
+      },
+      "name": "Build List Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.query }}",
+        "queryParameters": "={{ $json.params }}"
+      },
+      "name": "Execute List Query",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "name": "Return Works List",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM works WHERE id = $1 AND status = 'active';",
+        "queryParameters": "={{ [$json.params.id] }}"
+      },
+      "name": "Get Work By ID - Query",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.length ? JSON.stringify($json[0]) : JSON.stringify({error: 'Work not found'}) }}",
+        "options": { "responseCode": "={{ $json.length ? 200 : 404 }}" }
+      },
+      "name": "Return Work or 404",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+
+    {
+      "parameters": {
+        "functionCode": "const body = JSON.parse($input.item.json.body || '{}'); const required = ['title']; for(const f of required){ if(!body[f]) throw new Error('Missing field: '+f);} return [{ json: { data: body } }];"
+      },
+      "name": "Validate Create Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 600]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO works (title, author, original_publication_year, public_domain_year, description, source_url, download_url, media_type, language, page_count, file_size, metadata, status, user_id, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14,NOW(),NOW()) RETURNING *;",
+        "queryParameters": "={{ [$json.data.title,$json.data.author||null,$json.data.original_publication_year||null,$json.data.public_domain_year||null,$json.data.description||null,$json.data.source_url||null,$json.data.download_url||null,$json.data.media_type||'book',$json.data.language||'en',$json.data.page_count||null,$json.data.file_size||null,JSON.stringify($json.data.metadata||{}),$json.data.status||'active',$json.data.user_id||null] }}"
+      },
+      "name": "Insert Work",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [650, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json[0]) }}",
+        "options": { "responseCode": 201 }
+      },
+      "name": "Return Created Work",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 600]
+    },
+
+    {
+      "parameters": {
+        "functionCode": "const body = JSON.parse($input.item.json.body || '{}'); const id = $input.item.json.params.id; const allowed = ['title','author','original_publication_year','public_domain_year','description','source_url','download_url','media_type','language','page_count','file_size','metadata','status']; const updates = []; const params=[]; let i=1; for(const f of allowed){ if(body[f]!==undefined){ if(f==='metadata'){ updates.push(`${f} = $${i}::jsonb`); params.push(JSON.stringify(body[f])); } else { updates.push(`${f} = $${i}`); params.push(body[f]); } i++; }} if(updates.length===0) throw new Error('No fields to update'); params.push(id); const sql = `UPDATE works SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${i} AND status != 'deleted' RETURNING *;`; return [{ json: { query: sql, params } }];"
+      },
+      "name": "Build Update Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 800]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.query }}",
+        "queryParameters": "={{ $json.params }}"
+      },
+      "name": "Execute Update",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [650, 800]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.length ? JSON.stringify($json[0]) : JSON.stringify({ error: 'Work not found' }) }}",
+        "options": { "responseCode": "={{ $json.length ? 200 : 404 }}" }
+      },
+      "name": "Return Updated or 404",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 800]
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE works SET status = 'deleted', updated_at = NOW() WHERE id = $1 AND status != 'deleted' RETURNING id;",
+        "queryParameters": "={{ [$json.params.id] }}"
+      },
+      "name": "Soft Delete Work",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 1000]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.length ? JSON.stringify({ message: 'Deleted' }) : JSON.stringify({ error: 'Work not found or already deleted' }) }}",
+        "options": { "responseCode": "={{ $json.length ? 200 : 404 }}" }
+      },
+      "name": "Return Delete Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 1000]
+    }
+  ],
+  "connections": {
+    "GET /works": { "main": [[{ "node": "Build List Query" }]] },
+    "Build List Query": { "main": [[{ "node": "Execute List Query" }]] },
+    "Execute List Query": { "main": [[{ "node": "Return Works List" }]] },
+
+    "GET /works/:id": { "main": [[{ "node": "Get Work By ID - Query" }]] },
+    "Get Work By ID - Query": { "main": [[{ "node": "Return Work or 404" }]] },
+
+    "POST /works": { "main": [[{ "node": "Validate Create Body" }]] },
+    "Validate Create Body": { "main": [[{ "node": "Insert Work" }]] },
+    "Insert Work": { "main": [[{ "node": "Return Created Work" }]] },
+
+    "PUT /works/:id": { "main": [[{ "node": "Build Update Query" }]] },
+    "Build Update Query": { "main": [[{ "node": "Execute Update" }]] },
+    "Execute Update": { "main": [[{ "node": "Return Updated or 404" }]] },
+
+    "DELETE /works/:id": { "main": [[{ "node": "Soft Delete Work" }]] },
+    "Soft Delete Work": { "main": [[{ "node": "Return Delete Result" }]] }
+  },
+  "active": false,
+  "settings": {}
+}
