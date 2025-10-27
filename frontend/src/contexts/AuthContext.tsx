@@ -1,7 +1,6 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import axios from 'axios'
 
 interface User {
   id: number
@@ -48,13 +47,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Configure axios defaults
-  useEffect(() => {
-    const token = localStorage.getItem('token')
+  const getAuthHeaders = () => {
+    const headers = new Headers()
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      headers.set('Authorization', `Bearer ${token}`)
     }
-  }, [])
+    return headers
+  }
+
+  const fetchWithAuth = async (input: RequestInfo, init: RequestInit = {}) => {
+    const headers = new Headers(init.headers || {})
+    const tokenHeaders = getAuthHeaders()
+    tokenHeaders.forEach((value, key) => {
+      if (!headers.has(key)) {
+        headers.set(key, value)
+      }
+    })
+
+    if (init.body && !headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json')
+    }
+
+    const response = await fetch(input, { ...init, headers })
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`)
+    }
+    return response
+  }
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -62,11 +82,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = localStorage.getItem('token')
       if (token) {
         try {
-          const response = await axios.get('/api/auth/me')
-          setUser(response.data)
+          const response = await fetchWithAuth('/api/auth/me')
+          const data = await response.json()
+          setUser(data)
         } catch (error) {
           localStorage.removeItem('token')
-          delete axios.defaults.headers.common['Authorization']
+          setUser(null)
         }
       }
       setLoading(false)
@@ -77,18 +98,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await axios.post('/api/auth/login', {
-        username,
-        password
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
       })
 
-      const { access_token } = response.data
+      if (!response.ok) {
+        throw new Error('Invalid credentials')
+      }
+
+      const { access_token } = await response.json()
       localStorage.setItem('token', access_token)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
 
       // Get user info
-      const userResponse = await axios.get('/api/auth/me')
-      setUser(userResponse.data)
+      const userResponse = await fetchWithAuth('/api/auth/me', {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      })
+      const userData = await userResponse.json()
+      setUser(userData)
     } catch (error) {
       throw new Error('Invalid credentials')
     }
@@ -96,7 +128,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (userData: RegisterData) => {
     try {
-      await axios.post('/api/auth/register', userData)
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Registration failed')
+      }
     } catch (error) {
       throw new Error('Registration failed')
     }
@@ -104,7 +146,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token')
-    delete axios.defaults.headers.common['Authorization']
     setUser(null)
   }
 

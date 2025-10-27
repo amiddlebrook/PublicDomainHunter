@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!frontend/src/lib/
 lib64/
 parts/
 sdist/
@@ -128,6 +129,9 @@ Thumbs.db
 
 # Project specific
 *.pdf
+frontend/out/
+frontend/.next/
+frontend/node_modules/
 
 # Frontend environment variables (with real values)
 frontend/.env.local
