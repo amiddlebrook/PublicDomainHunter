@@ -9,8 +9,8 @@ BACKEND_URL = "https://your-backend.example.com"
 [assets]
 directory = "frontend/out"
 binding = "ASSETS"
-html_handling = "auto-trailing-slash"
-not_found_handling = "404-page"
+html_handling = "append"
+not_found_handling = "404"
 
 [build]
 command = "npm --prefix frontend install && npm --prefix frontend run cf:build"
