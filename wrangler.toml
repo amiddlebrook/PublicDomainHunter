@@ -9,6 +9,8 @@ BACKEND_URL = "https://your-backend.example.com"
 [assets]
 directory = "frontend/out"
 binding = "ASSETS"
+html_handling = "auto-trailing-slash"
+not_found_handling = "single-page-application"
 html_handling = "append"
 not_found_handling = "404"
 
