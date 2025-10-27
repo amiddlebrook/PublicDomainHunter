@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "cf:build": "next build"
     "cf:build": "next build && next export"
   },
   "dependencies": {
