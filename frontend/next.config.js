@@ -1,16 +1,20 @@
 /** @type {import('next').NextConfig} */
+const isProduction = process.env.NODE_ENV === 'production'
+
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
-      },
-    ]
-  },
+  output: 'export',
+  ...(isProduction
+    ? {}
+    : {
+        async rewrites() {
+          return [
+            {
+              source: '/api/:path*',
+              destination: 'http://localhost:8000/api/:path*',
+            },
+          ]
+        },
+      }),
 }
 
 module.exports = nextConfig

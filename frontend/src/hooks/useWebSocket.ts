@@ -5,6 +5,7 @@ interface WebSocketMessage {
   type: string
   timestamp: string
   data: any
+  notification_type?: string
 }
 
 interface UseWebSocketReturn {
