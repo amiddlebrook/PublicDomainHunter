@@ -68,6 +68,29 @@ The deployment script generates self-signed certificates for testing.
 
 For simpler deployments, consider using platforms like Railway or Heroku that handle much of the infrastructure for you.
 
+### Option D: Cloudflare Workers + Pages Assets
+
+The repository includes a Cloudflare Worker configuration that serves the statically exported Next.js frontend directly from Cloudflare's edge while proxying `/api` requests to your FastAPI backend.
+
+1. **Configure environment**
+   ```bash
+   cp wrangler.toml wrangler.local.toml # optional local override
+   # Edit wrangler.toml (or wrangler.local.toml) and set BACKEND_URL to your FastAPI deployment
+   ```
+
+2. **Build the frontend for static hosting**
+   ```bash
+   npm --prefix frontend install
+   npm --prefix frontend run cf:build
+   ```
+
+3. **Deploy to Cloudflare**
+   ```bash
+   npx wrangler deploy
+   ```
+
+The Worker defined in `cloudflare/worker.ts` handles asset serving (with SPA fallbacks) and forwards API traffic to the backend specified by `BACKEND_URL`. Update the environment variable in Cloudflare after deploying to ensure runtime requests hit the correct backend origin.
+
 ## 🔑 Required API Keys
 
 ### Google Trends API

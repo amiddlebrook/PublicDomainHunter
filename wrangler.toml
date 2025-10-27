@@ -1,0 +1,14 @@
+name = "public-domain-hunter"
+main = "cloudflare/worker.ts"
+compatibility_date = "2024-10-26"
+
+[vars]
+# Update this to the publicly accessible URL where your FastAPI backend is deployed.
+BACKEND_URL = "https://your-backend.example.com"
+
+[assets]
+directory = "frontend/out"
+binding = "ASSETS"
+
+[build]
+command = "npm --prefix frontend install && npm --prefix frontend run cf:build"

@@ -62,7 +62,7 @@ export default function ReportsPage() {
     end: format(new Date(), 'yyyy-MM-dd')
   })
   const [includeCharts, setIncludeCharts] = useState(true)
-  const [format, setFormat] = useState('pdf')
+  const [reportFormat, setReportFormat] = useState('pdf')
 
   useEffect(() => {
     loadTemplates()
@@ -105,7 +105,7 @@ export default function ReportsPage() {
         report_type: selectedTemplate.report_type,
         date_range: dateRange,
         include_charts: includeCharts,
-        format: format
+        format: reportFormat
       }
 
       const response = await fetch('/api/reports/generate', {
@@ -119,7 +119,7 @@ export default function ReportsPage() {
       if (response.ok) {
         const data = await response.json()
         // Trigger download
-        downloadReport(data.content, data.report_id, format)
+        downloadReport(data.content, data.report_id, reportFormat)
         // Refresh history
         loadReportHistory()
       } else {
@@ -132,7 +132,7 @@ export default function ReportsPage() {
     }
   }
 
-  const downloadReport = (content: string, reportId: string, format: string) => {
+  const downloadReport = (content: string, reportId: string, fileFormat: string) => {
     try {
       // Decode base64 content
       const byteCharacters = atob(content)
@@ -142,14 +142,17 @@ export default function ReportsPage() {
       }
       const byteArray = new Uint8Array(byteNumbers)
       const blob = new Blob([byteArray], {
-        type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        type:
+          fileFormat === 'pdf'
+            ? 'application/pdf'
+            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       })
 
       // Create download link
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `${reportId}.${format}`
+      link.download = `${reportId}.${fileFormat}`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -313,7 +316,7 @@ export default function ReportsPage() {
 
                 <div>
                   <Label htmlFor="format">Export Format</Label>
-                  <Select value={format} onValueChange={setFormat}>
+                  <Select value={reportFormat} onValueChange={setReportFormat}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -353,9 +356,9 @@ export default function ReportsPage() {
                       <Badge className={getTemplateColor(selectedTemplate.report_type)}>
                         {selectedTemplate.report_type}
                       </Badge>
-                      {selectedTemplate.available_formats.map((format) => (
-                        <Badge key={format} variant="outline">
-                          {format.toUpperCase()}
+                      {selectedTemplate.available_formats.map((availableFormat) => (
+                        <Badge key={availableFormat} variant="outline">
+                          {availableFormat.toUpperCase()}
                         </Badge>
                       ))}
                     </div>
@@ -454,9 +457,9 @@ export default function ReportsPage() {
                             <Badge className={getTemplateColor(template.report_type)}>
                               {template.report_type}
                             </Badge>
-                            {template.available_formats.map((format) => (
-                              <Badge key={format} variant="outline" className="text-xs">
-                                {format.toUpperCase()}
+                            {template.available_formats.map((availableFormat) => (
+                              <Badge key={availableFormat} variant="outline" className="text-xs">
+                                {availableFormat.toUpperCase()}
                               </Badge>
                             ))}
                           </div>
