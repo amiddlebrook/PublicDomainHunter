@@ -1,4 +1,4 @@
-name = "public-domain-hunter"
+name = "publicdomainhunter"
 main = "cloudflare/worker.ts"
 compatibility_date = "2024-10-26"
 
