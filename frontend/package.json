@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "next lint",
     "cf:build": "next build"
-    "cf:build": "next build && next export"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
