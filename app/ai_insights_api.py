@@ -367,6 +367,240 @@ async def get_ai_status(
         raise HTTPException(status_code=500, detail="Failed to get AI status")
 
 # Import required modules
-from app.models import User, Work
+from app.models import User, Work, AIPreference
+from app.llm_service import get_llm_service, AIProvider
 from datetime import datetime
 import json
+
+
+# LLM-powered endpoints
+
+class LLMAnalysisRequest(BaseModel):
+    """Request model for LLM analysis."""
+    work_id: int = Field(..., description="Work ID to analyze")
+    analysis_type: str = Field("general", description="Type of analysis")
+    providers: Optional[List[str]] = Field(None, description="Specific providers to use")
+
+
+class LLMRecommendationRequest(BaseModel):
+    """Request model for LLM recommendations."""
+    limit: int = Field(10, description="Number of recommendations", ge=1, le=50)
+    providers: Optional[List[str]] = Field(None, description="Specific providers to use")
+    context: Optional[str] = Field(None, description="Additional context for recommendations")
+
+
+@router.post("/llm/analyze")
+async def llm_analyze_content(
+    request: LLMAnalysisRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Analyze content using LLM providers.
+
+    Uses configured LLM providers to provide AI-powered content analysis.
+    """
+    try:
+        # Get work
+        work = db.query(Work).filter(Work.id == request.work_id).first()
+        if not work:
+            raise HTTPException(status_code=404, detail="Work not found")
+
+        # Get user preferences
+        preferences = db.query(AIPreference).filter(
+            AIPreference.user_id == current_user.id
+        ).first()
+
+        # Determine providers to use
+        providers_to_use = None
+        if request.providers:
+            # User specified providers in request
+            providers_to_use = [AIProvider(p) for p in request.providers]
+        elif preferences and preferences.enabled_providers:
+            # Use user's default providers
+            if preferences.mix_providers:
+                providers_to_use = [AIProvider(p) for p in preferences.enabled_providers]
+            elif preferences.default_provider:
+                providers_to_use = [AIProvider(preferences.default_provider)]
+
+        # Get content to analyze
+        metadata = work.metadata or {}
+        content = metadata.get('content', '')
+        if not content:
+            content = f"Title: {work.title}\nAuthor: {work.author}\nDescription: {work.description or 'N/A'}"
+
+        # Analyze with LLM
+        llm_service = get_llm_service()
+        analysis = await llm_service.analyze_content(
+            content=content,
+            analysis_type=request.analysis_type,
+            providers=providers_to_use
+        )
+
+        return {
+            "work_id": request.work_id,
+            "title": work.title,
+            "author": work.author,
+            "analysis_type": request.analysis_type,
+            "analysis": analysis,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in LLM content analysis: {e}")
+        raise HTTPException(status_code=500, detail=f"LLM analysis failed: {str(e)}")
+
+
+@router.post("/llm/recommendations")
+async def llm_get_recommendations(
+    request: LLMRecommendationRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get AI-powered recommendations using LLM providers.
+
+    Uses LLMs to generate intelligent content recommendations.
+    """
+    try:
+        # Get user preferences
+        preferences = db.query(AIPreference).filter(
+            AIPreference.user_id == current_user.id
+        ).first()
+
+        # Determine providers to use
+        providers_to_use = None
+        if request.providers:
+            providers_to_use = [AIProvider(p) for p in request.providers]
+        elif preferences and preferences.enabled_providers:
+            if preferences.mix_providers:
+                providers_to_use = [AIProvider(p) for p in preferences.enabled_providers]
+            elif preferences.default_provider:
+                providers_to_use = [AIProvider(preferences.default_provider)]
+
+        # Get user's activity and preferences
+        user_works = db.query(Work).filter(Work.user_id == current_user.id).limit(20).all()
+        user_prefs = {
+            "viewed_works": [
+                {"id": w.id, "title": w.title, "author": w.author, "media_type": w.media_type}
+                for w in user_works
+            ],
+            "context": request.context or "General content discovery"
+        }
+
+        # Get available content
+        available_works = db.query(Work).filter(
+            Work.status == "active"
+        ).limit(100).all()
+
+        available_content = [
+            {
+                "id": w.id,
+                "title": w.title,
+                "author": w.author,
+                "media_type": w.media_type,
+                "description": w.description,
+                "public_domain_year": w.public_domain_year
+            }
+            for w in available_works
+        ]
+
+        # Get LLM recommendations
+        llm_service = get_llm_service()
+        recommendations = await llm_service.generate_recommendations(
+            user_preferences=user_prefs,
+            available_content=available_content,
+            providers=providers_to_use,
+            count=request.limit
+        )
+
+        return {
+            "recommendations": recommendations,
+            "user_id": current_user.id,
+            "limit": request.limit,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in LLM recommendations: {e}")
+        raise HTTPException(status_code=500, detail=f"LLM recommendations failed: {str(e)}")
+
+
+@router.get("/llm/insights/{work_id}")
+async def llm_get_work_insights(
+    work_id: int,
+    providers: Optional[str] = Query(None, description="Comma-separated provider names"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get comprehensive LLM-powered insights for a work.
+
+    Combines multiple LLM analyses to provide deep insights.
+    """
+    try:
+        # Parse providers
+        provider_list = None
+        if providers:
+            provider_list = [AIProvider(p.strip()) for p in providers.split(',')]
+
+        # Get work
+        work = db.query(Work).filter(Work.id == work_id).first()
+        if not work:
+            raise HTTPException(status_code=404, detail="Work not found")
+
+        # Get user preferences
+        preferences = db.query(AIPreference).filter(
+            AIPreference.user_id == current_user.id
+        ).first()
+
+        # Determine providers
+        if not provider_list:
+            if preferences and preferences.enabled_providers:
+                if preferences.mix_providers:
+                    provider_list = [AIProvider(p) for p in preferences.enabled_providers]
+                elif preferences.default_provider:
+                    provider_list = [AIProvider(preferences.default_provider)]
+
+        # Get content
+        metadata = work.metadata or {}
+        content = metadata.get('content', '')
+        if not content:
+            content = f"Title: {work.title}\nAuthor: {work.author}\nDescription: {work.description or 'N/A'}"
+
+        llm_service = get_llm_service()
+
+        # Run multiple analyses in parallel
+        import asyncio
+        tasks = {
+            "summary": llm_service.analyze_content(content, "summary", provider_list),
+            "sentiment": llm_service.analyze_content(content, "sentiment", provider_list),
+            "topics": llm_service.analyze_content(content, "topics", provider_list),
+            "quality": llm_service.analyze_content(content, "quality", provider_list),
+        }
+
+        results = {}
+        for name, task in tasks.items():
+            try:
+                results[name] = await task
+            except Exception as e:
+                logger.error(f"Error in {name} analysis: {e}")
+                results[name] = {"error": str(e)}
+
+        return {
+            "work_id": work_id,
+            "title": work.title,
+            "author": work.author,
+            "insights": results,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting LLM insights: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get insights: {str(e)}")

@@ -30,6 +30,8 @@ class User(Base):
     works = relationship("Work", back_populates="user")
     alerts = relationship("Alert", back_populates="user")
     subscriptions = relationship("Subscription", back_populates="user")
+    ai_preferences = relationship("AIPreference", foreign_keys="[AIPreference.user_id]")
+    activities = relationship("UserActivity", foreign_keys="[UserActivity.user_id]")
 
 class Work(Base):
     """Public domain work model."""
@@ -59,6 +61,7 @@ class Work(Base):
     user = relationship("User", back_populates="works")
     metrics = relationship("WorkMetric", back_populates="work")
     alerts = relationship("Alert", back_populates="work")
+    activities = relationship("UserActivity", foreign_keys="[UserActivity.work_id]")
 
 class WorkMetric(Base):
     """Metrics and analytics for public domain works."""
@@ -113,3 +116,47 @@ class Subscription(Base):
 
     # Relationships
     user = relationship("User", back_populates="subscriptions")
+
+class AIPreference(Base):
+    """User AI provider preferences and settings."""
+    __tablename__ = "ai_preferences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    # Enabled providers (stored as JSON array)
+    enabled_providers = Column(JSON, default=list)  # List of provider names
+
+    # Default provider to use
+    default_provider = Column(String(50))
+
+    # Whether to mix responses from multiple providers
+    mix_providers = Column(Boolean, default=False)
+
+    # Provider-specific settings
+    provider_settings = Column(JSON, default=dict)  # Settings per provider
+
+    # Generation settings
+    temperature = Column(Float, default=0.7)
+    max_tokens = Column(Integer, default=4000)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+
+class UserActivity(Base):
+    """Track user activity for AI recommendations."""
+    __tablename__ = "user_activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    work_id = Column(Integer, ForeignKey("works.id"), nullable=False)
+    activity_type = Column(String(50))  # view, search, download, bookmark
+    metadata = Column(JSON)  # Additional activity data
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+    work = relationship("Work", foreign_keys=[work_id])

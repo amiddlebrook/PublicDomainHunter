@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import AIProviderSelector from '@/components/AIProviderSelector'
 import {
   Brain,
   TrendingUp,
@@ -20,7 +21,9 @@ import {
   Star,
   RefreshCw,
   Zap,
-  Search
+  Search,
+  Settings,
+  Sparkles
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -263,7 +266,7 @@ export default function AIInsightsPage() {
       )}
 
       <Tabs defaultValue="recommendations" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="recommendations" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
             Recommendations
@@ -272,13 +275,17 @@ export default function AIInsightsPage() {
             <Lightbulb className="h-4 w-4" />
             Content Insights
           </TabsTrigger>
+          <TabsTrigger value="llm" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            LLM Analysis
+          </TabsTrigger>
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Trend Analysis
+            Trends
           </TabsTrigger>
-          <TabsTrigger value="topics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Topic Modeling
+          <TabsTrigger value="config" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Configure
           </TabsTrigger>
         </TabsList>
 
@@ -634,35 +641,108 @@ export default function AIInsightsPage() {
           </Card>
         </TabsContent>
 
-        {/* Topic Modeling Tab */}
-        <TabsContent value="topics" className="space-y-4">
+        {/* LLM Analysis Tab */}
+        <TabsContent value="llm" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-purple-600" />
-                Topic Analysis
+                <Sparkles className="h-5 w-5 text-purple-600" />
+                LLM-Powered Analysis
               </CardTitle>
               <CardDescription>
-                AI-powered topic modeling to discover themes and patterns in content
+                Advanced content analysis using multiple AI language models
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
-                <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-gray-900 mb-2">Topic Analysis Coming Soon</h3>
+                <Sparkles className="h-16 w-16 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">LLM Analysis Ready</h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Advanced topic modeling using Latent Dirichlet Allocation (LDA) to automatically discover
-                  themes and topics across your content collection.
+                  Use powerful language models from OpenAI, Claude, Gemini, and others to analyze
+                  content, generate insights, and provide intelligent recommendations.
                 </p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  <Badge variant="outline">Latent Dirichlet Allocation</Badge>
+                <div className="flex flex-wrap justify-center gap-2 mb-6">
+                  <Badge variant="outline">Content Analysis</Badge>
+                  <Badge variant="outline">Sentiment Analysis</Badge>
                   <Badge variant="outline">Topic Extraction</Badge>
-                  <Badge variant="outline">Content Clustering</Badge>
-                  <Badge variant="outline">Theme Discovery</Badge>
+                  <Badge variant="outline">Quality Assessment</Badge>
+                  <Badge variant="outline">Multi-Model Comparison</Badge>
                 </div>
+                <Alert className="max-w-xl mx-auto">
+                  <AlertDescription className="text-left">
+                    To use LLM analysis features:
+                    <ol className="list-decimal list-inside mt-2 space-y-1">
+                      <li>Configure your AI providers in the "Configure" tab</li>
+                      <li>Enable at least one provider</li>
+                      <li>Select a work to analyze from the recommendations or insights tab</li>
+                      <li>Use the API endpoints to get LLM-powered analysis</li>
+                    </ol>
+                  </AlertDescription>
+                </Alert>
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Trend Analysis Tab */}
+        <TabsContent value="trends" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Trend Predictions
+              </CardTitle>
+              <CardDescription>
+                AI-powered analysis of content trends and popularity patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {trendPredictions ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">Analysis Overview</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Total Works:</span>
+                            <span className="font-medium">{trendPredictions.total_works_analyzed.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Recent Works:</span>
+                            <span className="font-medium">{trendPredictions.recent_works.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Prediction Horizon:</span>
+                            <span className="font-medium">{trendPredictions.prediction_horizon_days} days</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Trend Analysis</h3>
+                  <p className="text-gray-600 mb-4">
+                    Analyzing content trends and patterns...
+                  </p>
+                  <Button onClick={loadTrendPredictions}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh Analysis
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Configuration Tab */}
+        <TabsContent value="config" className="space-y-4">
+          <AIProviderSelector />
         </TabsContent>
       </Tabs>
     </div>
