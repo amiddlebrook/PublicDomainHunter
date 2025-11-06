@@ -66,11 +66,13 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
   init.headers.delete("host");
 
   // If there's a session, validate it and add user info to request
-  const session = await validateSession(request, env.SESSIONS);
-  if (session) {
-    init.headers.set('X-User-Id', session.userId);
-    init.headers.set('X-User-Email', session.email);
-    init.headers.set('X-User-Username', session.username);
+  if (env.SESSIONS) {
+    const session = await validateSession(request, env.SESSIONS);
+    if (session) {
+      init.headers.set('X-User-Id', session.userId);
+      init.headers.set('X-User-Email', session.email);
+      init.headers.set('X-User-Username', session.username);
+    }
   }
 
   if (HTTP_METHODS_WITH_BODY.has(request.method)) {
@@ -86,6 +88,13 @@ async function handleOAuthLogin(
   request: Request,
   env: Env
 ): Promise<Response> {
+  if (!env.SESSIONS) {
+    return jsonResponse({
+      error: 'OAuth not available',
+      message: 'KV namespace not configured. Please see QUICK_START.md for setup instructions.'
+    }, 503);
+  }
+
   const clientIdKey = provider === 'google' ? 'GOOGLE_CLIENT_ID' : 'GITHUB_CLIENT_ID';
   const clientId = env[clientIdKey];
 
@@ -111,6 +120,10 @@ async function handleOAuthCallback(
   request: Request,
   env: Env
 ): Promise<Response> {
+  if (!env.SESSIONS) {
+    return Response.redirect(`/?error=${encodeURIComponent('OAuth not configured')}`, 302);
+  }
+
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -199,6 +212,10 @@ async function handleOAuthCallback(
 }
 
 async function handleGetSession(request: Request, env: Env): Promise<Response> {
+  if (!env.SESSIONS) {
+    return jsonResponse({ authenticated: false }, 401);
+  }
+
   const session = await validateSession(request, env.SESSIONS);
 
   if (!session) {
@@ -217,10 +234,11 @@ async function handleGetSession(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleLogout(request: Request, env: Env): Promise<Response> {
-  const sessionId = getSessionIdFromRequest(request);
-
-  if (sessionId) {
-    await deleteSession(env.SESSIONS, sessionId);
+  if (env.SESSIONS) {
+    const sessionId = getSessionIdFromRequest(request);
+    if (sessionId) {
+      await deleteSession(env.SESSIONS, sessionId);
+    }
   }
 
   return jsonResponse(
@@ -287,7 +305,7 @@ async function handleAssetRequest(request: Request, env: Env, url: URL): Promise
 export interface Env {
   BACKEND_URL: string;
   ASSETS: AssetFetcher;
-  SESSIONS: KVNamespace;
+  SESSIONS?: KVNamespace;  // Optional: Required only for OAuth features
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;

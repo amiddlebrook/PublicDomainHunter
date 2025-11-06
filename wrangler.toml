@@ -13,20 +13,20 @@ BACKEND_URL = "https://your-backend.example.com"
 # GITHUB_CLIENT_SECRET = "your-github-client-secret"
 # SESSION_SECRET = "your-session-secret-min-32-chars"
 
-# KV Namespace for session storage
-# To create:
+# KV Namespace for session storage (OPTIONAL - for OAuth features)
+# To enable OAuth login (Google/GitHub):
 # Option 1 (Dashboard):
 #   1. Go to https://dash.cloudflare.com/ > Workers & Pages > KV
 #   2. Click "Create namespace" and name it "SESSIONS"
-#   3. Copy the namespace ID and paste it below
+#   3. Copy the namespace ID
+#   4. Uncomment the lines below and replace the placeholder IDs
 # Option 2 (CLI): Run `npx wrangler kv namespace create "SESSIONS"` locally
 #
-# IMPORTANT: Replace the IDs below with your actual KV namespace IDs
-# The deployment will fail until you do this!
-[[kv_namespaces]]
-binding = "SESSIONS"
-id = "your-kv-namespace-id"  # <-- Replace this with your production KV namespace ID
-preview_id = "your-preview-kv-namespace-id"  # <-- Replace this with your preview KV namespace ID
+# Uncomment these lines after creating your KV namespace:
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "your-kv-namespace-id-here"
+# preview_id = "your-preview-kv-namespace-id-here"
 
 [assets]
 directory = "frontend/out"
