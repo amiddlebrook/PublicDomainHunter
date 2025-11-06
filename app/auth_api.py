@@ -99,9 +99,17 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         is_superuser=False
     )
 
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Database error during user registration: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account. Please try again later."
+        )
 
     logger.info(f"New user registered: {db_user.username}")
     return db_user

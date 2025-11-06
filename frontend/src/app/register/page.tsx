@@ -41,6 +41,26 @@ export default function RegisterPage() {
       return false
     }
 
+    if (!/[A-Z]/.test(formData.password)) {
+      setError('Password must contain at least one uppercase letter')
+      return false
+    }
+
+    if (!/[a-z]/.test(formData.password)) {
+      setError('Password must contain at least one lowercase letter')
+      return false
+    }
+
+    if (!/\d/.test(formData.password)) {
+      setError('Password must contain at least one digit')
+      return false
+    }
+
+    if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(formData.password)) {
+      setError('Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)')
+      return false
+    }
+
     if (!formData.email.includes('@')) {
       setError('Please enter a valid email address')
       return false
@@ -66,7 +86,12 @@ export default function RegisterPage() {
       })
       router.push('/login')
     } catch (err) {
-      setError('Registration failed. Please try again.')
+      // Display the actual error message from the backend
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -162,7 +187,7 @@ export default function RegisterPage() {
                   disabled={loading}
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Password must be at least 8 characters long
+                  Password must be at least 8 characters and contain uppercase, lowercase, digit, and special character
                 </p>
               </div>
 

@@ -171,9 +171,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
 
       if (!response.ok) {
-        throw new Error('Registration failed')
+        // Try to get the detailed error message from the backend
+        try {
+          const errorData = await response.json()
+          throw new Error(errorData.detail || 'Registration failed')
+        } catch (jsonError) {
+          throw new Error('Registration failed')
+        }
       }
     } catch (error) {
+      // Re-throw the error with its original message
+      if (error instanceof Error) {
+        throw error
+      }
       throw new Error('Registration failed')
     }
   }
