@@ -1,0 +1,15 @@
+# Cloudflare Worker Development Variables
+# Copy this file to .dev.vars for local development
+
+# Backend API URL (your FastAPI backend)
+BACKEND_URL=http://localhost:8000
+
+# Google OAuth Configuration
+# Get these from: https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# GitHub OAuth Configuration
+# Get these from: https://github.com/settings/developers
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret

@@ -80,6 +80,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token')
+
+      // Try session-based auth first (for OAuth users)
+      try {
+        const sessionResponse = await fetch('/auth/session', {
+          credentials: 'include',
+        })
+
+        if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json()
+          if (sessionData.authenticated && sessionData.user) {
+            // Fetch full user data from backend
+            try {
+              const userResponse = await fetch('/api/auth/me', {
+                credentials: 'include',
+              })
+              if (userResponse.ok) {
+                const userData = await userResponse.json()
+                setUser(userData)
+                setLoading(false)
+                return
+              }
+            } catch (err) {
+              // Session exists but couldn't get user data, continue to token check
+              console.error('Failed to get user data from session:', err)
+            }
+          }
+        }
+      } catch (error) {
+        // Session check failed, try token-based auth
+        console.debug('Session check failed, trying token auth:', error)
+      }
+
+      // Fall back to token-based auth (for username/password users)
       if (token) {
         try {
           const response = await fetchWithAuth('/api/auth/me')
@@ -90,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null)
         }
       }
+
       setLoading(false)
     }
 
@@ -144,7 +178,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    // Clear session on server (for OAuth users)
+    try {
+      await fetch('/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Failed to clear server session:', error)
+    }
+
+    // Clear local token (for password users)
     localStorage.removeItem('token')
     setUser(null)
   }
