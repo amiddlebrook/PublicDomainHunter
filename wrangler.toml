@@ -14,24 +14,10 @@ BACKEND_URL = "https://your-backend.example.com"
 # SESSION_SECRET = "your-session-secret-min-32-chars"
 
 # KV Namespace for user data and sessions
-# To enable authentication features, create a KV namespace:
-#
-# Option 1 - Cloudflare Dashboard (Recommended):
-#   1. Go to https://dash.cloudflare.com/ > Workers & Pages > KV
-#   2. Click "Create namespace" and name it "AUTH_STORE"
-#   3. Copy the namespace ID
-#   4. Go to your Pages project > Settings > Functions
-#   5. Add KV namespace binding: Variable name = "AUTH_STORE", KV namespace = select "AUTH_STORE"
-#
-# Option 2 - Wrangler CLI:
-#   Run: npx wrangler kv namespace create "AUTH_STORE"
-#   Then uncomment the lines below and paste the namespace ID
-#
-# For local development with wrangler dev, you can use:
-# [[kv_namespaces]]
-# binding = "AUTH_STORE"
-# id = "your-production-namespace-id"
-# preview_id = "your-preview-namespace-id"
+[[kv_namespaces]]
+binding = "AUTH_STORE"
+id = "a18245743eb0452ab05d680ad6522d37"
+preview_id = "a18245743eb0452ab05d680ad6522d37"
 
 [assets]
 directory = "frontend/out"
