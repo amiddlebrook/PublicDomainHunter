@@ -29,3 +29,8 @@ seaborn>=0.12.0
 plotly>=5.17.0
 redis>=4.5.0
 aiohttp>=3.8.0
+
+# AI/LLM integrations
+openai>=1.12.0
+anthropic>=0.18.0
+google-generativeai>=0.3.0
