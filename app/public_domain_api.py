@@ -319,12 +319,143 @@ class PublicDomainAggregator:
 # Additional source classes would be implemented similarly...
 
 class DPLAAPI(PublicDomainAPI):
-    """Digital Public Library of America API"""
+    """
+    Digital Public Library of America API integration.
+
+    Documentation: https://pro.dp.la/developers/api-codex
+    Requires API key: https://pro.dp.la/developers/policies#get-a-key
+    """
     BASE_URL = "https://api.dp.la/v2"
 
     async def search(self, query: str, limit: int = 50) -> List[PublicDomainWork]:
-        # Implementation similar to Europeana
-        pass
+        """
+        Search DPLA for public domain works.
+
+        Args:
+            query: Search query string
+            limit: Maximum number of results to return
+
+        Returns:
+            List of PublicDomainWork objects
+        """
+        if not self.api_key:
+            logger.warning("DPLA API key not provided - skipping DPLA search")
+            return []
+
+        try:
+            # DPLA API parameters
+            params = {
+                'api_key': self.api_key,
+                'q': query,
+                'page_size': min(limit, 500),  # DPLA max is 500
+                'sourceResource.type': 'text',  # Focus on textual works
+                'fields': 'id,sourceResource,isShownAt,provider,dataProvider,object'
+            }
+
+            response = await self.client.get(
+                f"{self.BASE_URL}/items",
+                params=params
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            works = []
+            docs = data.get('docs', [])
+
+            for doc in docs:
+                source = doc.get('sourceResource', {})
+
+                # Extract title
+                title = source.get('title')
+                if isinstance(title, list):
+                    title = title[0] if title else 'Untitled'
+                elif not title:
+                    title = 'Untitled'
+
+                # Extract creator/author
+                creator = source.get('creator', [])
+                if isinstance(creator, list):
+                    author = creator[0] if creator else None
+                else:
+                    author = creator if creator else None
+
+                # Extract date/year
+                date_str = source.get('date')
+                year = None
+                if isinstance(date_str, dict):
+                    date_str = date_str.get('displayDate')
+                elif isinstance(date_str, list):
+                    date_str = date_str[0] if date_str else None
+
+                if date_str:
+                    # Try to extract year
+                    import re
+                    year_match = re.search(r'\b(1[0-9]{3}|20[0-2][0-9])\b', str(date_str))
+                    if year_match:
+                        year = int(year_match.group(1))
+
+                # Extract description
+                description = source.get('description')
+                if isinstance(description, list):
+                    description = ' '.join(description) if description else None
+
+                # Extract subjects
+                subjects = source.get('subject', [])
+                if not isinstance(subjects, list):
+                    subjects = [subjects] if subjects else []
+
+                # Extract rights/license info
+                rights = source.get('rights', [])
+                if isinstance(rights, list):
+                    rights_str = ', '.join(rights) if rights else None
+                else:
+                    rights_str = rights
+
+                # Check if it's public domain
+                is_public_domain = False
+                if rights_str:
+                    pd_keywords = ['public domain', 'pd', 'no copyright', 'no known restrictions']
+                    rights_lower = rights_str.lower()
+                    is_public_domain = any(keyword in rights_lower for keyword in pd_keywords)
+
+                # Get source URL
+                source_url = doc.get('isShownAt')
+
+                # Get thumbnail
+                thumbnail = doc.get('object')
+
+                # Only include if likely public domain or pre-1928
+                if is_public_domain or (year and year < 1928):
+                    work = PublicDomainWork(
+                        external_id=doc.get('id', ''),
+                        title=str(title)[:500],  # Limit title length
+                        author=str(author)[:200] if author else None,
+                        description=str(description)[:2000] if description else None,
+                        publication_year=year,
+                        source='dpla',
+                        source_url=source_url,
+                        media_type='book',  # DPLA has various types, defaulting to book for text
+                        language='en',  # DPLA is mixed, but filtering primarily for English
+                        metadata={
+                            'provider': doc.get('provider', {}).get('name') if isinstance(doc.get('provider'), dict) else None,
+                            'data_provider': doc.get('dataProvider', {}).get('name') if isinstance(doc.get('dataProvider'), dict) else None,
+                            'subjects': subjects[:10],  # Limit subjects
+                            'rights': rights_str,
+                            'thumbnail': thumbnail,
+                            'is_public_domain': is_public_domain
+                        }
+                    )
+                    works.append(work)
+
+            logger.info(f"DPLA search for '{query}' returned {len(works)} public domain works")
+            return works
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"DPLA API HTTP error: {e.response.status_code}")
+            return []
+        except Exception as e:
+            logger.error(f"DPLA API error: {e}")
+            return []
 
 # Example usage
 async def example_search():

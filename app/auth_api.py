@@ -25,6 +25,7 @@ from app.auth import (
     generate_password_reset_token,
     verify_password_reset_token
 )
+from app.email_service import get_email_service
 
 logger = logging.getLogger(__name__)
 
@@ -248,11 +249,20 @@ async def forgot_password(
     """
     user = db.query(User).filter(User.email == request.email).first()
 
-    if user:
+    if user and user.is_active:
         reset_token = generate_password_reset_token(request.email)
-        # TODO: Send email with reset token
-        # background_tasks.add_task(send_password_reset_email, request.email, reset_token)
-        logger.info(f"Password reset requested for: {request.email}")
+
+        # Send password reset email
+        email_service = get_email_service()
+        if email_service.is_available():
+            background_tasks.add_task(
+                email_service.send_password_reset,
+                request.email,
+                reset_token
+            )
+            logger.info(f"Password reset email queued for: {request.email}")
+        else:
+            logger.warning(f"Email service not available - password reset token generated but not sent: {request.email}")
 
     # Always return success to prevent email enumeration
     return {"message": "If the email exists, a password reset link has been sent"}

@@ -19,6 +19,9 @@ from app.schemas import (
     AlertCreate, AlertResponse, TrendData, CompetitionAnalysis
 )
 from app.auth import get_current_active_user, get_current_active_superuser
+from app.trends_service import get_trends_service
+from app.amazon_service import get_amazon_service
+from app.background_tasks import analyze_work_background, refresh_metrics_background
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +100,11 @@ async def create_work(
     db.refresh(db_work)
 
     # Trigger background analysis
-    # analyze_work_background(db_work.id, db)
+    try:
+        analyze_work_background(db_work.id, db)
+    except Exception as e:
+        logger.error(f"Background analysis failed for work {db_work.id}: {e}")
+        # Don't fail the request if background analysis fails
 
     logger.info(f"Created new work: {db_work.title} by user {current_user.username}")
     return db_work
@@ -285,9 +292,9 @@ async def refresh_work_metrics(work_id: int, background_tasks: BackgroundTasks, 
         raise HTTPException(status_code=404, detail="Work not found")
 
     # Add background task to refresh metrics
-    # background_tasks.add_task(refresh_metrics_background, work_id, db)
+    background_tasks.add_task(refresh_metrics_background, work_id, db)
 
-    return {"message": "Metrics refresh initiated"}
+    return {"message": "Metrics refresh initiated", "work_id": work_id}
 
 # Alerts endpoints
 @router.post("/alerts", response_model=AlertResponse, status_code=status.HTTP_201_CREATED)
