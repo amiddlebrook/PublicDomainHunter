@@ -25,6 +25,7 @@ from app.auth import (
     generate_password_reset_token,
     verify_password_reset_token
 )
+from app.email_service import get_email_service
 
 logger = logging.getLogger(__name__)
 
@@ -50,11 +51,15 @@ class PasswordChangeRequest(BaseModel):
     new_password: str
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
+async def register_user(
+    user_data: UserCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
     """
     Register a new user.
 
-    Creates a new user account with the provided information.
+    Creates a new user account with the provided information and sends a welcome email.
     """
     # Check if user already exists
     existing_user = db.query(User).filter(
@@ -95,6 +100,14 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    # Send welcome email in background
+    email_service = get_email_service()
+    background_tasks.add_task(
+        email_service.send_welcome_email,
+        db_user.email,
+        db_user.username
+    )
 
     logger.info(f"New user registered: {db_user.username}")
     return db_user
@@ -250,8 +263,13 @@ async def forgot_password(
 
     if user:
         reset_token = generate_password_reset_token(request.email)
-        # TODO: Send email with reset token
-        # background_tasks.add_task(send_password_reset_email, request.email, reset_token)
+        # Send password reset email in background
+        email_service = get_email_service()
+        background_tasks.add_task(
+            email_service.send_password_reset,
+            user.email,
+            reset_token
+        )
         logger.info(f"Password reset requested for: {request.email}")
 
     # Always return success to prevent email enumeration
