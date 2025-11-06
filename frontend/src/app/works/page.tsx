@@ -42,6 +42,7 @@ interface Work {
 export default function WorksPage() {
   const [works, setWorks] = useState<Work[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState({
     media_type: '',
@@ -52,12 +53,16 @@ export default function WorksPage() {
   })
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
   useEffect(() => {
     fetchWorks()
   }, [filters])
 
   const fetchWorks = async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams({
         limit: '50',
@@ -66,13 +71,22 @@ export default function WorksPage() {
         )
       })
 
-      const response = await fetch(`/api/works?${params}`)
-      if (response.ok) {
-        const data = await response.json()
-        setWorks(data)
+      // Use full API URL instead of relative path
+      const url = `${API_URL}/api/v1/works?${params}`
+      console.log('Fetching works from:', url)
+
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+
+      const data = await response.json()
+      setWorks(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching works:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch works')
+      setWorks([])
     } finally {
       setLoading(false)
     }
@@ -227,8 +241,40 @@ export default function WorksPage() {
         </div>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-red-800">Unable to load works</h3>
+                <p className="mt-1 text-sm text-red-700">{error}</p>
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm text-red-700">
+                    Please make sure:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+                    <li>The backend server is running at <code className="bg-red-100 px-1 rounded">{API_URL}</code></li>
+                    <li>The database has been populated with works (see QUICK_START.md)</li>
+                    <li>CORS is properly configured on the backend</li>
+                  </ul>
+                  <Button onClick={fetchWorks} variant="outline" size="sm" className="mt-4">
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Works Grid/List */}
-      {filteredWorks.length > 0 ? (
+      {!error && filteredWorks.length > 0 ? (
         <div className={viewMode === 'grid'
           ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'
           : 'space-y-4'
@@ -242,7 +288,7 @@ export default function WorksPage() {
                       {getMediaTypeIcon(work.media_type)}
                       <Badge variant="outline">{work.media_type}</Badge>
                       {work.metadata?.trend_score && (
-                        <Badge variant={getTrendScoreColor(work.metadata.trend_score)}>
+                        <Badge variant="secondary">
                           <TrendingUp className="mr-1 h-3 w-3" />
                           {work.metadata.trend_score.toFixed(0)}
                         </Badge>
@@ -299,20 +345,36 @@ export default function WorksPage() {
             </Card>
           ))}
         </div>
-      ) : (
+      ) : !error ? (
         <Card>
           <CardContent className="pt-6 text-center">
             <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No works found</h3>
             <p className="text-gray-500 mb-4">
-              Try adjusting your search terms or filters to find more results.
+              {works.length === 0
+                ? "The database is empty. Run the import script to add works: python scripts/import_initial_data.py --count 100"
+                : "Try adjusting your search terms or filters to find more results."
+              }
             </p>
-            <Button variant="outline" onClick={clearFilters}>
-              Clear all filters
-            </Button>
+            {works.length === 0 ? (
+              <div className="space-y-2">
+                <Button variant="outline" asChild>
+                  <Link href="/upload">
+                    Import Works
+                  </Link>
+                </Button>
+                <p className="text-sm text-gray-500">
+                  See <code className="bg-gray-100 px-2 py-1 rounded">QUICK_START.md</code> for import instructions
+                </p>
+              </div>
+            ) : (
+              <Button variant="outline" onClick={clearFilters}>
+                Clear all filters
+              </Button>
+            )}
           </CardContent>
         </Card>
-      )}
+      ) : null}
     </div>
   )
 }
