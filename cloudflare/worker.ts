@@ -1,4 +1,20 @@
+import {
+  buildOAuthUrl,
+  createSession,
+  createSessionCookie,
+  clearSessionCookie,
+  deleteSession,
+  exchangeOAuthCode,
+  generateOAuthState,
+  getOAuthUserInfo,
+  getSessionIdFromRequest,
+  storeOAuthState,
+  validateSession,
+  verifyOAuthState,
+} from './auth';
+
 const API_PREFIX = "/api";
+const AUTH_PREFIX = "/auth";
 const HTTP_METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 function joinPaths(base: string, addition: string): string {
@@ -22,15 +38,19 @@ function isHtmlRequest(request: Request, url: URL): boolean {
   return acceptHeader.includes("text/html");
 }
 
+function jsonResponse(data: any, status: number = 200, headers: HeadersInit = {}): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "content-type": "application/json",
+      ...headers,
+    },
+  });
+}
+
 async function handleApiRequest(request: Request, env: Env, url: URL): Promise<Response> {
   if (!env.BACKEND_URL) {
-    return new Response(
-      JSON.stringify({ error: "BACKEND_URL environment variable is not configured" }),
-      {
-        status: 500,
-        headers: { "content-type": "application/json" },
-      },
-    );
+    return jsonResponse({ error: "BACKEND_URL environment variable is not configured" }, 500);
   }
 
   const backendUrl = new URL(env.BACKEND_URL);
@@ -45,12 +65,202 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
 
   init.headers.delete("host");
 
+  // If there's a session, validate it and add user info to request
+  const session = await validateSession(request, env.SESSIONS);
+  if (session) {
+    init.headers.set('X-User-Id', session.userId);
+    init.headers.set('X-User-Email', session.email);
+    init.headers.set('X-User-Username', session.username);
+  }
+
   if (HTTP_METHODS_WITH_BODY.has(request.method)) {
     const cloned = request.clone();
     init.body = await cloned.arrayBuffer();
   }
 
   return fetch(backendUrl.toString(), init);
+}
+
+async function handleOAuthLogin(
+  provider: 'google' | 'github',
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const clientIdKey = provider === 'google' ? 'GOOGLE_CLIENT_ID' : 'GITHUB_CLIENT_ID';
+  const clientId = env[clientIdKey];
+
+  if (!clientId) {
+    return jsonResponse({ error: `${provider} OAuth not configured` }, 500);
+  }
+
+  const url = new URL(request.url);
+  const redirectUri = `${url.protocol}//${url.host}${AUTH_PREFIX}/callback/${provider}`;
+
+  // Generate and store state for CSRF protection
+  const state = await generateOAuthState();
+  await storeOAuthState(env.SESSIONS, state);
+
+  // Build OAuth URL
+  const authUrl = buildOAuthUrl(provider, clientId, redirectUri, state);
+
+  return Response.redirect(authUrl, 302);
+}
+
+async function handleOAuthCallback(
+  provider: 'google' | 'github',
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+  const error = url.searchParams.get('error');
+
+  if (error) {
+    return Response.redirect(`/?error=${encodeURIComponent(error)}`, 302);
+  }
+
+  if (!code || !state) {
+    return jsonResponse({ error: 'Missing code or state parameter' }, 400);
+  }
+
+  // Verify state to prevent CSRF
+  const isValidState = await verifyOAuthState(env.SESSIONS, state);
+  if (!isValidState) {
+    return jsonResponse({ error: 'Invalid state parameter' }, 400);
+  }
+
+  try {
+    const clientIdKey = provider === 'google' ? 'GOOGLE_CLIENT_ID' : 'GITHUB_CLIENT_ID';
+    const clientSecretKey = provider === 'google' ? 'GOOGLE_CLIENT_SECRET' : 'GITHUB_CLIENT_SECRET';
+    const clientId = env[clientIdKey];
+    const clientSecret = env[clientSecretKey];
+
+    if (!clientId || !clientSecret) {
+      return jsonResponse({ error: `${provider} OAuth not configured` }, 500);
+    }
+
+    const redirectUri = `${url.protocol}//${url.host}${AUTH_PREFIX}/callback/${provider}`;
+
+    // Exchange code for access token
+    const accessToken = await exchangeOAuthCode(provider, code, clientId, clientSecret, redirectUri);
+
+    // Get user info from provider
+    const userInfo = await getOAuthUserInfo(provider, accessToken);
+
+    if (!userInfo.email) {
+      return jsonResponse({ error: 'Failed to get user email from provider' }, 400);
+    }
+
+    // Create or update user in backend
+    const backendResponse = await fetch(`${env.BACKEND_URL}/api/auth/oauth`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        provider,
+        provider_user_id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name,
+      }),
+    });
+
+    if (!backendResponse.ok) {
+      const errorData = await backendResponse.json().catch(() => ({ detail: 'Unknown error' }));
+      return jsonResponse({ error: errorData.detail || 'Failed to create/update user' }, backendResponse.status);
+    }
+
+    const userData = await backendResponse.json();
+
+    // Create session
+    const sessionId = await createSession(
+      env.SESSIONS,
+      userData.id.toString(),
+      userData.email,
+      userData.username,
+      provider
+    );
+
+    // Set session cookie and redirect to home
+    const cookie = createSessionCookie(sessionId, url.hostname, url.protocol === 'https:');
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': '/',
+        'Set-Cookie': cookie,
+      },
+    });
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    return Response.redirect(`/?error=${encodeURIComponent('Authentication failed')}`, 302);
+  }
+}
+
+async function handleGetSession(request: Request, env: Env): Promise<Response> {
+  const session = await validateSession(request, env.SESSIONS);
+
+  if (!session) {
+    return jsonResponse({ authenticated: false }, 401);
+  }
+
+  return jsonResponse({
+    authenticated: true,
+    user: {
+      userId: session.userId,
+      email: session.email,
+      username: session.username,
+      provider: session.provider,
+    },
+  });
+}
+
+async function handleLogout(request: Request, env: Env): Promise<Response> {
+  const sessionId = getSessionIdFromRequest(request);
+
+  if (sessionId) {
+    await deleteSession(env.SESSIONS, sessionId);
+  }
+
+  return jsonResponse(
+    { message: 'Logged out successfully' },
+    200,
+    { 'Set-Cookie': clearSessionCookie() }
+  );
+}
+
+async function handleAuthRequest(request: Request, env: Env, url: URL): Promise<Response> {
+  const path = url.pathname.replace(AUTH_PREFIX, '');
+
+  // OAuth login endpoints
+  if (path === '/google' && request.method === 'GET') {
+    return handleOAuthLogin('google', request, env);
+  }
+
+  if (path === '/github' && request.method === 'GET') {
+    return handleOAuthLogin('github', request, env);
+  }
+
+  // OAuth callback endpoints
+  if (path === '/callback/google' && request.method === 'GET') {
+    return handleOAuthCallback('google', request, env);
+  }
+
+  if (path === '/callback/github' && request.method === 'GET') {
+    return handleOAuthCallback('github', request, env);
+  }
+
+  // Session management endpoints
+  if (path === '/session' && request.method === 'GET') {
+    return handleGetSession(request, env);
+  }
+
+  if (path === '/logout' && request.method === 'POST') {
+    return handleLogout(request, env);
+  }
+
+  return jsonResponse({ error: 'Not found' }, 404);
 }
 
 interface AssetFetcher {
@@ -77,16 +287,28 @@ async function handleAssetRequest(request: Request, env: Env, url: URL): Promise
 export interface Env {
   BACKEND_URL: string;
   ASSETS: AssetFetcher;
+  SESSIONS: KVNamespace;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    // Handle authentication routes
+    if (url.pathname.startsWith(AUTH_PREFIX)) {
+      return handleAuthRequest(request, env, url);
+    }
+
+    // Handle API requests (with session validation)
     if (url.pathname.startsWith(API_PREFIX)) {
       return handleApiRequest(request, env, url);
     }
 
+    // Handle static assets
     return handleAssetRequest(request, env, url);
   },
 };

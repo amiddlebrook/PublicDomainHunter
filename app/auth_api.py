@@ -49,6 +49,13 @@ class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
 
+class OAuthLoginRequest(BaseModel):
+    """OAuth login/registration request model."""
+    provider: str
+    provider_user_id: str
+    email: EmailStr
+    name: str
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     """
@@ -133,6 +140,64 @@ async def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+@router.post("/oauth", response_model=UserResponse)
+async def oauth_login(
+    oauth_data: OAuthLoginRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    OAuth login/registration endpoint.
+
+    Creates a new user or returns existing user based on OAuth provider data.
+    """
+    # Check if user exists by email
+    user = db.query(User).filter(User.email == oauth_data.email).first()
+
+    if user:
+        # User exists, update their information if needed
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User account is inactive"
+            )
+
+        # Update full_name if it's different
+        if oauth_data.name and user.full_name != oauth_data.name:
+            user.full_name = oauth_data.name
+            db.commit()
+            db.refresh(user)
+
+        logger.info(f"OAuth user logged in: {user.username} via {oauth_data.provider}")
+        return user
+    else:
+        # Create new user from OAuth data
+        # Generate username from email or name
+        base_username = oauth_data.email.split('@')[0].lower()
+        username = base_username
+        counter = 1
+
+        # Ensure username is unique
+        while db.query(User).filter(User.username == username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        # Create user without password (OAuth users don't need one)
+        db_user = User(
+            email=oauth_data.email,
+            username=username,
+            hashed_password="",  # No password for OAuth users
+            full_name=oauth_data.name,
+            is_active=True,
+            is_superuser=False
+        )
+
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+
+        logger.info(f"New OAuth user registered: {db_user.username} via {oauth_data.provider}")
+        return db_user
 
 @router.post("/logout")
 async def logout(current_user: User = Depends(get_current_active_user)):
