@@ -58,6 +58,12 @@ function jsonResponse(data: any, status: number = 200, headers: HeadersInit = {}
 }
 
 async function handleRegister(request: Request, env: Env): Promise<Response> {
+  if (!env.AUTH_STORE) {
+    return jsonResponse({
+      detail: 'Authentication not configured. Please set up the AUTH_STORE KV namespace in your Cloudflare Pages settings. See wrangler.toml for instructions.'
+    }, 503);
+  }
+
   try {
     const body = await request.json() as {
       email: string;
@@ -110,6 +116,12 @@ async function handleRegister(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleLogin(request: Request, env: Env): Promise<Response> {
+  if (!env.AUTH_STORE) {
+    return jsonResponse({
+      detail: 'Authentication not configured. Please set up the AUTH_STORE KV namespace in your Cloudflare Pages settings. See wrangler.toml for instructions.'
+    }, 503);
+  }
+
   try {
     const body = await request.json() as {
       username: string;
@@ -157,6 +169,10 @@ async function handleLogin(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleGetMe(request: Request, env: Env): Promise<Response> {
+  if (!env.AUTH_STORE) {
+    return jsonResponse({ detail: 'Authentication not configured' }, 503);
+  }
+
   const session = await validateSession(request, env.AUTH_STORE);
 
   if (!session) {
@@ -445,7 +461,7 @@ async function handleAssetRequest(request: Request, env: Env, url: URL): Promise
 export interface Env {
   BACKEND_URL?: string;
   ASSETS: AssetFetcher;
-  AUTH_STORE: KVNamespace;  // Required for authentication
+  AUTH_STORE?: KVNamespace;  // Optional - enables authentication when configured
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
