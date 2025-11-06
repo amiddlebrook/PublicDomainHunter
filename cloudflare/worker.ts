@@ -13,6 +13,15 @@ import {
   verifyOAuthState,
 } from './auth';
 
+import {
+  authenticateUser,
+  createUser,
+  getUserByEmail,
+  getUserByUsername,
+  validatePassword,
+  type User,
+} from './user-auth';
+
 const API_PREFIX = "/api";
 const AUTH_PREFIX = "/auth";
 const HTTP_METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -48,9 +57,142 @@ function jsonResponse(data: any, status: number = 200, headers: HeadersInit = {}
   });
 }
 
+async function handleRegister(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json() as {
+      email: string;
+      username: string;
+      password: string;
+      full_name?: string;
+    };
+
+    const { email, username, password, full_name } = body;
+
+    if (!email || !username || !password) {
+      return jsonResponse({ detail: 'Email, username, and password are required' }, 400);
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return jsonResponse({ detail: passwordValidation.message }, 400);
+    }
+
+    // Check if user already exists
+    const existingUserByEmail = await getUserByEmail(env.AUTH_STORE, email);
+    if (existingUserByEmail) {
+      return jsonResponse({ detail: 'Email already registered' }, 400);
+    }
+
+    const existingUserByUsername = await getUserByUsername(env.AUTH_STORE, username);
+    if (existingUserByUsername) {
+      return jsonResponse({ detail: 'Username already taken' }, 400);
+    }
+
+    // Create user
+    const user = await createUser(env.AUTH_STORE, email, username, password, full_name);
+
+    // Return user (without password hash)
+    return jsonResponse({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      full_name: user.fullName,
+      is_active: user.isActive,
+      is_superuser: user.isSuperuser,
+      created_at: new Date(user.createdAt).toISOString(),
+      updated_at: new Date(user.updatedAt).toISOString(),
+    }, 201);
+  } catch (error) {
+    console.error('Registration error:', error);
+    return jsonResponse({ detail: 'Registration failed' }, 500);
+  }
+}
+
+async function handleLogin(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json() as {
+      username: string;
+      password: string;
+    };
+
+    const { username, password } = body;
+
+    if (!username || !password) {
+      return jsonResponse({ detail: 'Username and password are required' }, 400);
+    }
+
+    // Authenticate user
+    const user = await authenticateUser(env.AUTH_STORE, username, password);
+    if (!user) {
+      return jsonResponse({ detail: 'Incorrect username or password' }, 401);
+    }
+
+    if (!user.isActive) {
+      return jsonResponse({ detail: 'Account is inactive' }, 400);
+    }
+
+    // Create session
+    const sessionId = await createSession(
+      env.AUTH_STORE,
+      user.id,
+      user.email,
+      user.username,
+      'password'
+    );
+
+    // Create session cookie
+    const url = new URL(request.url);
+    const cookie = createSessionCookie(sessionId, url.hostname, url.protocol === 'https:');
+
+    return jsonResponse(
+      { access_token: sessionId, token_type: 'bearer' },
+      200,
+      { 'Set-Cookie': cookie }
+    );
+  } catch (error) {
+    console.error('Login error:', error);
+    return jsonResponse({ detail: 'Login failed' }, 500);
+  }
+}
+
+async function handleGetMe(request: Request, env: Env): Promise<Response> {
+  const session = await validateSession(request, env.AUTH_STORE);
+
+  if (!session) {
+    return jsonResponse({ detail: 'Not authenticated' }, 401);
+  }
+
+  return jsonResponse({
+    id: session.userId,
+    email: session.email,
+    username: session.username,
+    is_active: true,
+    provider: session.provider,
+  });
+}
+
 async function handleApiRequest(request: Request, env: Env, url: URL): Promise<Response> {
+  // Handle auth endpoints locally
+  if (url.pathname === '/api/auth/register' && request.method === 'POST') {
+    return handleRegister(request, env);
+  }
+
+  if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+    return handleLogin(request, env);
+  }
+
+  if (url.pathname === '/api/auth/me' && request.method === 'GET') {
+    return handleGetMe(request, env);
+  }
+
+  if (url.pathname === '/api/auth/logout' && request.method === 'POST') {
+    return handleLogout(request, env);
+  }
+
+  // Proxy other requests to backend if configured
   if (!env.BACKEND_URL) {
-    return jsonResponse({ error: "BACKEND_URL environment variable is not configured" }, 500);
+    return jsonResponse({ error: "Backend not configured for this endpoint" }, 501);
   }
 
   const backendUrl = new URL(env.BACKEND_URL);
@@ -66,13 +208,11 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
   init.headers.delete("host");
 
   // If there's a session, validate it and add user info to request
-  if (env.SESSIONS) {
-    const session = await validateSession(request, env.SESSIONS);
-    if (session) {
-      init.headers.set('X-User-Id', session.userId);
-      init.headers.set('X-User-Email', session.email);
-      init.headers.set('X-User-Username', session.username);
-    }
+  const session = await validateSession(request, env.AUTH_STORE);
+  if (session) {
+    init.headers.set('X-User-Id', session.userId);
+    init.headers.set('X-User-Email', session.email);
+    init.headers.set('X-User-Username', session.username);
   }
 
   if (HTTP_METHODS_WITH_BODY.has(request.method)) {
@@ -88,7 +228,7 @@ async function handleOAuthLogin(
   request: Request,
   env: Env
 ): Promise<Response> {
-  if (!env.SESSIONS) {
+  if (!env.AUTH_STORE) {
     return jsonResponse({
       error: 'OAuth not available',
       message: 'KV namespace not configured. Please see QUICK_START.md for setup instructions.'
@@ -107,7 +247,7 @@ async function handleOAuthLogin(
 
   // Generate and store state for CSRF protection
   const state = await generateOAuthState();
-  await storeOAuthState(env.SESSIONS, state);
+  await storeOAuthState(env.AUTH_STORE, state);
 
   // Build OAuth URL
   const authUrl = buildOAuthUrl(provider, clientId, redirectUri, state);
@@ -120,7 +260,7 @@ async function handleOAuthCallback(
   request: Request,
   env: Env
 ): Promise<Response> {
-  if (!env.SESSIONS) {
+  if (!env.AUTH_STORE) {
     return Response.redirect(`/?error=${encodeURIComponent('OAuth not configured')}`, 302);
   }
 
@@ -138,7 +278,7 @@ async function handleOAuthCallback(
   }
 
   // Verify state to prevent CSRF
-  const isValidState = await verifyOAuthState(env.SESSIONS, state);
+  const isValidState = await verifyOAuthState(env.AUTH_STORE, state);
   if (!isValidState) {
     return jsonResponse({ error: 'Invalid state parameter' }, 400);
   }
@@ -188,7 +328,7 @@ async function handleOAuthCallback(
 
     // Create session
     const sessionId = await createSession(
-      env.SESSIONS,
+      env.AUTH_STORE,
       userData.id.toString(),
       userData.email,
       userData.username,
@@ -212,11 +352,11 @@ async function handleOAuthCallback(
 }
 
 async function handleGetSession(request: Request, env: Env): Promise<Response> {
-  if (!env.SESSIONS) {
+  if (!env.AUTH_STORE) {
     return jsonResponse({ authenticated: false }, 401);
   }
 
-  const session = await validateSession(request, env.SESSIONS);
+  const session = await validateSession(request, env.AUTH_STORE);
 
   if (!session) {
     return jsonResponse({ authenticated: false }, 401);
@@ -234,10 +374,10 @@ async function handleGetSession(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleLogout(request: Request, env: Env): Promise<Response> {
-  if (env.SESSIONS) {
+  if (env.AUTH_STORE) {
     const sessionId = getSessionIdFromRequest(request);
     if (sessionId) {
-      await deleteSession(env.SESSIONS, sessionId);
+      await deleteSession(env.AUTH_STORE, sessionId);
     }
   }
 
@@ -303,9 +443,9 @@ async function handleAssetRequest(request: Request, env: Env, url: URL): Promise
 }
 
 export interface Env {
-  BACKEND_URL: string;
+  BACKEND_URL?: string;
   ASSETS: AssetFetcher;
-  SESSIONS?: KVNamespace;  // Optional: Required only for OAuth features
+  AUTH_STORE: KVNamespace;  // Required for authentication
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
