@@ -135,3 +135,4 @@ frontend/node_modules/
 
 # Frontend environment variables (with real values)
 frontend/.env.local
+backend-worker/node_modules/
