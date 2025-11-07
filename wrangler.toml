@@ -4,7 +4,7 @@ compatibility_date = "2024-10-26"
 
 [vars]
 # Update this to the publicly accessible URL where your FastAPI backend is deployed.
-BACKEND_URL = "https://your-backend.example.com"
+BACKEND_URL = "https://publicdomainhunter.averymiddlebrook2014.workers.dev"
 
 # OAuth Configuration (set these in Cloudflare dashboard or .dev.vars for local dev)
 # GOOGLE_CLIENT_ID = "your-google-client-id"
