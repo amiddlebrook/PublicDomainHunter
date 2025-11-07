@@ -15,9 +15,8 @@ BACKEND_URL = "https://your-backend.example.com"
 
 # KV Namespace for session storage
 [[kv_namespaces]]
-binding = "SESSIONS"
-id = "your-kv-namespace-id"
-preview_id = "your-preview-kv-namespace-id"
+binding = "AUTH_STORE"
+id = "a18245743eb0452ab05d680ad6522d37"
 
 [assets]
 directory = "frontend/out"

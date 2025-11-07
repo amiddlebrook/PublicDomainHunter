@@ -66,7 +66,7 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
   init.headers.delete("host");
 
   // If there's a session, validate it and add user info to request
-  const session = await validateSession(request, env.SESSIONS);
+  const session = await validateSession(request, env.AUTH_STORE);
   if (session) {
     init.headers.set('X-User-Id', session.userId);
     init.headers.set('X-User-Email', session.email);
@@ -98,7 +98,7 @@ async function handleOAuthLogin(
 
   // Generate and store state for CSRF protection
   const state = await generateOAuthState();
-  await storeOAuthState(env.SESSIONS, state);
+  await storeOAuthState(env.AUTH_STORE, state);
 
   // Build OAuth URL
   const authUrl = buildOAuthUrl(provider, clientId, redirectUri, state);
@@ -125,7 +125,7 @@ async function handleOAuthCallback(
   }
 
   // Verify state to prevent CSRF
-  const isValidState = await verifyOAuthState(env.SESSIONS, state);
+  const isValidState = await verifyOAuthState(env.AUTH_STORE, state);
   if (!isValidState) {
     return jsonResponse({ error: 'Invalid state parameter' }, 400);
   }
@@ -175,7 +175,7 @@ async function handleOAuthCallback(
 
     // Create session
     const sessionId = await createSession(
-      env.SESSIONS,
+      env.AUTH_STORE,
       userData.id.toString(),
       userData.email,
       userData.username,
@@ -199,7 +199,7 @@ async function handleOAuthCallback(
 }
 
 async function handleGetSession(request: Request, env: Env): Promise<Response> {
-  const session = await validateSession(request, env.SESSIONS);
+  const session = await validateSession(request, env.AUTH_STORE);
 
   if (!session) {
     return jsonResponse({ authenticated: false }, 401);
@@ -220,7 +220,7 @@ async function handleLogout(request: Request, env: Env): Promise<Response> {
   const sessionId = getSessionIdFromRequest(request);
 
   if (sessionId) {
-    await deleteSession(env.SESSIONS, sessionId);
+    await deleteSession(env.AUTH_STORE, sessionId);
   }
 
   return jsonResponse(
@@ -287,7 +287,7 @@ async function handleAssetRequest(request: Request, env: Env, url: URL): Promise
 export interface Env {
   BACKEND_URL: string;
   ASSETS: AssetFetcher;
-  SESSIONS: KVNamespace;
+  AUTH_STORE: KVNamespace;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
