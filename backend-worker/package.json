@@ -1,0 +1,21 @@
+{
+  "name": "publicdomainhunter-backend",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker backend for Public Domain Hunter",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create publicdomainhunter",
+    "db:init": "wrangler d1 execute publicdomainhunter --file=./schema.sql",
+    "db:migrate": "wrangler d1 execute publicdomainhunter --file=./schema.sql",
+    "secret:set": "wrangler secret put SECRET_KEY"
+  },
+  "keywords": ["cloudflare", "workers", "backend", "api"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "wrangler": "^3.0.0"
+  }
+}
