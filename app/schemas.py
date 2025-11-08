@@ -169,6 +169,10 @@ class UserInDBBase(UserBase):
     class Config:
         from_attributes = True
 
+class UserInDB(UserInDBBase):
+    """Schema for user in database (complete)."""
+    pass
+
 # Subscription schemas
 class SubscriptionResponse(BaseModel):
     """Schema for subscription response."""
