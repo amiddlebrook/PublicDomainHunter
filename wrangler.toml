@@ -4,16 +4,31 @@ compatibility_date = "2024-10-26"
 
 [vars]
 # Update this to the publicly accessible URL where your FastAPI backend is deployed.
+# For local development, set this in .dev.vars instead
 BACKEND_URL = "https://your-backend.example.com"
 
-# OAuth Configuration (set these in Cloudflare dashboard or .dev.vars for local dev)
-# GOOGLE_CLIENT_ID = "your-google-client-id"
-# GOOGLE_CLIENT_SECRET = "your-google-client-secret"
-# GITHUB_CLIENT_ID = "your-github-client-id"
-# GITHUB_CLIENT_SECRET = "your-github-client-secret"
-# SESSION_SECRET = "your-session-secret-min-32-chars"
+# OAuth Configuration
+# IMPORTANT: For security, set these as secrets (not in this file!)
+#
+# For LOCAL development:
+#   1. Copy .dev.vars.example to .dev.vars
+#   2. Add your OAuth credentials to .dev.vars
+#   3. Never commit .dev.vars to git
+#
+# For PRODUCTION deployment:
+#   Use Wrangler secrets (encrypted):
+#   wrangler secret put GOOGLE_CLIENT_ID
+#   wrangler secret put GOOGLE_CLIENT_SECRET
+#   wrangler secret put GITHUB_CLIENT_ID
+#   wrangler secret put GITHUB_CLIENT_SECRET
+#
+# See CLOUDFLARE_AUTH_SETUP.md for complete setup instructions
 
 # KV Namespace for session storage
+# IMPORTANT: Create KV namespaces before deploying:
+#   wrangler kv:namespace create "SESSIONS"
+#   wrangler kv:namespace create "SESSIONS" --preview
+# Then update the IDs below with the output from those commands
 [[kv_namespaces]]
 binding = "SESSIONS"
 id = "your-kv-namespace-id"
