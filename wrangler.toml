@@ -61,7 +61,40 @@ preview_id = "25c5b93996de4bce81e0b336471b4141"
 [[d1_databases]]
 binding = "DB"
 database_name = "publicdomainhunter_db"
-database_id = "YOUR_D1_DATABASE_ID_HERE" # Important: Replace with your actual D1 database ID after creation
+database_id = "Igxqh5q9hvRTXvSu6NGxJ1yVu_KMblakHlMlRSJ3"
+
+# R2 Bucket for file storage (EPUB, PDF uploads)
+# Configure in Dashboard: Workers & Pages → R2 → Create bucket
+# Then bind it in: Pages → Settings → Functions → R2 bucket bindings
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "publicdomainhunter-files"
+preview_bucket_name = "publicdomainhunter-files-preview"
+
+# KV namespace for caching (replaces Redis)
+# Used for: API response caching, rate limiting, temporary data
+[[kv_namespaces]]
+binding = "CACHE"
+id = "YOUR_CACHE_KV_ID_HERE"
+preview_id = "YOUR_CACHE_KV_PREVIEW_ID_HERE"
+
+# Queue for background job processing
+# Configure in Dashboard: Workers & Pages → Queues → Create queue
+# Used for: Alert processing, metrics updates, email sending
+[[queues.producers]]
+binding = "JOBS_QUEUE"
+queue = "publicdomainhunter-jobs"
+
+[[queues.consumers]]
+queue = "publicdomainhunter-jobs"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "publicdomainhunter-jobs-dlq"
+
+# Analytics Engine for tracking (optional but recommended)
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
 
 [assets]
 directory = "frontend/out"
