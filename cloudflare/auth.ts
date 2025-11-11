@@ -51,13 +51,16 @@ export async function generateSessionId(): Promise<string> {
  * Create a new session and store it in KV
  */
 export async function createSession(
-  kv: KVNamespace,
+  kv: KVNamespace | undefined,
   userId: string,
   email: string,
   username: string,
   provider: Session['provider'],
   expirationSeconds: number = 86400 * 7 // 7 days
 ): Promise<string> {
+  if (!kv) {
+    throw new Error('KV namespace not configured - sessions are not available');
+  }
   const sessionId = await generateSessionId();
   const now = Date.now();
 
@@ -81,7 +84,10 @@ export async function createSession(
 /**
  * Get a session from KV
  */
-export async function getSession(kv: KVNamespace, sessionId: string): Promise<Session | null> {
+export async function getSession(kv: KVNamespace | undefined, sessionId: string): Promise<Session | null> {
+  if (!kv) {
+    return null;
+  }
   const sessionData = await kv.get(`session:${sessionId}`, 'text');
 
   if (!sessionData) {
@@ -102,7 +108,10 @@ export async function getSession(kv: KVNamespace, sessionId: string): Promise<Se
 /**
  * Delete a session from KV
  */
-export async function deleteSession(kv: KVNamespace, sessionId: string): Promise<void> {
+export async function deleteSession(kv: KVNamespace | undefined, sessionId: string): Promise<void> {
+  if (!kv) {
+    return;
+  }
   await kv.delete(`session:${sessionId}`);
 }
 
@@ -281,7 +290,10 @@ export async function generateOAuthState(): Promise<string> {
 /**
  * Store OAuth state in KV (to prevent CSRF)
  */
-export async function storeOAuthState(kv: KVNamespace, state: string): Promise<void> {
+export async function storeOAuthState(kv: KVNamespace | undefined, state: string): Promise<void> {
+  if (!kv) {
+    throw new Error('KV namespace not configured - OAuth is not available');
+  }
   await kv.put(`oauth_state:${state}`, 'valid', {
     expirationTtl: 600, // 10 minutes
   });
@@ -290,7 +302,10 @@ export async function storeOAuthState(kv: KVNamespace, state: string): Promise<v
 /**
  * Verify and consume OAuth state
  */
-export async function verifyOAuthState(kv: KVNamespace, state: string): Promise<boolean> {
+export async function verifyOAuthState(kv: KVNamespace | undefined, state: string): Promise<boolean> {
+  if (!kv) {
+    return false;
+  }
   const value = await kv.get(`oauth_state:${state}`);
 
   if (value === 'valid') {
@@ -306,8 +321,13 @@ export async function verifyOAuthState(kv: KVNamespace, state: string): Promise<
  */
 export async function validateSession(
   request: Request,
-  kv: KVNamespace
+  kv: KVNamespace | undefined
 ): Promise<Session | null> {
+  // If KV namespace is not configured, sessions are not available
+  if (!kv) {
+    return null;
+  }
+
   const sessionId = getSessionIdFromRequest(request);
 
   if (!sessionId) {

@@ -139,6 +139,8 @@ cd frontend && npm install && npm run dev
 | Guide | Purpose | Audience |
 |-------|---------|----------|
 | **[SETUP.md](SETUP.md)** | Complete installation guide | Developers |
+| **[CLOUDFLARE_PAGES_SETUP.md](CLOUDFLARE_PAGES_SETUP.md)** | Cloudflare Pages deployment | DevOps |
+| **[CLOUDFLARE_AUTH_SETUP.md](CLOUDFLARE_AUTH_SETUP.md)** | OAuth setup for Cloudflare | Developers |
 | **[DEPLOYMENT.md](DEPLOYMENT.md)** | Production deployment | DevOps |
 | **[API_SOURCES.md](API_SOURCES.md)** | Content source integration | Developers |
 | **[COST_GUIDE.md](COST_GUIDE.md)** | Cost analysis & planning | Business |
@@ -175,6 +177,18 @@ GET    /api/users/me        # Current user profile
 
 ## 🚢 Deployment Options
 
+### ☁️ Cloudflare Pages (Recommended for Frontend)
+```bash
+# Deploy frontend to Cloudflare Pages with edge authentication
+# See CLOUDFLARE_PAGES_SETUP.md for step-by-step instructions
+
+# Configure KV namespace and environment variables in Cloudflare Dashboard
+# Push to GitHub - automatic deployment via Cloudflare Pages
+```
+**Features**: Free tier, global CDN, edge authentication, auto-scaling
+**Cost**: $0-20/month (includes Workers, KV storage)
+**Setup Guide**: [CLOUDFLARE_PAGES_SETUP.md](CLOUDFLARE_PAGES_SETUP.md)
+
 ### 🐳 Docker Compose (Development & Production)
 ```bash
 # Development
@@ -184,10 +198,11 @@ docker-compose up -d
 ./deploy.sh production
 ```
 
-### ☁️ Cloud Platforms
+### ☁️ Cloud Platforms (Backend Deployment)
 - **DigitalOcean**: $6-25/month (great for startups)
 - **AWS/GCP**: $50-500+/month (enterprise scale)
 - **Railway/Render**: $5-25/month (managed platforms)
+- **Cloudflare + Backend Host**: Frontend on Cloudflare Pages (free) + Backend on any platform
 
 ### 🛠️ Infrastructure as Code
 - **Terraform**: Infrastructure provisioning
