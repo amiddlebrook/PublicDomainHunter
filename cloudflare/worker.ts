@@ -50,35 +50,74 @@ function jsonResponse(data: any, status: number = 200, headers: HeadersInit = {}
 
 async function handleApiRequest(request: Request, env: Env, url: URL): Promise<Response> {
   if (!env.BACKEND_URL) {
-    return jsonResponse({ error: "BACKEND_URL environment variable is not configured" }, 500);
+    console.error('BACKEND_URL is not configured');
+    return jsonResponse({
+      error: "Backend not configured",
+      message: "BACKEND_URL environment variable is not set. Please configure it in Cloudflare Pages settings.",
+      details: "Go to: Pages > Settings > Environment Variables and add BACKEND_URL"
+    }, 500);
   }
 
-  const backendUrl = new URL(env.BACKEND_URL);
-  backendUrl.pathname = joinPaths(backendUrl.pathname, url.pathname);
-  backendUrl.search = url.search;
+  try {
+    const backendUrl = new URL(env.BACKEND_URL);
+    backendUrl.pathname = joinPaths(backendUrl.pathname, url.pathname);
+    backendUrl.search = url.search;
 
-  const init: RequestInit = {
-    method: request.method,
-    headers: new Headers(request.headers),
-    redirect: request.redirect,
-  };
+    console.log(`Proxying ${request.method} ${url.pathname} to ${backendUrl.toString()}`);
 
-  init.headers.delete("host");
+    const init: RequestInit = {
+      method: request.method,
+      headers: new Headers(request.headers),
+      redirect: request.redirect,
+    };
 
-  // If there's a session, validate it and add user info to request
-  const session = await validateSession(request, env.SESSIONS);
-  if (session) {
-    init.headers.set('X-User-Id', session.userId);
-    init.headers.set('X-User-Email', session.email);
-    init.headers.set('X-User-Username', session.username);
+    init.headers.delete("host");
+
+    // If there's a session, validate it and add user info to request
+    const session = await validateSession(request, env.SESSIONS);
+    if (session) {
+      init.headers.set('X-User-Id', session.userId);
+      init.headers.set('X-User-Email', session.email);
+      init.headers.set('X-User-Username', session.username);
+    }
+
+    if (HTTP_METHODS_WITH_BODY.has(request.method)) {
+      const cloned = request.clone();
+      init.body = await cloned.arrayBuffer();
+    }
+
+    const response = await fetch(backendUrl.toString(), init);
+
+    // Log errors for debugging
+    if (!response.ok) {
+      const responseText = await response.text();
+      console.error(`Backend request failed: ${response.status} ${response.statusText}`, responseText);
+
+      // Try to parse as JSON and return, otherwise return text
+      try {
+        const errorData = JSON.parse(responseText);
+        return jsonResponse(errorData, response.status);
+      } catch {
+        return jsonResponse({
+          error: `Backend error: ${response.status}`,
+          message: responseText || response.statusText,
+          details: `Request to ${url.pathname} failed`
+        }, response.status);
+      }
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error proxying to backend:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    return jsonResponse({
+      error: "Failed to connect to backend",
+      message: errorMessage,
+      details: `Could not reach backend at ${env.BACKEND_URL}. Please check that the backend is deployed and accessible.`,
+      backend_url: env.BACKEND_URL
+    }, 502);
   }
-
-  if (HTTP_METHODS_WITH_BODY.has(request.method)) {
-    const cloned = request.clone();
-    init.body = await cloned.arrayBuffer();
-  }
-
-  return fetch(backendUrl.toString(), init);
 }
 
 async function handleOAuthLogin(
@@ -241,8 +280,51 @@ async function handleLogout(request: Request, env: Env): Promise<Response> {
   );
 }
 
+async function handleHealthCheck(env: Env): Promise<Response> {
+  const health: any = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    cloudflare_worker: 'running',
+    backend_configured: !!env.BACKEND_URL,
+    backend_url: env.BACKEND_URL || 'NOT_SET',
+    kv_configured: !!env.SESSIONS,
+  };
+
+  // Test backend connectivity if configured
+  if (env.BACKEND_URL) {
+    try {
+      const backendHealth = await fetch(`${env.BACKEND_URL}/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000), // 5 second timeout
+      });
+
+      health.backend_status = backendHealth.ok ? 'reachable' : 'error';
+      health.backend_http_status = backendHealth.status;
+
+      if (!backendHealth.ok) {
+        health.status = 'degraded';
+        health.backend_error = await backendHealth.text();
+      }
+    } catch (error) {
+      health.status = 'degraded';
+      health.backend_status = 'unreachable';
+      health.backend_error = error instanceof Error ? error.message : 'Unknown error';
+    }
+  } else {
+    health.status = 'degraded';
+    health.warning = 'BACKEND_URL not configured';
+  }
+
+  return jsonResponse(health, health.status === 'ok' ? 200 : 503);
+}
+
 async function handleAuthRequest(request: Request, env: Env, url: URL): Promise<Response> {
   const path = url.pathname.replace(AUTH_PREFIX, '');
+
+  // Health check endpoint
+  if (path === '/health' && request.method === 'GET') {
+    return handleHealthCheck(env);
+  }
 
   // OAuth login endpoints
   if (path === '/google' && request.method === 'GET') {
