@@ -86,6 +86,13 @@ async function handleOAuthLogin(
   request: Request,
   env: Env
 ): Promise<Response> {
+  if (!env.SESSIONS) {
+    return jsonResponse({
+      error: 'Authentication not configured',
+      message: 'Please configure the SESSIONS KV namespace binding in Cloudflare Dashboard. See CLOUDFLARE_PAGES_SETUP.md for instructions.'
+    }, 503);
+  }
+
   const clientIdKey = provider === 'google' ? 'GOOGLE_CLIENT_ID' : 'GITHUB_CLIENT_ID';
   const clientId = env[clientIdKey];
 
@@ -111,6 +118,10 @@ async function handleOAuthCallback(
   request: Request,
   env: Env
 ): Promise<Response> {
+  if (!env.SESSIONS) {
+    return Response.redirect(`/?error=${encodeURIComponent('Authentication not configured')}`, 302);
+  }
+
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -287,7 +298,7 @@ async function handleAssetRequest(request: Request, env: Env, url: URL): Promise
 export interface Env {
   BACKEND_URL: string;
   ASSETS: AssetFetcher;
-  SESSIONS: KVNamespace;
+  SESSIONS?: KVNamespace; // Optional - configured via Dashboard for Pages deployment
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;

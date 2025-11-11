@@ -32,25 +32,33 @@ BACKEND_URL = "https://your-backend.example.com"
 #
 # See CLOUDFLARE_AUTH_SETUP.md for complete OAuth setup instructions
 
-# ⚠️  KV Namespace for session storage - REQUIRES CONFIGURATION
+# ⚠️  KV Namespace for session storage - CONFIGURE VIA DASHBOARD
 #
-# For Cloudflare Pages deployment:
-#   1. Create KV namespace in Cloudflare Dashboard → Workers & Pages → KV
-#   2. Bind it: Dashboard → Pages → publicdomainhunter → Settings → Functions → KV namespace bindings
-#      Variable name: SESSIONS
-#      KV namespace: Select the namespace you created
-#   3. This will override the IDs below when deploying via Pages
+# For Cloudflare Pages deployment (RECOMMENDED):
+#   The KV namespace section below is COMMENTED OUT to allow initial deployment.
+#   After deployment succeeds, configure KV binding through the dashboard:
 #
-# For local development / wrangler CLI deployment:
+#   1. Create KV namespace: Dashboard → Workers & Pages → KV → Create namespace (name: "SESSIONS")
+#   2. Bind it to your Pages project:
+#      - Go to: Dashboard → Pages → publicdomainhunter → Settings → Functions
+#      - Scroll to: KV namespace bindings
+#      - Click "Add binding"
+#      - Variable name: SESSIONS
+#      - KV namespace: Select the namespace you created
+#   3. Redeploy (happens automatically on next push)
+#
+# For local development with wrangler CLI:
 #   1. Run: wrangler kv namespace create "SESSIONS"
 #   2. Run: wrangler kv namespace create "SESSIONS" --preview
-#   3. Update the id and preview_id below with the values from those commands
+#   3. Uncomment the section below and update with the IDs from those commands
 #
-# See CLOUDFLARE_PAGES_SETUP.md for step-by-step instructions
-[[kv_namespaces]]
-binding = "SESSIONS"
-id = "your-kv-namespace-id"          # ← Replace with your production KV namespace ID
-preview_id = "your-preview-kv-namespace-id"  # ← Replace with your preview KV namespace ID
+# See CLOUDFLARE_PAGES_SETUP.md for detailed instructions
+
+# COMMENTED OUT: Uncomment and update IDs for local wrangler deployments
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "your-kv-namespace-id"          # ← Replace with your production KV namespace ID
+# preview_id = "your-preview-kv-namespace-id"  # ← Replace with your preview KV namespace ID
 
 [assets]
 directory = "frontend/out"
