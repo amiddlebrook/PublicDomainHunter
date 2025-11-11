@@ -60,6 +60,13 @@ BACKEND_URL = "https://your-backend.example.com"
 # id = "your-kv-namespace-id"          # ← Replace with your production KV namespace ID
 # preview_id = "your-preview-kv-namespace-id"  # ← Replace with your preview KV namespace ID
 
+# D1 Database Configuration
+# The deployment script (deploy-cloudflare.sh) will automatically update this
+[[d1_databases]]
+binding = "DB"
+database_name = "publicdomainhunter_db"
+database_id = "PLACEHOLDER_DB_ID"  # ← Will be updated during deployment
+
 [assets]
 directory = "frontend/out"
 binding = "ASSETS"
