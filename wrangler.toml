@@ -15,7 +15,6 @@ compatibility_date = "2024-10-26"
 #   Example: BACKEND_URL=http://localhost:8000
 #
 # See CLOUDFLARE_PAGES_SETUP.md for complete deployment instructions
-BACKEND_URL = "https://your-backend.example.com"
 
 # OAuth Configuration
 # IMPORTANT: For security, set these as secrets (not in this file!)
@@ -54,11 +53,15 @@ BACKEND_URL = "https://your-backend.example.com"
 #
 # See CLOUDFLARE_PAGES_SETUP.md for detailed instructions
 
-# COMMENTED OUT: Uncomment and update IDs for local wrangler deployments
-# [[kv_namespaces]]
-# binding = "SESSIONS"
-# id = "your-kv-namespace-id"          # ← Replace with your production KV namespace ID
-# preview_id = "your-preview-kv-namespace-id"  # ← Replace with your preview KV namespace ID
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "25c5b93996de4bce81e0b336471b4141"
+preview_id = "25c5b93996de4bce81e0b336471b4141"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "publicdomainhunter_db"
+database_id = "YOUR_D1_DATABASE_ID_HERE" # Important: Replace with your actual D1 database ID after creation
 
 [assets]
 directory = "frontend/out"
