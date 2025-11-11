@@ -1,34 +1,47 @@
 // cloudflare/worker.ts
+// Main Cloudflare Worker entry point
 
-import { D1Database, KVNamespace, Fetcher } from '@cloudflare/workers-types';
-import nativeBackend from './native-backend';
+import { D1Database, KVNamespace, R2Bucket, Queue, AnalyticsEngineDataset, Fetcher } from '@cloudflare/workers-types';
+import backend from './backend';
+import { handleQueue } from './queue-consumer';
 
 // Define the bindings expected from the environment
 export interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
   SESSIONS: KVNamespace;
-  // Add other secrets and environment variables here as needed
+  CACHE: KVNamespace;
+  FILES: R2Bucket;
+  JOBS_QUEUE: Queue;
+  ANALYTICS?: AnalyticsEngineDataset;
+
+  // Secrets
+  JWT_SECRET: string;
+
+  // API Keys for external services
+  OPENAI_API_KEY?: string;
+  CLAUDE_API_KEY?: string;
+  GEMINI_API_KEY?: string;
+  OPENROUTER_API_KEY?: string;
 }
 
 export default {
+  /**
+   * HTTP Request Handler
+   */
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // If the request is for an API route, let the native backend handle it.
-    // The native backend is a Hono app that will handle its own routing.
+    // API routes are handled by the backend
     if (url.pathname.startsWith('/api/')) {
-      return nativeBackend.fetch(request, env, ctx);
+      return backend.fetch(request, env, ctx);
     }
 
-    // For all other requests, assume it's a static asset.
-    // The ASSETS binding is configured in wrangler.toml to point to the frontend build output.
+    // All other requests are static assets
     try {
-      // Let the ASSETS fetcher handle the request
       const response = await env.ASSETS.fetch(request);
 
-      // If the asset is not found (e.g., for SPA routing),
-      // try fetching the root index.html.
+      // For SPA routing, serve index.html on 404
       if (response.status === 404) {
         const notFoundRequest = new Request(new URL('/index.html', request.url), request);
         const notFoundResponse = await env.ASSETS.fetch(notFoundRequest);
@@ -38,10 +51,40 @@ export default {
       }
 
       return response;
-
     } catch (e) {
       console.error('Failed to fetch asset:', e);
       return new Response('An unexpected error occurred', { status: 500 });
     }
+  },
+
+  /**
+   * Queue Consumer Handler
+   * Processes background jobs from Cloudflare Queues
+   */
+  async queue(batch: MessageBatch, env: Env, ctx: ExecutionContext): Promise<void> {
+    await handleQueue(batch, env);
+  },
+
+  /**
+   * Scheduled Handler (Cron Triggers)
+   * Runs periodic background tasks
+   */
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    // Example: Run metrics updates daily
+    console.log('Running scheduled task:', event.cron);
+
+    // Queue metrics updates for all active works
+    const { results } = await env.DB.prepare(
+      'SELECT id FROM Work WHERE status = ? LIMIT 100'
+    ).bind('active').all();
+
+    for (const work of results || []) {
+      await env.JOBS_QUEUE.send({
+        type: 'metrics_update',
+        payload: { workId: (work as any).id },
+      });
+    }
+
+    console.log(`Queued metrics updates for ${results?.length || 0} works`);
   },
 };
