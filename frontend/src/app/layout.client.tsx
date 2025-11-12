@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, type ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import clsx from 'clsx'
 import {
   BookOpen,
@@ -19,7 +20,12 @@ import {
   Upload,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import RealTimeNotification from '@/components/RealTimeNotification'
+
+// Load RealTimeNotification only on client side to avoid SSR/hydration issues
+const RealTimeNotification = dynamic(
+  () => import('@/components/RealTimeNotification'),
+  { ssr: false }
+)
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },

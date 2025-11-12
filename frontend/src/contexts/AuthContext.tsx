@@ -46,6 +46,12 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
+
+  // Detect client-side environment
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const getAuthHeaders = () => {
     const headers = new Headers()
@@ -78,6 +84,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check if user is authenticated on mount
   useEffect(() => {
+    if (!isClient) {
+      return
+    }
+
     const checkAuth = async () => {
       const token = localStorage.getItem('token')
 
@@ -128,7 +138,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     checkAuth()
-  }, [])
+  }, [isClient])
 
   const login = async (username: string, password: string) => {
     try {
