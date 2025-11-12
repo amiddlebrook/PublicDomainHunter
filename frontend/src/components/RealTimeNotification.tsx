@@ -162,25 +162,7 @@ export default function RealTimeNotification({ className }: RealTimeNotification
   if (!user) return null
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Connection Status Indicator */}
-      <div className="flex items-center gap-2 mb-2">
-        <div className={`flex items-center gap-1 text-sm ${getConnectionStatusColor()}`}>
-          {isConnected ? (
-            <Wifi className="h-3 w-3" />
-          ) : (
-            <WifiOff className="h-3 w-3" />
-          )}
-          <span>{getConnectionStatusText()}</span>
-        </div>
-        {!isConnected && (
-          <Button variant="outline" size="sm" onClick={reconnect}>
-            <RefreshCw className="h-3 w-3 mr-1" />
-            Reconnect
-          </Button>
-        )}
-      </div>
-
+    <div className={`relative ${className || ''}`}>
       {/* Notification Bell */}
       <Button
         variant="outline"

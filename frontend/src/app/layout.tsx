@@ -1,7 +1,13 @@
 import './globals.css'
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import ClientLayout from './layout.client'
 import { AuthProvider } from '@/contexts/AuthContext'
+
+export const metadata: Metadata = {
+  title: 'Public Domain Hunter',
+  description: 'Track and analyze public domain works',
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

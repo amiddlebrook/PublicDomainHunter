@@ -28,12 +28,21 @@ export const useWebSocket = (url?: string): UseWebSocketReturn => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
   const reconnectAttempts = useRef(0)
   const maxReconnectAttempts = 5
+  const isClient = typeof window !== 'undefined'
 
   const defaultUrl = user ? `/api/ws/ws/${user.id}` : null
   const wsUrl = url || defaultUrl
 
   const connect = useCallback(() => {
-    if (!wsUrl || !user) {
+    // Only connect on client side
+    if (!isClient || !wsUrl || !user) {
+      setConnectionStatus('disconnected')
+      return
+    }
+
+    // Skip connection if WebSocket is not available
+    if (typeof WebSocket === 'undefined') {
+      console.warn('WebSocket is not available in this environment')
       setConnectionStatus('disconnected')
       return
     }
@@ -42,8 +51,8 @@ export const useWebSocket = (url?: string): UseWebSocketReturn => {
       setConnectionStatus('connecting')
 
       // Determine WebSocket protocol and host dynamically
-      const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const host = typeof window !== 'undefined' ? window.location.host : 'localhost:8000'
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const host = window.location.host
       const wsFullUrl = `${protocol}//${host}${wsUrl}`
 
       const ws = new WebSocket(wsFullUrl)
@@ -93,7 +102,7 @@ export const useWebSocket = (url?: string): UseWebSocketReturn => {
       setConnectionStatus('error')
       console.error('Failed to create WebSocket connection:', error)
     }
-  }, [wsUrl, user])
+  }, [wsUrl, user, isClient])
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -129,28 +138,26 @@ export const useWebSocket = (url?: string): UseWebSocketReturn => {
     setTimeout(connect, 100)
   }, [connect, disconnect])
 
+  // Main connection effect
   useEffect(() => {
-    if (user && wsUrl) {
+    if (isClient && user && wsUrl) {
       connect()
     }
 
-    return () => {
-      disconnect()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, wsUrl])
-
-  // Cleanup on unmount
-  useEffect(() => {
+    // Cleanup on unmount or when dependencies change
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
       }
       if (websocketRef.current) {
-        websocketRef.current.close()
+        websocketRef.current.close(1000, 'Component unmounting')
+        websocketRef.current = null
       }
+      setIsConnected(false)
+      setConnectionStatus('disconnected')
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, wsUrl, isClient])
 
   return {
     isConnected,
