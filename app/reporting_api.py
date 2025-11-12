@@ -6,16 +6,17 @@ comprehensive reports with data visualization and analytics.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.auth import get_current_active_user
-from app.reporting_service import get_reporting_service
+from .auth import get_current_active_user
+from .database import get_db
+from .models import User
+from .reporting_service import get_reporting_service
 
 logger = logging.getLogger(__name__)
 

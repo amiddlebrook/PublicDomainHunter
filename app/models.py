@@ -5,12 +5,11 @@ Defines the database schema using SQLAlchemy ORM.
 """
 
 from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean, ForeignKey, JSON
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 
-Base = declarative_base()
+from .database import Base
 
 class User(Base):
     """User model for authentication and user management."""
@@ -27,41 +26,52 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    works = relationship("Work", back_populates="user")
-    alerts = relationship("Alert", back_populates="user")
-    subscriptions = relationship("Subscription", back_populates="user")
-    ai_preferences = relationship("AIPreference", foreign_keys="[AIPreference.user_id]")
-    activities = relationship("UserActivity", foreign_keys="[UserActivity.user_id]")
+    works = relationship("Work", back_populates="user", cascade="all, delete-orphan")
+    alerts = relationship("Alert", back_populates="user", cascade="all, delete-orphan")
+    subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
+    ai_preferences = relationship(
+        "AIPreference",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    activities = relationship(
+        "UserActivity",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
-# class Work(Base):
-#     """Public domain work model."""
-#     __tablename__ = "works"
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     title = Column(String(500), nullable=False)
-#     author = Column(String(255))
-#     original_publication_year = Column(Integer)
-#     public_domain_year = Column(Integer)
-#     description = Column(Text)
-#     source_url = Column(String(500))
-#     download_url = Column(String(500))
-#     media_type = Column(String(50))  # book, document, image, audio, video
-#     language = Column(String(10), default="en")
-#     page_count = Column(Integer)
-#     file_size = Column(Integer)  # in bytes
-#     additional_metadata = Column(JSON)  # Additional metadata as JSON
-#     status = Column(String(20), default="active")  # active, archived, deleted
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
-#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-#
-#     # Foreign Keys
-#     user_id = Column(Integer, ForeignKey("users.id"))
-#
-#     # Relationships
-#     user = relationship("User", back_populates="works")
-#     metrics = relationship("WorkMetric", back_populates="work")
-#     alerts = relationship("Alert", back_populates="work")
-#     activities = relationship("UserActivity", foreign_keys="[UserActivity.work_id]")
+class Work(Base):
+    """Public domain work model."""
+
+    __tablename__ = "works"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(500), nullable=False)
+    author = Column(String(255))
+    original_publication_year = Column(Integer)
+    public_domain_year = Column(Integer)
+    description = Column(Text)
+    source_url = Column(String(500))
+    download_url = Column(String(500))
+    media_type = Column(String(50))  # book, document, image, audio, video
+    language = Column(String(10), default="en")
+    page_count = Column(Integer)
+    file_size = Column(Integer)  # in bytes
+    additional_metadata = Column(JSON)  # Additional metadata as JSON
+    status = Column(String(20), default="active")  # active, archived, deleted
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    user = relationship("User", back_populates="works")
+    metrics = relationship("WorkMetric", back_populates="work", cascade="all, delete-orphan")
+    alerts = relationship("Alert", back_populates="work", cascade="all, delete-orphan")
+    activities = relationship(
+        "UserActivity",
+        back_populates="work",
+        cascade="all, delete-orphan",
+    )
 
 class WorkMetric(Base):
     """Metrics and analytics for public domain works."""
@@ -144,7 +154,7 @@ class AIPreference(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    user = relationship("User", foreign_keys=[user_id])
+    user = relationship("User", back_populates="ai_preferences")
 
 class UserActivity(Base):
     """Track user activity for AI recommendations."""
@@ -158,5 +168,5 @@ class UserActivity(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    user = relationship("User", foreign_keys=[user_id])
-    work = relationship("Work", foreign_keys=[work_id])
+    user = relationship("User", back_populates="activities")
+    work = relationship("Work", back_populates="activities")

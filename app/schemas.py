@@ -54,7 +54,7 @@ class WorkBase(BaseModel):
 
 class UserBase(BaseModel):
     """Base schema for user data."""
-    email: str = Field(..., regex=r"^[^@]+@[^@]+\.[^@]+$")
+    email: str = Field(..., pattern=r"^[^@]+@[^@]+\.[^@]+$")
     username: str = Field(..., min_length=3, max_length=50)
     full_name: Optional[str] = Field(None, max_length=255)
     is_active: bool = True

@@ -18,20 +18,44 @@ from sqlalchemy import func, text, desc, and_, or_, case
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image
-from reportlab.platypus.flowables import KeepTogether
-from reportlab.graphics.shapes import Drawing
-from reportlab.graphics.charts.barcharts import VerticalBarChart
-from reportlab.graphics.charts.linecharts import LineChart
-from reportlab.graphics.charts.piecharts import PieChart
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from openpyxl.chart import BarChart, LineChart, PieChart as ExcelPieChart, Reference
-from openpyxl.utils import get_column_letter
+try:  # pragma: no cover - optional dependency
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (
+        SimpleDocTemplate,
+        Paragraph,
+        Spacer,
+        Table,
+        TableStyle,
+        PageBreak,
+        Image,
+    )
+    from reportlab.platypus.flowables import KeepTogether
+    from reportlab.graphics.shapes import Drawing
+    from reportlab.graphics.charts.barcharts import VerticalBarChart
+    from reportlab.graphics.charts.linecharts import LineChart
+    from reportlab.graphics.charts.piecharts import Pie
+
+    REPORTLAB_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency fallback
+    REPORTLAB_AVAILABLE = False
+try:  # pragma: no cover - optional dependency
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.chart import BarChart, LineChart, PieChart as ExcelPieChart, Reference
+    from openpyxl.utils import get_column_letter
+
+    OPENPYXL_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency fallback
+    OPENPYXL_AVAILABLE = False
+    Workbook = Any  # type: ignore
+    Font = Alignment = PatternFill = Border = Side = None  # type: ignore
+    BarChart = LineChart = ExcelPieChart = Reference = None  # type: ignore
+
+    def get_column_letter(_index: int) -> str:  # type: ignore
+        raise RuntimeError("openpyxl is required for Excel export")
 
 from app.database import get_db
 from app.models import Work, User, WorkMetric, UserActivity
@@ -81,6 +105,10 @@ class ReportingService:
         Returns:
             Report data including PDF content and metadata
         """
+        if not REPORTLAB_AVAILABLE:
+            logger.warning("ReportLab is not installed; PDF report generation disabled")
+            return {"error": "PDF report generation is currently unavailable"}
+
         try:
             # Get user information
             user = self.db.query(User).filter(User.id == user_id).first()
@@ -508,9 +536,9 @@ class ReportingService:
             for key, value in summary.items():
                 if isinstance(value, (int, float)):
                     if isinstance(value, float):
-                        value = f"{value",.1f"}"
+                        value = f"{value:.1f}"
                     else:
-                        value = f"{value","}"
+                        value = f"{value}"
                 summary_data.append([key.replace("_", " ").title(), str(value)])
 
             summary_table = Table(summary_data, colWidths=[3*inch, 3*inch])
@@ -562,7 +590,7 @@ class ReportingService:
         if media_types:
             drawing = Drawing(400, 300)
 
-            pie = PieChart()
+            pie = Pie()
             pie.x = 150
             pie.y = 50
             pie.width = 200
@@ -849,7 +877,7 @@ class ReportingService:
             for trend in media_trends:
                 table_data.append([
                     trend["media_type"],
-                    f"{trend['avg_score']".1f"}",
+                    f"{trend['avg_score']:.1f}",
                     trend.get("direction", "stable"),
                     str(trend.get("sample_size", 0))
                 ])
@@ -888,6 +916,10 @@ class ReportingService:
         Returns:
             Excel file content and metadata
         """
+        if not OPENPYXL_AVAILABLE:
+            logger.warning("openpyxl is not installed; Excel report generation disabled")
+            return {"error": "Excel report generation is currently unavailable"}
+
         try:
             # Set default date range
             if not date_range:

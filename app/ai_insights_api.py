@@ -6,15 +6,17 @@ topic analysis, content insights, and trend predictions.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
-from app.database import get_db
-from app.auth import get_current_active_user
-from app.ai_insights_service import get_ai_insights_service
+from .database import get_db
+from .auth import get_current_active_user
+from .ai_insights_service import get_ai_insights_service
+from .models import User
 
 logger = logging.getLogger(__name__)
 

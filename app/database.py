@@ -16,14 +16,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://user:password@localhost/public_domain_hunter"
-)
-
-# For development/testing - use SQLite
-if os.getenv("ENVIRONMENT") == "development":
-    DATABASE_URL = "sqlite:///./public_domain_hunter.db"
+DEFAULT_SQLITE_URL = "sqlite:///./public_domain_hunter.db"
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_SQLITE_URL)
 
 # Create engine
 if DATABASE_URL.startswith("sqlite"):
