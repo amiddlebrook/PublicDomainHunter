@@ -459,6 +459,84 @@ app.get('/api/analytics/popular', async (c) => {
   return c.json({ popular });
 });
 
+/**
+ * Get analytics dashboard dataset
+ */
+app.get('/api/analytics/dashboard', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+
+  let userId: number | undefined = undefined;
+  try {
+    const payload = await authMiddleware(authHeader, jwtSecret);
+    if (payload?.sub) {
+      const parsed = parseInt(payload.sub, 10);
+      if (!Number.isNaN(parsed)) {
+        userId = parsed;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to resolve user for analytics dashboard:', error);
+  }
+
+  try {
+    const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
+    const data = await analyticsService.getDashboardAnalytics(userId);
+    return c.json(data);
+  } catch (error) {
+    console.error('Dashboard analytics error:', error);
+    return c.json({ error: 'Failed to generate analytics dashboard' }, 500);
+  }
+});
+
+/**
+ * Export analytics dashboard
+ */
+app.get('/api/analytics/export/dashboard', async (c) => {
+  const format = (c.req.query('format') || 'json').toLowerCase();
+  if (format !== 'json') {
+    return c.json({ error: 'Unsupported export format' }, 400);
+  }
+
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+
+  let userId: number | undefined = undefined;
+  const payload = await authMiddleware(authHeader, jwtSecret);
+  if (payload?.sub) {
+    const parsed = parseInt(payload.sub, 10);
+    if (!Number.isNaN(parsed)) {
+      userId = parsed;
+    }
+  }
+
+  try {
+    const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
+    const data = await analyticsService.getDashboardAnalytics(userId);
+    const body = JSON.stringify(
+      {
+        export_format: 'json',
+        export_timestamp: new Date().toISOString(),
+        data,
+      },
+      null,
+      2
+    );
+
+    return new Response(body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="analytics-dashboard.json"',
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (error) {
+    console.error('Dashboard export failed:', error);
+    return c.json({ error: 'Failed to export analytics dashboard' }, 500);
+  }
+});
+
 // ===== FILE UPLOAD ENDPOINTS =====
 
 /**
