@@ -44,7 +44,7 @@ app.use('/api/*', cors());
  */
 app.post('/api/auth/register', async (c) => {
   try {
-    const { email, username, password, fullName } = await c.req.json();
+    const { email, username, password, full_name } = await c.req.json();
 
     // Validate input
     if (!email || !username || !password) {
@@ -79,7 +79,7 @@ app.post('/api/auth/register', async (c) => {
       email,
       username,
       hashed_password: hashedPassword,
-      full_name: fullName,
+      full_name,
     });
 
     if (!user) {
