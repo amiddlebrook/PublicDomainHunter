@@ -108,7 +108,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
             <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">{error || 'Work not found'}</h3>
             <p className="text-gray-500">
-              The work you're looking for could not be found.
+              The work you&apos;re looking for could not be found.
             </p>
           </CardContent>
         </Card>

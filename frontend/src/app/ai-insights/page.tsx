@@ -672,7 +672,7 @@ export default function AIInsightsPage() {
                   <AlertDescription className="text-left">
                     To use LLM analysis features:
                     <ol className="list-decimal list-inside mt-2 space-y-1">
-                      <li>Configure your AI providers in the "Configure" tab</li>
+                      <li>Configure your AI providers in the &quot;Configure&quot; tab</li>
                       <li>Enable at least one provider</li>
                       <li>Select a work to analyze from the recommendations or insights tab</li>
                       <li>Use the API endpoints to get LLM-powered analysis</li>
