@@ -19,6 +19,8 @@ from app.schemas import (
     AlertCreate, AlertResponse, TrendData, CompetitionAnalysis
 )
 from app.auth import get_current_active_user, get_current_active_superuser
+from app.trends_service import get_trends_service
+from app.amazon_service import get_amazon_service
 
 logger = logging.getLogger(__name__)
 
