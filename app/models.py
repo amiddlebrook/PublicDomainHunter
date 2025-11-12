@@ -33,35 +33,35 @@ class User(Base):
     ai_preferences = relationship("AIPreference", foreign_keys="[AIPreference.user_id]")
     activities = relationship("UserActivity", foreign_keys="[UserActivity.user_id]")
 
-# class Work(Base):
-#     """Public domain work model."""
-#     __tablename__ = "works"
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     title = Column(String(500), nullable=False)
-#     author = Column(String(255))
-#     original_publication_year = Column(Integer)
-#     public_domain_year = Column(Integer)
-#     description = Column(Text)
-#     source_url = Column(String(500))
-#     download_url = Column(String(500))
-#     media_type = Column(String(50))  # book, document, image, audio, video
-#     language = Column(String(10), default="en")
-#     page_count = Column(Integer)
-#     file_size = Column(Integer)  # in bytes
-#     additional_metadata = Column(JSON)  # Additional metadata as JSON
-#     status = Column(String(20), default="active")  # active, archived, deleted
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
-#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-#
-#     # Foreign Keys
-#     user_id = Column(Integer, ForeignKey("users.id"))
-#
-#     # Relationships
-#     user = relationship("User", back_populates="works")
-#     metrics = relationship("WorkMetric", back_populates="work")
-#     alerts = relationship("Alert", back_populates="work")
-#     activities = relationship("UserActivity", foreign_keys="[UserActivity.work_id]")
+class Work(Base):
+    """Public domain work model."""
+    __tablename__ = "works"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(500), nullable=False)
+    author = Column(String(255))
+    original_publication_year = Column(Integer)
+    public_domain_year = Column(Integer)
+    description = Column(Text)
+    source_url = Column(String(500))
+    download_url = Column(String(500))
+    media_type = Column(String(50))  # book, document, image, audio, video
+    language = Column(String(10), default="en")
+    page_count = Column(Integer)
+    file_size = Column(Integer)  # in bytes
+    additional_metadata = Column(JSON)  # Additional metadata as JSON
+    status = Column(String(20), default="active")  # active, archived, deleted
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Foreign Keys
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    # Relationships
+    user = relationship("User", back_populates="works")
+    metrics = relationship("WorkMetric", back_populates="work")
+    alerts = relationship("Alert", back_populates="work")
+    activities = relationship("UserActivity", foreign_keys="[UserActivity.work_id]")
 
 class WorkMetric(Base):
     """Metrics and analytics for public domain works."""
