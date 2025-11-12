@@ -118,15 +118,23 @@ export function validatePasswordStrength(password: string): { isValid: boolean; 
     return { isValid: false, error: 'Password must be less than 128 characters' };
   }
 
-  // Check for at least one uppercase, one lowercase, one number
+  // Check for at least one uppercase, one lowercase, one number, and one special character
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password);
 
   if (!hasUpperCase || !hasLowerCase || !hasNumber) {
     return {
       isValid: false,
       error: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+    };
+  }
+
+  if (!hasSpecialChar) {
+    return {
+      isValid: false,
+      error: 'Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)'
     };
   }
 
