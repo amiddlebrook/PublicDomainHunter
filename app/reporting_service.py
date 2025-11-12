@@ -27,7 +27,7 @@ from reportlab.platypus.flowables import KeepTogether
 from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.charts.linecharts import LineChart
-from reportlab.graphics.charts.piecharts import PieChart
+from reportlab.graphics.charts.piecharts import Pie
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.chart import BarChart, LineChart, PieChart as ExcelPieChart, Reference
@@ -508,9 +508,9 @@ class ReportingService:
             for key, value in summary.items():
                 if isinstance(value, (int, float)):
                     if isinstance(value, float):
-                        value = f"{value",.1f"}"
+                        value = f"{value:.1f}"
                     else:
-                        value = f"{value","}"
+                        value = f"{value}"
                 summary_data.append([key.replace("_", " ").title(), str(value)])
 
             summary_table = Table(summary_data, colWidths=[3*inch, 3*inch])
@@ -562,7 +562,7 @@ class ReportingService:
         if media_types:
             drawing = Drawing(400, 300)
 
-            pie = PieChart()
+            pie = Pie()
             pie.x = 150
             pie.y = 50
             pie.width = 200
@@ -849,7 +849,7 @@ class ReportingService:
             for trend in media_trends:
                 table_data.append([
                     trend["media_type"],
-                    f"{trend['avg_score']".1f"}",
+                    f"{trend['avg_score']:.1f}",
                     trend.get("direction", "stable"),
                     str(trend.get("sample_size", 0))
                 ])

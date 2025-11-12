@@ -8,6 +8,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
+from app.auth import get_current_active_user
+from app.models import User
 
 
 # Test database setup
@@ -24,7 +26,19 @@ def override_get_db():
         db.close()
 
 
+def override_current_user():
+    return User(
+        id=1,
+        email="test@example.com",
+        username="testuser",
+        hashed_password="test",
+        is_active=True,
+        is_superuser=False,
+    )
+
+
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_current_active_user] = override_current_user
 
 
 @pytest.fixture(scope="module")
@@ -65,11 +79,13 @@ class TestWorks:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_create_work_unauthorized(self, client):
+    def test_create_work(self, client):
         work_data = {
             "title": "Test Work",
             "author": "Test Author",
             "public_domain_year": 1925
         }
         response = client.post("/api/v1/works", json=work_data)
-        assert response.status_code == 401
+        assert response.status_code == 201
+        data = response.json()
+        assert data["title"] == work_data["title"]

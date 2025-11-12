@@ -5,14 +5,16 @@ Provides comprehensive analytics data for dashboards, charts,
 and business intelligence insights.
 """
 
+import logging
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Dict, Any, Optional
-import logging
 
-from app.database import get_db
-from app.auth import get_current_active_user
-from app.analytics_service import get_analytics_service
+from .analytics_service import get_analytics_service
+from .auth import get_current_active_user
+from .database import get_db
+from .models import User
 
 logger = logging.getLogger(__name__)
 

@@ -5,17 +5,19 @@ Handles WebSocket connections for live notifications, analytics updates,
 and real-time data streaming.
 """
 
+import json
 import logging
-from typing import Dict, Any
 from datetime import datetime
+from typing import Any, Dict
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.auth import get_current_active_user
-from app.real_time_service import get_real_time_service, connection_manager
-from app.analytics_service import get_analytics_service
+from .analytics_service import get_analytics_service
+from .auth import get_current_active_user
+from .database import get_db
+from .models import User
+from .real_time_service import connection_manager, get_real_time_service
 
 logger = logging.getLogger(__name__)
 

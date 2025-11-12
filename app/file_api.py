@@ -11,10 +11,10 @@ import logging
 import os
 from pathlib import Path
 
-from app.database import get_db
-from app.models import Work
-from app.auth import get_current_active_user
-from app.file_processor import get_file_processor, FileProcessingError
+from .database import get_db
+from .models import User, Work
+from .auth import get_current_active_user
+from .file_processor import get_file_processor, FileProcessingError
 
 logger = logging.getLogger(__name__)
 
