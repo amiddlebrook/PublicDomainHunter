@@ -18,6 +18,8 @@ export interface Env {
   // Secrets
   JWT_SECRET: string;
 
+  FRONTEND_URL: string;
+
   // API Keys for external services
   OPENAI_API_KEY?: string;
   CLAUDE_API_KEY?: string;
@@ -31,6 +33,15 @@ export default {
    */
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    const hostname = url.hostname;
+
+    // Permanent redirect from worker URL to main frontend URL
+    if ((env as any).FRONTEND_URL && hostname.endsWith('.workers.dev') && !url.pathname.startsWith('/api/')) {
+      const frontendUrl = new URL((env as any).FRONTEND_URL);
+      frontendUrl.pathname = url.pathname;
+      frontendUrl.search = url.search;
+      return Response.redirect(frontendUrl.toString(), 301);
+    }
 
     // API routes are handled by the backend
     if (url.pathname.startsWith('/api/')) {
