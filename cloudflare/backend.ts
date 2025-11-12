@@ -37,6 +37,80 @@ const app = new Hono<{ Bindings: Bindings }>();
 // CORS middleware
 app.use('/api/*', cors());
 
+// ===== HEALTH CHECK =====
+app.get('/api/auth/health', async (c) => {
+  const status: { [key: string]: any } = {};
+  let overallStatus: 'ok' | 'degraded' | 'error' = 'ok';
+
+  // 1. Check Cloudflare Worker status
+  status.cloudflare_worker = 'running';
+
+  // 2. Check for BACKEND_URL (if applicable, this backend is now native)
+  status.backend_type = 'cloudflare_native';
+
+  // 3. Check D1 Database binding
+  try {
+    await c.env.DB.prepare('SELECT 1').run();
+    status.d1_database = 'connected';
+  } catch (e: any) {
+    status.d1_database = `error: ${e.message}`;
+    overallStatus = 'error';
+  }
+
+  // 4. Check KV Namespace binding (SESSIONS)
+  try {
+    await c.env.SESSIONS.list({ limit: 1 });
+    status.kv_sessions = 'connected';
+  } catch (e: any) {
+    status.kv_sessions = `error: ${e.message}`;
+    if (overallStatus !== 'error') overallStatus = 'degraded';
+  }
+
+  // 5. Check KV Namespace binding (CACHE)
+  try {
+    await c.env.CACHE.list({ limit: 1 });
+    status.kv_cache = 'connected';
+  } catch (e: any) {
+    status.kv_cache = `error: ${e.message}`;
+    if (overallStatus !== 'error') overallStatus = 'degraded';
+  }
+
+  // 6. Check R2 Bucket binding
+  try {
+    await c.env.FILES.list({ limit: 1 });
+    status.r2_files = 'connected';
+  } catch (e: any) {
+    status.r2_files = `error: ${e.message}`;
+    if (overallStatus !== 'error') overallStatus = 'degraded';
+  }
+
+  // 7. Check Queues binding
+  try {
+    // Cannot directly check queue, but binding should exist
+    if (c.env.JOBS_QUEUE) {
+        status.queues_jobs = 'bound';
+    } else {
+        status.queues_jobs = 'unbound';
+        if (overallStatus !== 'error') overallStatus = 'degraded';
+    }
+  } catch (e: any) {
+      status.queues_jobs = `error: ${e.message}`;
+      if (overallStatus !== 'error') overallStatus = 'degraded';
+  }
+
+  // 8. Check JWT Secret
+  if (c.env.JWT_SECRET && c.env.JWT_SECRET.length >= 32) {
+    status.jwt_secret = 'configured';
+  } else {
+    status.jwt_secret = 'unconfigured_or_too_short';
+    if (overallStatus !== 'error') overallStatus = 'degraded';
+  }
+
+  status.status = overallStatus;
+
+  return c.json(status, overallStatus === 'error' ? 500 : 200);
+});
+
 // ===== AUTHENTICATION ENDPOINTS =====
 
 /**
