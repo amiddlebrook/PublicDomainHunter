@@ -18,44 +18,20 @@ from sqlalchemy import func, text, desc, and_, or_, case
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-try:  # pragma: no cover - optional dependency
-    from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter, A4
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.platypus import (
-        SimpleDocTemplate,
-        Paragraph,
-        Spacer,
-        Table,
-        TableStyle,
-        PageBreak,
-        Image,
-    )
-    from reportlab.platypus.flowables import KeepTogether
-    from reportlab.graphics.shapes import Drawing
-    from reportlab.graphics.charts.barcharts import VerticalBarChart
-    from reportlab.graphics.charts.linecharts import LineChart
-    from reportlab.graphics.charts.piecharts import Pie
-
-    REPORTLAB_AVAILABLE = True
-except ImportError:  # pragma: no cover - optional dependency fallback
-    REPORTLAB_AVAILABLE = False
-try:  # pragma: no cover - optional dependency
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-    from openpyxl.chart import BarChart, LineChart, PieChart as ExcelPieChart, Reference
-    from openpyxl.utils import get_column_letter
-
-    OPENPYXL_AVAILABLE = True
-except ImportError:  # pragma: no cover - optional dependency fallback
-    OPENPYXL_AVAILABLE = False
-    Workbook = Any  # type: ignore
-    Font = Alignment = PatternFill = Border = Side = None  # type: ignore
-    BarChart = LineChart = ExcelPieChart = Reference = None  # type: ignore
-
-    def get_column_letter(_index: int) -> str:  # type: ignore
-        raise RuntimeError("openpyxl is required for Excel export")
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image
+from reportlab.platypus.flowables import KeepTogether
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.graphics.charts.linecharts import LineChart
+from reportlab.graphics.charts.piecharts import Pie
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.chart import BarChart, LineChart, PieChart as ExcelPieChart, Reference
+from openpyxl.utils import get_column_letter
 
 from app.database import get_db
 from app.models import Work, User, WorkMetric, UserActivity
