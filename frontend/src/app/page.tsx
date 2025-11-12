@@ -95,7 +95,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-gray-600">
-            Welcome back! Here's what's happening with your public domain content.
+            Welcome back! Here&apos;s what&apos;s happening with your public domain content.
           </p>
         </div>
         <div className="flex gap-3">
@@ -170,7 +170,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats?.average_trend_score ? stats.average_trend_score.toFixed(1) : '0.0'}
+              {stats?.average_trend_score?.toFixed(1) ?? '0.0'}
             </div>
             <p className="text-xs text-muted-foreground">
               Average market interest
@@ -204,7 +204,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentWorks.slice(0, 5).map((work) => (
+              {Array.isArray(recentWorks) && recentWorks.slice(0, 5).map((work) => (
                 <div key={work.id} className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
@@ -247,7 +247,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats?.top_performing_works?.slice(0, 5).map((work, index) => (
+              {Array.isArray(stats?.top_performing_works) && stats.top_performing_works.slice(0, 5).map((work, index) => (
                 <div key={work.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-600 text-sm font-medium">
@@ -265,7 +265,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2">
                     <Badge variant="success" className="flex items-center gap-1">
                       <TrendingUp className="h-3 w-3" />
-                      {work.metadata?.trend_score?.toFixed(0) || 'N/A'}
+                      {work.metadata?.trend_score?.toFixed(0) ?? 'N/A'}
                     </Badge>
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/works/${work.id}`}>
