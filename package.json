@@ -1,0 +1,17 @@
+{
+  "name": "publicdomainhunter",
+  "version": "1.0.0",
+  "description": "Public Domain Hunter - Cloudflare Worker Backend",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "wrangler": "^3.0.0"
+  }
+}
