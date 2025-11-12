@@ -178,6 +178,7 @@ class RealTimeService:
         self.analytics_service = get_analytics_service()
         self.is_running = False
         self.update_tasks = set()
+        self.notification_queue: asyncio.Queue = asyncio.Queue()
 
     async def start(self):
         """Start the real-time service."""
@@ -270,7 +271,7 @@ class RealTimeService:
             # Get global metrics
             total_works = db.query(func.count(Work.id)).scalar() or 0
             active_alerts = db.query(func.count(Alert.id)).filter(Alert.is_active == True).scalar() or 0
-            avg_trend_score = db.query(func.avg(Work.metadata['trend_score'].as_float())).scalar() or 0
+            avg_trend_score = db.query(func.avg(WorkMetric.trend_score)).scalar() or 0
 
             db.close()
 

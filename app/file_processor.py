@@ -86,7 +86,7 @@ class FileProcessor:
         # Check file size
         file_size = file_path.stat().st_size
         if file_size > self.max_file_size:
-            return False, f"File too large. Maximum size: {self.max_file_size / (1024*1024)".1f"}MB"
+            return False, f"File too large. Maximum size: {self.max_file_size / (1024 * 1024):.1f}MB"
 
         if file_size == 0:
             return False, "File is empty"

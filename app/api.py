@@ -39,8 +39,8 @@ async def get_works(
     author: Optional[str] = None,
     year_from: Optional[int] = None,
     year_to: Optional[int] = None,
-    sort_by: str = Query("created_at", regex="^(created_at|title|author|public_domain_year)$"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    sort_by: str = Query("created_at", pattern="^(created_at|title|author|public_domain_year)$"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
