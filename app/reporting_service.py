@@ -81,6 +81,10 @@ class ReportingService:
         Returns:
             Report data including PDF content and metadata
         """
+        if not REPORTLAB_AVAILABLE:
+            logger.warning("ReportLab is not installed; PDF report generation disabled")
+            return {"error": "PDF report generation is currently unavailable"}
+
         try:
             # Get user information
             user = self.db.query(User).filter(User.id == user_id).first()
@@ -888,6 +892,10 @@ class ReportingService:
         Returns:
             Excel file content and metadata
         """
+        if not OPENPYXL_AVAILABLE:
+            logger.warning("openpyxl is not installed; Excel report generation disabled")
+            return {"error": "Excel report generation is currently unavailable"}
+
         try:
             # Set default date range
             if not date_range:

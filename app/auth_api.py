@@ -7,9 +7,11 @@ Handles user registration, login, logout, and password management.
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, field_validator
 from typing import Any, Dict
+from datetime import timedelta
 import logging
+import re
 
 from app.database import get_db
 from app.models import User
@@ -30,6 +32,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
 class LoginRequest(BaseModel):
     """Login request model."""
     username: str
@@ -37,7 +42,16 @@ class LoginRequest(BaseModel):
 
 class PasswordResetRequest(BaseModel):
     """Password reset request model."""
-    email: EmailStr
+
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.strip()
+        if not EMAIL_REGEX.fullmatch(email):
+            raise ValueError("Invalid email address format")
+        return email.lower()
 
 class PasswordResetConfirm(BaseModel):
     """Password reset confirmation model."""
@@ -51,10 +65,19 @@ class PasswordChangeRequest(BaseModel):
 
 class OAuthLoginRequest(BaseModel):
     """OAuth login/registration request model."""
+
     provider: str
     provider_user_id: str
-    email: EmailStr
+    email: str
     name: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.strip()
+        if not EMAIL_REGEX.fullmatch(email):
+            raise ValueError("Invalid email address format")
+        return email.lower()
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -434,5 +457,3 @@ async def update_user_status(
     logger.info(f"User {user_id} {'activated' if is_active else 'deactivated'} by {current_user.username}")
     return {"message": f"User {'activated' if is_active else 'deactivated'}"}
 
-# Import required modules
-from datetime import timedelta
