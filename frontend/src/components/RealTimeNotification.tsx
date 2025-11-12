@@ -36,6 +36,11 @@ interface RealTimeNotificationProps {
 }
 
 export default function RealTimeNotification({ className }: RealTimeNotificationProps) {
+  // Feature flag to disable component if websockets are not enabled
+  if (process.env.NEXT_PUBLIC_WEBSOCKET_ENABLED !== 'true') {
+    return null
+  }
+
   const { user } = useAuth()
   const { isConnected, connectionStatus, messages, clearMessages, reconnect } = useWebSocket()
   const [notifications, setNotifications] = useState<Notification[]>([])

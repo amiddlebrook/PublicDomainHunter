@@ -167,7 +167,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             </button>
             <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <RealTimeNotification />
+              {process.env.NEXT_PUBLIC_WEBSOCKET_ENABLED === 'true' && <RealTimeNotification />}
               {isAuthenticated && user ? (
                 <div className="relative">
                   <button
