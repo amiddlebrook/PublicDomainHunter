@@ -75,8 +75,8 @@ preview_bucket_name = "publicdomainhunter-files-preview"
 # Used for: API response caching, rate limiting, temporary data
 [[kv_namespaces]]
 binding = "CACHE"
-id = "YOUR_CACHE_KV_ID_HERE"
-preview_id = "YOUR_CACHE_KV_PREVIEW_ID_HERE"
+id = "3d23c156c574450dbe4a9cbadf4ec86e"
+preview_id = "3d23c156c574450dbe4a9cbadf4ec86e"
 
 # Queue for background job processing
 # Configure in Dashboard: Workers & Pages → Queues → Create queue
