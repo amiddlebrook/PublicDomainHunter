@@ -61,7 +61,7 @@ preview_id = "25c5b93996de4bce81e0b336471b4141"
 [[d1_databases]]
 binding = "DB"
 database_name = "publicdomainhunter_db"
-database_id = "Igxqh5q9hvRTXvSu6NGxJ1yVu_KMblakHlMlRSJ3"
+database_id = "519084b3-f731-4fbf-80ff-c5e14e05e512"
 
 # R2 Bucket for file storage (EPUB, PDF uploads)
 # Configure in Dashboard: Workers & Pages → R2 → Create bucket
