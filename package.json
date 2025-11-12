@@ -1,18 +1,16 @@
 {
   "name": "public-domain-hunter",
   "version": "1.0.0",
-  "description": "Public Domain Hunter - Cloudflare Worker Backend",
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "cf-typegen": "wrangler types"
+    "dev": "wrangler dev"
   },
   "dependencies": {
     "hono": "^4.0.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241106.0",
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.78.12"
   }
 }
