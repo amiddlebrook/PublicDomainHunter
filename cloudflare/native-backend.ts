@@ -24,7 +24,7 @@ app.use('/api/*', cors());
  */
 app.post('/api/auth/register', async (c) => {
   try {
-    const { email, username, password, fullName } = await c.req.json();
+    const { email, username, password, full_name } = await c.req.json();
 
     // Basic validation
     if (!email || !username || !password) {
@@ -54,7 +54,7 @@ app.post('/api/auth/register', async (c) => {
     // Insert new user into the database
     const { success } = await db.prepare(
       'INSERT INTO User (email, username, hashed_password, full_name) VALUES (?, ?, ?, ?)'
-    ).bind(email, username, hashedPassword, fullName).run();
+    ).bind(email, username, hashedPassword, full_name).run();
 
     if (!success) {
       return c.json({ error: 'Failed to create user' }, 500);
