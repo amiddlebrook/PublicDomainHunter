@@ -59,10 +59,16 @@ app.post('/api/auth/register', async (c) => {
 
     const userService = new UserService(c.env.DB);
 
-    // Check if user already exists
-    const existingUser = await userService.findByEmailOrUsername(email);
-    if (existingUser) {
-      return c.json({ error: 'Email or username already exists' }, 409);
+    // Check if email already exists
+    const existingEmail = await userService.findByEmail(email);
+    if (existingEmail) {
+      return c.json({ error: 'Email already exists' }, 409);
+    }
+
+    // Check if username already exists
+    const existingUsername = await userService.findByUsername(username);
+    if (existingUsername) {
+      return c.json({ error: 'Username already exists' }, 409);
     }
 
     // Hash password
