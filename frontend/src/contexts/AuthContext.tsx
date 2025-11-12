@@ -46,6 +46,11 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
 
   const getAuthHeaders = () => {
     const headers = new Headers()
@@ -211,6 +216,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     loading,
     isAuthenticated: !!user
+  }
+
+  if (!hydrated) {
+    return null;
   }
 
   return (
