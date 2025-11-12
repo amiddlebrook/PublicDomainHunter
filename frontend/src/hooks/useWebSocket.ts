@@ -40,7 +40,13 @@ export const useWebSocket = (url?: string): UseWebSocketReturn => {
 
     try {
       setConnectionStatus('connecting')
-      const ws = new WebSocket(`ws://localhost:8000${wsUrl}`)
+
+      // Determine WebSocket protocol and host dynamically
+      const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const host = typeof window !== 'undefined' ? window.location.host : 'localhost:8000'
+      const wsFullUrl = `${protocol}//${host}${wsUrl}`
+
+      const ws = new WebSocket(wsFullUrl)
 
       ws.onopen = () => {
         setIsConnected(true)
@@ -124,12 +130,15 @@ export const useWebSocket = (url?: string): UseWebSocketReturn => {
   }, [connect, disconnect])
 
   useEffect(() => {
-    connect()
+    if (user && wsUrl) {
+      connect()
+    }
 
     return () => {
       disconnect()
     }
-  }, [connect, disconnect])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, wsUrl])
 
   // Cleanup on unmount
   useEffect(() => {
