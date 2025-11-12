@@ -138,3 +138,4 @@ frontend/.env.local
 
 # Cloudflare Worker development variables (with real OAuth credentials)
 .dev.vars
+node_modules/
