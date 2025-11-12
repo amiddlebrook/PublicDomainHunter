@@ -64,7 +64,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "pdh-api=app:main",
+            "pdh-api=app.main:main",
         ],
     },
 )

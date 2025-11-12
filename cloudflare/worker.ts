@@ -7,7 +7,7 @@ import { handleQueue } from './queue-consumer';
 
 // Define the bindings expected from the environment
 export interface Env {
-  ASSETS: Fetcher;
+  ASSETS?: Fetcher;
   DB: D1Database;
   SESSIONS: KVNamespace;
   CACHE: KVNamespace;
@@ -39,6 +39,22 @@ export default {
 
     // All other requests are static assets
     try {
+      if (!env.ASSETS) {
+        return new Response(
+          JSON.stringify({
+            message: 'Public Domain Hunter worker is running in API-only mode',
+            nextSteps: 'Bind the ASSETS fetcher by deploying through Cloudflare Pages to serve the frontend.',
+          }),
+          {
+            status: 200,
+            headers: {
+              'content-type': 'application/json; charset=utf-8',
+              'cache-control': 'no-store',
+            },
+          }
+        );
+      }
+
       const response = await env.ASSETS.fetch(request);
 
       // For SPA routing, serve index.html on 404

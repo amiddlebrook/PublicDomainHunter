@@ -6,16 +6,17 @@ highlighting, and advanced search features.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.auth import get_current_active_user
-from app.search_service import get_search_service
+from .auth import get_current_active_user
+from .database import get_db
+from .models import User
+from .search_service import get_search_service
 
 logger = logging.getLogger(__name__)
 
