@@ -3,6 +3,7 @@
 import { D1Database } from '@cloudflare/workers-types';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { hashPassword, verifyPassword, validatePasswordStrength } from './utils/crypto';
 
 // Define the bindings expected from the environment
 export type Bindings = {
@@ -30,9 +31,14 @@ app.post('/api/auth/register', async (c) => {
       return c.json({ error: 'Email, username, and password are required' }, 400);
     }
 
-    // TODO: Implement password strength checks
-    // TODO: Implement password hashing (e.g., using a library like bcryptjs, or a native solution if available)
-    const hashedPassword = password; // Placeholder - DO NOT use in production
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      return c.json({ error: passwordValidation.error }, 400);
+    }
+
+    // Hash the password
+    const hashedPassword = await hashPassword(password);
 
     const db = c.env.DB;
 
@@ -54,8 +60,6 @@ app.post('/api/auth/register', async (c) => {
       return c.json({ error: 'Failed to create user' }, 500);
     }
 
-    // In a real application, you'd probably not return the user object directly,
-    // or at least not the hashed password.
     return c.json({ message: 'User registered successfully' }, 201);
 
   } catch (e) {
@@ -87,8 +91,8 @@ app.post('/api/auth/login', async (c) => {
           return c.json({ error: 'Invalid credentials' }, 401);
         }
 
-        // TODO: Replace with a secure password comparison (e.g., bcrypt.compare)
-        const passwordMatch = password === user.hashed_password;
+        // Verify the password using the hashed password
+        const passwordMatch = await verifyPassword(password, user.hashed_password as string);
 
         if (!passwordMatch) {
           return c.json({ error: 'Invalid credentials' }, 401);
