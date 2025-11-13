@@ -45,8 +45,6 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const pathname = usePathname()
-  const { user, logout, isAuthenticated } = useAuth()
 
   // Ensure we're on the client before rendering
   useEffect(() => {
@@ -61,6 +59,20 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       </div>
     )
   }
+
+  return <ClientLayoutContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} userMenuOpen={userMenuOpen} setUserMenuOpen={setUserMenuOpen}>{children}</ClientLayoutContent>
+}
+
+interface ClientLayoutContentProps extends ClientLayoutProps {
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  userMenuOpen: boolean
+  setUserMenuOpen: (open: boolean) => void
+}
+
+function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, userMenuOpen, setUserMenuOpen }: ClientLayoutContentProps) {
+  const pathname = usePathname()
+  const { user, logout, isAuthenticated } = useAuth()
 
   const handleLogout = () => {
     logout()
