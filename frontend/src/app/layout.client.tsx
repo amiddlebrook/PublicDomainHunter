@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import clsx from 'clsx'
 import {
   BookOpen,
@@ -19,7 +20,12 @@ import {
   Upload,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import RealTimeNotification from '@/components/RealTimeNotification'
+
+// Load RealTimeNotification only on client side to avoid SSR/hydration issues
+const RealTimeNotification = dynamic(
+  () => import('@/components/RealTimeNotification'),
+  { ssr: false }
+)
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -38,6 +44,33 @@ interface ClientLayoutProps {
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure we're on the client before rendering
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    // Return a minimal loading state during SSR
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  return <ClientLayoutContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} userMenuOpen={userMenuOpen} setUserMenuOpen={setUserMenuOpen}>{children}</ClientLayoutContent>
+}
+
+interface ClientLayoutContentProps extends ClientLayoutProps {
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  userMenuOpen: boolean
+  setUserMenuOpen: (open: boolean) => void
+}
+
+function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, userMenuOpen, setUserMenuOpen }: ClientLayoutContentProps) {
   const pathname = usePathname()
   const { user, logout, isAuthenticated } = useAuth()
 
