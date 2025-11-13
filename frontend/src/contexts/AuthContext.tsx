@@ -184,7 +184,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Try to get the detailed error message from the backend
         try {
           const errorData = await response.json()
-          throw new Error(errorData.detail || 'Registration failed')
+          throw new Error(errorData.error || errorData.detail || 'Registration failed')
         } catch (jsonError) {
           throw new Error('Registration failed')
         }
