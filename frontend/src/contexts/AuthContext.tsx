@@ -154,13 +154,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid credentials')
       }
 
-      const { access_token } = await response.json()
-      localStorage.setItem('token', access_token)
+      const data = await response.json()
+      const token = data.token || data.access_token
+
+      if (!token) {
+        throw new Error('No token received from server')
+      }
+
+      localStorage.setItem('token', token)
 
       // Get user info
       const userResponse = await fetchWithAuth('/api/auth/me', {
         headers: {
-          Authorization: `Bearer ${access_token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       const userData = await userResponse.json()
