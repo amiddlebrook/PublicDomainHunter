@@ -3,6 +3,8 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 const nextConfig = {
   output: 'export',
+  // Disable strict mode temporarily to help identify hydration issues
+  reactStrictMode: false,
   ...(isProduction
     ? {}
     : {
