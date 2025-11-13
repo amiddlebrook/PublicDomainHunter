@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Work {
   id: number
@@ -41,22 +42,25 @@ interface WorkDetailClientProps {
 }
 
 export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
+  const { fetchWithAuth, isAuthenticated } = useAuth()
   const [work, setWork] = useState<Work | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchWork = async () => {
+      if (!isAuthenticated) {
+        setLoading(false)
+        setError('Please log in to view work details')
+        return
+      }
+
       setLoading(true)
       setError(null)
       try {
-        const response = await fetch(`/api/works/${workId}`)
-        if (response.ok) {
-          const data = await response.json()
-          setWork(data)
-        } else {
-          setError('Work not found')
-        }
+        const response = await fetchWithAuth(`/api/works/${workId}`)
+        const data = await response.json()
+        setWork(data)
       } catch (error) {
         console.error('Error fetching work:', error)
         setError('Error loading work details')
@@ -65,8 +69,10 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
       }
     }
 
-    fetchWork()
-  }, [workId])
+    if (isAuthenticated) {
+      fetchWork()
+    }
+  }, [workId, isAuthenticated])
 
   const getMediaTypeIcon = (mediaType: string) => {
     switch (mediaType.toLowerCase()) {
@@ -90,6 +96,31 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="space-y-6">
+        <Button variant="outline" asChild>
+          <Link href="/works">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Works
+          </Link>
+        </Button>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
+            <p className="text-gray-500 mb-4">
+              Please log in to view work details.
+            </p>
+            <Button asChild>
+              <Link href="/login">Log In</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }

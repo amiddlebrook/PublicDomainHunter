@@ -551,6 +551,14 @@ app.post('/auth/logout', async (c) => {
  * List works with pagination and filters
  */
 app.get('/api/works', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   const page = parseInt(c.req.query('page') || '1');
   const limit = parseInt(c.req.query('limit') || '20');
   const author = c.req.query('author');
@@ -571,6 +579,14 @@ app.get('/api/works', async (c) => {
  * Get a single work by ID
  */
 app.get('/api/works/:id', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   const id = parseInt(c.req.param('id'));
   const workService = new WorkService(c.env.DB);
   const work = await workService.findById(id);
@@ -580,14 +596,8 @@ app.get('/api/works/:id', async (c) => {
   }
 
   // Track view
-  const authHeader = c.req.header('Authorization');
-  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
-
-  if (payload) {
-    const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
-    await analyticsService.trackWorkView(parseInt(payload.sub), id);
-  }
+  const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
+  await analyticsService.trackWorkView(parseInt(payload.sub), id);
 
   return c.json(work);
 });
@@ -613,6 +623,67 @@ app.post('/api/works', async (c) => {
   });
 
   return c.json(work, 201);
+});
+
+/**
+ * Update an existing work
+ */
+app.put('/api/works/:id', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const id = parseInt(c.req.param('id'));
+  const data = await c.req.json();
+  const workService = new WorkService(c.env.DB);
+
+  // Get the work first to verify ownership
+  const existingWork = await workService.findById(id);
+  if (!existingWork) {
+    return c.json({ error: 'Work not found' }, 404);
+  }
+
+  // Verify ownership (only the creator can update)
+  if (existingWork.user_id !== parseInt(payload.sub)) {
+    return c.json({ error: 'Not authorized to update this work' }, 403);
+  }
+
+  const work = await workService.update(id, data);
+  return c.json(work);
+});
+
+/**
+ * Delete a work (soft delete)
+ */
+app.delete('/api/works/:id', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const id = parseInt(c.req.param('id'));
+  const workService = new WorkService(c.env.DB);
+
+  // Get the work first to verify ownership
+  const existingWork = await workService.findById(id);
+  if (!existingWork) {
+    return c.json({ error: 'Work not found' }, 404);
+  }
+
+  // Verify ownership (only the creator can delete)
+  if (existingWork.user_id !== parseInt(payload.sub)) {
+    return c.json({ error: 'Not authorized to delete this work' }, 403);
+  }
+
+  const success = await workService.delete(id);
+  return c.json({ success, message: 'Work deleted successfully' });
 });
 
 // ===== SEARCH ENDPOINTS =====

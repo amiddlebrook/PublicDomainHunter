@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Work {
   id: number
@@ -40,8 +41,10 @@ interface Work {
 }
 
 export default function WorksPage() {
+  const { fetchWithAuth, isAuthenticated } = useAuth()
   const [works, setWorks] = useState<Work[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState({
     media_type: '',
@@ -53,11 +56,20 @@ export default function WorksPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   useEffect(() => {
-    fetchWorks()
-  }, [filters])
+    if (isAuthenticated) {
+      fetchWorks()
+    }
+  }, [filters, isAuthenticated])
 
   const fetchWorks = async () => {
+    if (!isAuthenticated) {
+      setLoading(false)
+      setError('Please log in to view works')
+      return
+    }
+
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams({
         limit: '50',
@@ -66,13 +78,12 @@ export default function WorksPage() {
         )
       })
 
-      const response = await fetch(`/api/works?${params}`)
-      if (response.ok) {
-        const data = await response.json()
-        setWorks(data)
-      }
+      const response = await fetchWithAuth(`/api/works?${params}`)
+      const data = await response.json()
+      setWorks(data)
     } catch (error) {
       console.error('Error fetching works:', error)
+      setError('Failed to load works. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -119,10 +130,43 @@ export default function WorksPage() {
     return 'secondary'
   }
 
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
+            <p className="text-gray-500 mb-4">
+              Please log in to view and manage public domain works.
+            </p>
+            <Button asChild>
+              <Link href="/login">Log In</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <h3 className="text-lg font-medium text-red-600 mb-2">Error</h3>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <Button onClick={() => fetchWorks()}>Try Again</Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }

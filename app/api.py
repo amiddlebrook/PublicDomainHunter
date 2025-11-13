@@ -67,7 +67,11 @@ async def get_works(
     return works
 
 @router.get("/works/{work_id}", response_model=WorkResponse)
-async def get_work(work_id: int, db: Session = Depends(get_db)):
+async def get_work(
+    work_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Get a specific work by ID with full details."""
     work = db.query(Work).filter(Work.id == work_id, Work.status == "active").first()
     if not work:
@@ -105,11 +109,20 @@ async def create_work(
     return db_work
 
 @router.put("/works/{work_id}", response_model=WorkResponse)
-async def update_work(work_id: int, work_update: WorkUpdate, db: Session = Depends(get_db)):
+async def update_work(
+    work_id: int,
+    work_update: WorkUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Update an existing work."""
     work = db.query(Work).filter(Work.id == work_id).first()
     if not work:
         raise HTTPException(status_code=404, detail="Work not found")
+
+    # Verify ownership
+    if work.user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not authorized to update this work")
 
     for field, value in work_update.dict(exclude_unset=True).items():
         setattr(work, field, value)
@@ -118,21 +131,29 @@ async def update_work(work_id: int, work_update: WorkUpdate, db: Session = Depen
     db.commit()
     db.refresh(work)
 
-    logger.info(f"Updated work: {work.title}")
+    logger.info(f"Updated work: {work.title} by user {current_user.username}")
     return work
 
 @router.delete("/works/{work_id}")
-async def delete_work(work_id: int, db: Session = Depends(get_db)):
+async def delete_work(
+    work_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Soft delete a work."""
     work = db.query(Work).filter(Work.id == work_id).first()
     if not work:
         raise HTTPException(status_code=404, detail="Work not found")
 
+    # Verify ownership
+    if work.user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this work")
+
     work.status = "deleted"
     work.updated_at = datetime.utcnow()
     db.commit()
 
-    logger.info(f"Deleted work: {work.title}")
+    logger.info(f"Deleted work: {work.title} by user {current_user.username}")
     return {"message": "Work deleted successfully"}
 
 # Search endpoint with enhanced functionality

@@ -20,6 +20,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<void>
   loading: boolean
   isAuthenticated: boolean
+  fetchWithAuth: (input: RequestInfo, init?: RequestInit) => Promise<Response>
 }
 
 interface RegisterData {
@@ -226,7 +227,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     register,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    fetchWithAuth
   }
 
   return (
