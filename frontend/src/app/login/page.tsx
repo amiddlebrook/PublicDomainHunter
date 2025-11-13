@@ -122,7 +122,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => window.location.href = '/auth/google'}
+                  onClick={() => window.location.href = '/api/auth/google'}
                   disabled={loading}
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -138,7 +138,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => window.location.href = '/auth/github'}
+                  onClick={() => window.location.href = '/api/auth/github'}
                   disabled={loading}
                 >
                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
