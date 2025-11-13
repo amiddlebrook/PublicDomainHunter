@@ -69,10 +69,13 @@ export default function WorksPage() {
       const response = await fetch(`/api/works?${params}`)
       if (response.ok) {
         const data = await response.json()
-        setWorks(data)
+        setWorks(Array.isArray(data) ? data : [])
+      } else {
+        setWorks([])
       }
     } catch (error) {
       console.error('Error fetching works:', error)
+      setWorks([])
     } finally {
       setLoading(false)
     }
