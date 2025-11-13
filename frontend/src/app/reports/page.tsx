@@ -271,7 +271,7 @@ export default function ReportsPage() {
                 <div>
                   <Label htmlFor="template">Report Template</Label>
                   <Select
-                    value={selectedTemplate?.template_id || ''}
+                    value={selectedTemplate?.template_id || undefined}
                     onValueChange={(value) => {
                       const template = templates.find(t => t.template_id === value)
                       setSelectedTemplate(template || null)
