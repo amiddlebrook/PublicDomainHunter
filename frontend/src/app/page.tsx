@@ -52,6 +52,10 @@ export default function Dashboard() {
       const response = await fetch('/api/analytics/dashboard')
       if (response.ok) {
         const data = await response.json()
+        // Ensure top_performing_works is always an array
+        if (data && !Array.isArray(data.top_performing_works)) {
+          data.top_performing_works = []
+        }
         setStats(data)
       }
     } catch (error) {
@@ -64,10 +68,12 @@ export default function Dashboard() {
       const response = await fetch('/api/works?limit=6&sort_by=created_at&sort_order=desc')
       if (response.ok) {
         const data = await response.json()
-        setRecentWorks(data)
+        // Ensure data is an array
+        setRecentWorks(Array.isArray(data) ? data : [])
       }
     } catch (error) {
       console.error('Error fetching recent works:', error)
+      setRecentWorks([])
     } finally {
       setLoading(false)
     }
@@ -204,7 +210,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentWorks.slice(0, 5).map((work) => (
+              {Array.isArray(recentWorks) && recentWorks.slice(0, 5).map((work) => (
                 <div key={work.id} className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
@@ -247,7 +253,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats?.top_performing_works?.slice(0, 5).map((work, index) => (
+              {Array.isArray(stats?.top_performing_works) && stats.top_performing_works.slice(0, 5).map((work, index) => (
                 <div key={work.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-600 text-sm font-medium">
