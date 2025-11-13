@@ -141,6 +141,23 @@ export default function AnalyticsPage() {
       const response = await fetch('/api/analytics/dashboard')
       if (response.ok) {
         const data = await response.json()
+
+        // Ensure all nested arrays are actually arrays to prevent .slice() errors
+        if (data) {
+          if (data.top_performers) {
+            data.top_performers.trending_works = Array.isArray(data.top_performers.trending_works)
+              ? data.top_performers.trending_works : []
+            data.top_performers.authors = Array.isArray(data.top_performers.authors)
+              ? data.top_performers.authors : []
+            data.top_performers.categories = Array.isArray(data.top_performers.categories)
+              ? data.top_performers.categories : []
+          }
+          if (data.market_insights) {
+            data.market_insights.opportunities = Array.isArray(data.market_insights.opportunities)
+              ? data.market_insights.opportunities : []
+          }
+        }
+
         setAnalyticsData(data)
         setLastRefresh(new Date())
       } else {
@@ -440,7 +457,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {top_performers.trending_works.slice(0, 5).map((work, index) => (
+                  {Array.isArray(top_performers.trending_works) && top_performers.trending_works.slice(0, 5).map((work, index) => (
                     <div key={work.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{work.title}</div>
@@ -466,7 +483,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={top_performers.authors.slice(0, 10)} layout="horizontal">
+                  <BarChart data={Array.isArray(top_performers.authors) ? top_performers.authors.slice(0, 10) : []} layout="horizontal">
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
                     <YAxis dataKey="author" type="category" width={80} />
@@ -489,7 +506,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {market_insights.opportunities.slice(0, 5).map((opportunity, index) => (
+                  {Array.isArray(market_insights.opportunities) && market_insights.opportunities.slice(0, 5).map((opportunity, index) => (
                     <div key={opportunity.work_id} className="p-3 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-medium text-gray-900">{opportunity.title}</div>
