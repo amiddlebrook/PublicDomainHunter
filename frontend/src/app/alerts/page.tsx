@@ -75,8 +75,8 @@ export default function AlertsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [selectedWork, setSelectedWork] = useState('')
-  const [selectedType, setSelectedType] = useState('')
+  const [selectedWork, setSelectedWork] = useState<string | undefined>(undefined)
+  const [selectedType, setSelectedType] = useState<string | undefined>(undefined)
   const [thresholdValue, setThresholdValue] = useState('')
   const [works, setWorks] = useState<any[]>([])
   const [error, setError] = useState('')
@@ -144,8 +144,8 @@ export default function AlertsPage() {
       if (response.ok) {
         setSuccess('Alert created successfully!')
         setShowCreateForm(false)
-        setSelectedWork('')
-        setSelectedType('')
+        setSelectedWork(undefined)
+        setSelectedType(undefined)
         setThresholdValue('')
         fetchAlerts()
       } else {
