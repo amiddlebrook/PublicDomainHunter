@@ -132,6 +132,7 @@ Thumbs.db
 frontend/out/
 frontend/.next/
 frontend/node_modules/
+*.tsbuildinfo
 
 # Frontend environment variables (with real values)
 frontend/.env.local
