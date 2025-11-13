@@ -43,8 +43,14 @@ export default function WorksPage() {
   const [works, setWorks] = useState<Work[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState({
-    media_type: '',
+  const [filters, setFilters] = useState<{
+    media_type: string | undefined
+    year_from: string
+    year_to: string
+    sort_by: string
+    sort_order: string
+  }>({
+    media_type: undefined,
     year_from: '',
     year_to: '',
     sort_by: 'created_at',
@@ -87,7 +93,7 @@ export default function WorksPage() {
 
   const clearFilters = () => {
     setFilters({
-      media_type: '',
+      media_type: undefined,
       year_from: '',
       year_to: '',
       sort_by: 'created_at',
@@ -169,7 +175,7 @@ export default function WorksPage() {
                   Media Type
                 </label>
                 <Select
-                  value={filters.media_type || undefined}
+                  value={filters.media_type}
                   onValueChange={(value) => handleFilterChange('media_type', value)}
                 >
                   <SelectTrigger>
