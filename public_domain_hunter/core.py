@@ -8,8 +8,7 @@ for searching, cataloging, and managing public domain content.
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
-import os
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -44,8 +43,6 @@ class ContentHunter:
 
     GUTENDEX_API = "https://gutendex.com/books/"
     INTERNET_ARCHIVE_API = "https://archive.org/advancedsearch.php"
-    LIBRARY_OF_CONGRESS_API = "https://www.loc.gov/search/"
-    EUROPEANA_API = "https://api.europeana.eu/record/v2/search.json"
 
     def __init__(self, session: Optional[requests.Session] = None, timeout: int = 10):
         """Initialize the ContentHunter with HTTP session information."""
@@ -53,18 +50,11 @@ class ContentHunter:
         self.sources = [
             "Project Gutenberg",
             "Internet Archive",
-            "Library of Congress",
+            "HathiTrust",
             "Europeana",
         ]
         self.session = session or requests.Session()
         self.timeout = timeout
-        self.europeana_api_key = os.getenv("EUROPEANA_API_KEY")
-        self._fetcher_names: Iterable[str] = (
-            "_search_project_gutenberg",
-            "_search_internet_archive",
-            "_search_library_of_congress",
-            "_search_europeana",
-        )
 
     def search(self, query: str, media_type: str = "all", limit: int = 50) -> List[ContentItem]:
         """Search for public domain content across multiple sources."""
@@ -78,14 +68,18 @@ class ContentHunter:
         aggregated: List[ContentItem] = []
         seen: set[tuple[str, str]] = set()
 
-        for fetcher_name in self._fetcher_names:
+        fetchers = [
+            self._search_project_gutenberg,
+            self._search_internet_archive,
+        ]
+
+        for fetcher in fetchers:
             if len(aggregated) >= limit:
                 break
 
             remaining = limit - len(aggregated)
 
             try:
-                fetcher = getattr(self, fetcher_name)
                 fetched_items = fetcher(query, normalized_media_type, remaining)
             except ContentSourceError as exc:
                 logger.warning("%s", exc)
@@ -233,150 +227,6 @@ class ContentHunter:
 
         return items
 
-    def _search_library_of_congress(
-        self, query: str, media_type: str, limit: int
-    ) -> List[ContentItem]:
-        """Fetch results from the Library of Congress JSON API."""
-
-        if limit <= 0:
-            return []
-
-        params: Dict[str, Any] = {
-            "q": query,
-            "fo": "json",
-            "c": limit,
-        }
-
-        loc_filter = self._map_media_type_to_loc_filter(media_type)
-        if loc_filter:
-            params["fa"] = f"Original Format:{loc_filter}"
-
-        try:
-            response = self.session.get(
-                self.LIBRARY_OF_CONGRESS_API, params=params, timeout=self.timeout
-            )
-            response.raise_for_status()
-        except requests.RequestException as exc:
-            raise ContentSourceError(
-                f"Library of Congress search failed: {exc}"
-            ) from exc
-
-        payload = response.json()
-        results: List[ContentItem] = []
-
-        for entry in payload.get("results", []):
-            format_value: Optional[Any] = entry.get("format")
-            if isinstance(format_value, list):
-                format_value = format_value[0] if format_value else None
-            if not format_value:
-                format_value = entry.get("type")
-                if isinstance(format_value, list):
-                    format_value = format_value[0] if format_value else None
-            format_hint = self._normalize_media_type(format_value or "text")
-
-            if not self._matches_media_type(media_type, format_hint):
-                continue
-
-            url = entry.get("id") or entry.get("url")
-            if not url:
-                continue
-
-            description = self._coalesce_description(entry.get("description"))
-            year = self._extract_year(entry.get("date") or entry.get("created_published_date"))
-
-            results.append(
-                ContentItem(
-                    title=entry.get("title", "Unknown Title"),
-                    author=self._coalesce_description(entry.get("creator")) or "Unknown",
-                    year=year,
-                    source="Library of Congress",
-                    url=url,
-                    media_type=format_hint,
-                    description=description
-                    or f"Library of Congress result related to {query}",
-                    metadata={
-                        "subject": entry.get("subject", []),
-                        "collection": entry.get("collection"),
-                    },
-                )
-            )
-
-            if len(results) >= limit:
-                break
-
-        return results
-
-    def _search_europeana(
-        self, query: str, media_type: str, limit: int
-    ) -> List[ContentItem]:
-        """Fetch public-domain friendly results from Europeana."""
-
-        if limit <= 0 or not self.europeana_api_key:
-            return []
-
-        params = {
-            "wskey": self.europeana_api_key,
-            "query": query,
-            "rows": limit,
-            "profile": "rich",
-            "reusability": "open",
-        }
-
-        europeana_filter = self._map_media_type_to_europeana_filter(media_type)
-        if europeana_filter:
-            params["qf"] = europeana_filter
-
-        try:
-            response = self.session.get(
-                self.EUROPEANA_API, params=params, timeout=self.timeout
-            )
-            response.raise_for_status()
-        except requests.RequestException as exc:
-            raise ContentSourceError(f"Europeana search failed: {exc}") from exc
-
-        payload = response.json()
-        items: List[ContentItem] = []
-
-        for entry in payload.get("items", []):
-            normalized_type = self._normalize_media_type(entry.get("type", "text"))
-            if not self._matches_media_type(media_type, normalized_type):
-                continue
-
-            url = (
-                entry.get("guid")
-                or (entry.get("edmIsShownAt") or [None])[0]
-                or (entry.get("edmIsShownBy") or [None])[0]
-            )
-            if not url:
-                continue
-
-            title = (entry.get("title") or ["Unknown Title"])[0]
-            author = (entry.get("dcCreator") or ["Unknown"])[0]
-            description = self._coalesce_description(entry.get("dcDescription"))
-            year = self._extract_year((entry.get("year") or [None])[0])
-
-            items.append(
-                ContentItem(
-                    title=title,
-                    author=author,
-                    year=year,
-                    source="Europeana",
-                    url=url,
-                    media_type=normalized_type,
-                    description=description or f"Europeana item related to {query}",
-                    metadata={
-                        "dataProvider": entry.get("dataProvider"),
-                        "provider": entry.get("provider"),
-                        "country": entry.get("country"),
-                    },
-                )
-            )
-
-            if len(items) >= limit:
-                break
-
-        return items
-
     def _mock_search_results(
         self, query: str, media_type: str, limit: int
     ) -> List[ContentItem]:
@@ -469,36 +319,6 @@ class ContentHunter:
         candidate_normalized = self._normalize_media_type(candidate)
         return requested == candidate_normalized
 
-    def _map_media_type_to_loc_filter(self, media_type: str) -> Optional[str]:
-        """Return a Library of Congress format filter for a media type."""
-
-        mapping = {
-            "book": "Books",
-            "document": "Manuscripts/Mixed Material",
-            "audio": "Audio Recordings",
-            "video": "Film and Video",
-            "image": "Photos, Prints, Drawings",
-        }
-
-        normalized = self._normalize_media_type(media_type)
-        return mapping.get(normalized)
-
-    def _map_media_type_to_europeana_filter(self, media_type: str) -> Optional[str]:
-        """Return a Europeana TYPE filter value for a media type."""
-
-        mapping = {
-            "book": "TYPE:TEXT",
-            "document": "TYPE:TEXT",
-            "audio": "TYPE:SOUND",
-            "video": "TYPE:VIDEO",
-            "image": "TYPE:IMAGE",
-        }
-
-        normalized = self._normalize_media_type(media_type)
-        if normalized == "all":
-            return None
-        return mapping.get(normalized, "TYPE:TEXT")
-
     def _select_gutenberg_url(self, formats: Dict[str, Any]) -> Optional[str]:
         """Pick the most useful download URL from a Gutendex formats payload."""
 
@@ -531,15 +351,6 @@ class ContentHunter:
                 return int(value[:4])
             except (ValueError, TypeError):
                 return None
-
-    def _coalesce_description(self, value: Optional[Any]) -> Optional[str]:
-        """Normalize description/creator fields that may be arrays."""
-
-        if value is None:
-            return None
-        if isinstance(value, list):
-            return value[0] if value else None
-        return str(value)
 
     def get_content_details(self, url: str) -> Optional[Dict]:
         """
