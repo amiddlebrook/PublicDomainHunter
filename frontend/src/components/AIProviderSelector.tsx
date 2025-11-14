@@ -71,10 +71,13 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
       const response = await fetch('/api/ai/config/providers')
       if (response.ok) {
         const data = await response.json()
-        setProviders(data)
+        setProviders(Array.isArray(data) ? data : [])
+      } else {
+        setProviders([])
       }
     } catch (error) {
       console.error('Failed to load providers:', error)
+      setProviders([])
       toast({
         title: 'Error',
         description: 'Failed to load AI providers',

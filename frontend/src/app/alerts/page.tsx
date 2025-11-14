@@ -108,10 +108,13 @@ export default function AlertsPage() {
       const response = await fetch('/api/works?limit=100')
       if (response.ok) {
         const data = await response.json()
-        setWorks(data)
+        setWorks(Array.isArray(data) ? data : [])
+      } else {
+        setWorks([])
       }
     } catch (error) {
       console.error('Error fetching works:', error)
+      setWorks([])
     }
   }
 
@@ -273,7 +276,7 @@ export default function AlertsPage() {
                     <SelectValue placeholder="Choose alert type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {alertTypes.map((type) => {
+                    {alertTypes.filter(type => type.value && type.value !== '').map((type) => {
                       const Icon = type.icon
                       return (
                         <SelectItem key={type.value} value={type.value}>

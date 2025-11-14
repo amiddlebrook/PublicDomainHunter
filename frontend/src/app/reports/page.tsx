@@ -74,13 +74,17 @@ export default function ReportsPage() {
       const response = await fetch('/api/reports/templates')
       if (response.ok) {
         const data = await response.json()
-        setTemplates(data)
-        if (data.length > 0) {
-          setSelectedTemplate(data[0])
+        const validData = Array.isArray(data) ? data : []
+        setTemplates(validData)
+        if (validData.length > 0) {
+          setSelectedTemplate(validData[0])
         }
+      } else {
+        setTemplates([])
       }
     } catch (error) {
       console.error('Failed to load templates:', error)
+      setTemplates([])
     }
   }
 
