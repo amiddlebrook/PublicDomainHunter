@@ -169,14 +169,16 @@ export default function WorksPage() {
                   Media Type
                 </label>
                 <Select
-                  value={filters.media_type}
-                  onValueChange={(value) => handleFilterChange('media_type', value)}
+                  value={filters.media_type || 'all'}
+                  onValueChange={(value) =>
+                    handleFilterChange('media_type', value === 'all' ? '' : value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All types</SelectItem>
+                    <SelectItem value="all">All types</SelectItem>
                     <SelectItem value="book">Books</SelectItem>
                     <SelectItem value="document">Documents</SelectItem>
                     <SelectItem value="image">Images</SelectItem>

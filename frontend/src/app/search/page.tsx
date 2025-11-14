@@ -297,14 +297,16 @@ export default function SearchPage() {
                     Media Type
                   </label>
                   <Select
-                    value={filters.media_type || ''}
-                    onValueChange={(value) => handleFilterChange('media_type', value || undefined)}
+                    value={filters.media_type || 'any'}
+                    onValueChange={(value) =>
+                      handleFilterChange('media_type', value === 'any' ? undefined : value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Any type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any type</SelectItem>
+                      <SelectItem value="any">Any type</SelectItem>
                       <SelectItem value="book">Book</SelectItem>
                       <SelectItem value="article">Article</SelectItem>
                       <SelectItem value="document">Document</SelectItem>
@@ -318,14 +320,16 @@ export default function SearchPage() {
                     Language
                   </label>
                   <Select
-                    value={filters.language || ''}
-                    onValueChange={(value) => handleFilterChange('language', value || undefined)}
+                    value={filters.language || 'any'}
+                    onValueChange={(value) =>
+                      handleFilterChange('language', value === 'any' ? undefined : value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Any language" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any language</SelectItem>
+                      <SelectItem value="any">Any language</SelectItem>
                       <SelectItem value="en">English</SelectItem>
                       <SelectItem value="fr">French</SelectItem>
                       <SelectItem value="de">German</SelectItem>
