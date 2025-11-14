@@ -280,7 +280,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
           </SelectTrigger>
           <SelectContent>
             {providers
-              .filter(p => p.available && preferences.enabled_providers.includes(p.provider))
+              .filter(p => p.available && preferences.enabled_providers.includes(p.provider) && p.provider && p.provider !== '')
               .map(provider => (
                 <SelectItem key={provider.provider} value={provider.provider}>
                   {provider.provider.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
