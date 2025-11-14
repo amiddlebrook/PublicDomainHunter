@@ -281,7 +281,7 @@ export default function ReportsPage() {
                       <SelectValue placeholder="Select a report template" />
                     </SelectTrigger>
                     <SelectContent>
-                      {templates.filter(t => t.template_id && t.template_id !== '').map((template) => (
+                      {templates.filter(t => t.template_id != null && t.template_id !== '').map((template) => (
                         <SelectItem key={template.template_id} value={template.template_id}>
                           <div className="flex items-center gap-2">
                             {getTemplateIcon(template.report_type)}

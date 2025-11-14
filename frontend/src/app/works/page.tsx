@@ -68,7 +68,7 @@ export default function WorksPage() {
       const params = new URLSearchParams({
         limit: '50',
         ...Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value !== '')
+          Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '' && value !== null)
         )
       })
 

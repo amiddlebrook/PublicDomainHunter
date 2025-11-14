@@ -249,7 +249,7 @@ export default function AlertsPage() {
                     <SelectValue placeholder="Choose a work to monitor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {works.filter(w => w.id && w.id.toString() !== '').map((work) => (
+                    {works.filter(w => w.id != null && w.id.toString() !== '').map((work) => (
                       <SelectItem key={work.id} value={work.id.toString()}>
                         <div className="flex items-center gap-2">
                           <BookOpen className="h-4 w-4" />
