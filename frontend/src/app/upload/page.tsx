@@ -18,6 +18,7 @@ import {
   Info
 } from 'lucide-react'
 import Link from 'next/link'
+import { API_BASE_URL } from '@/lib/utils'
 
 interface UploadResponse {
   message: string
@@ -98,7 +99,7 @@ export default function UploadPage() {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const response = await fetch('/api/files/upload', {
+      const response = await fetch(`${API_BASE_URL}/api/files/upload`, {
         method: 'POST',
         body: formData,
       })
@@ -180,11 +181,10 @@ export default function UploadPage() {
         <CardContent className="pt-6">
           {!selectedFile ? (
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
                   ? 'border-primary-500 bg-primary-50'
                   : 'border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}

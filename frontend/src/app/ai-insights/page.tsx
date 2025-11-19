@@ -1,5 +1,6 @@
 'use client'
 
+import { API_BASE_URL } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -100,15 +101,9 @@ export default function AIInsightsPage() {
   const [selectedWorkId, setSelectedWorkId] = useState<number | null>(null)
   const [aiStatus, setAiStatus] = useState<any>(null)
 
-  useEffect(() => {
-    loadRecommendations()
-    loadTrendPredictions()
-    loadAIStatus()
-  }, [])
-
   const loadRecommendations = async () => {
     try {
-      const response = await fetch('/api/ai/recommendations?limit=10')
+      const response = await fetch(`${API_BASE_URL}/api/ai/recommendations?limit=10`)
       if (response.ok) {
         const data = await response.json()
         setRecommendations(data.recommendations)
@@ -118,10 +113,16 @@ export default function AIInsightsPage() {
     }
   }
 
+  useEffect(() => {
+    loadRecommendations()
+    loadTrendPredictions()
+    loadAIStatus()
+  }, [])
+
   const loadContentInsights = async (workId: number) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/ai/insights/${workId}`)
+      const response = await fetch(`${API_BASE_URL}/api/ai/insights/${workId}`)
       if (response.ok) {
         const data = await response.json()
         setContentInsights(data)
@@ -135,7 +136,7 @@ export default function AIInsightsPage() {
 
   const loadTrendPredictions = async () => {
     try {
-      const response = await fetch('/api/ai/trends')
+      const response = await fetch(`${API_BASE_URL}/api/ai/trends`)
       if (response.ok) {
         const data = await response.json()
         setTrendPredictions(data)
@@ -147,7 +148,7 @@ export default function AIInsightsPage() {
 
   const loadAIStatus = async () => {
     try {
-      const response = await fetch('/api/ai/status')
+      const response = await fetch(`${API_BASE_URL}/api/ai/status`)
       if (response.ok) {
         const data = await response.json()
         setAiStatus(data)

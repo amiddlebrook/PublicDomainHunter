@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { API_BASE_URL } from '@/lib/utils'
 
 interface Work {
   id: number
@@ -50,7 +51,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
       setLoading(true)
       setError(null)
       try {
-        const response = await fetch(`/api/works/${workId}`)
+        const response = await fetch(`${API_BASE_URL}/api/works/${workId}`)
         if (response.ok) {
           const data = await response.json()
           setWork(data)

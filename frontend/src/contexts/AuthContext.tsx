@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { API_BASE_URL } from '../lib/utils'
 
 interface User {
   id: number
@@ -75,7 +76,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       headers.set('Content-Type', 'application/json')
     }
 
-    const response = await fetch(input, { ...init, headers })
+    const response = await fetch(
+      typeof input === 'string' && !input.startsWith('http')
+        ? `${API_BASE_URL}${input}`
+        : input,
+      { ...init, headers }
+    )
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}`)
     }
@@ -93,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Try session-based auth first (for OAuth users)
       try {
-        const sessionResponse = await fetch('/auth/session', {
+        const sessionResponse = await fetch(`${API_BASE_URL}/auth/session`, {
           credentials: 'include',
         })
 
@@ -102,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (sessionData.authenticated && sessionData.user) {
             // Fetch full user data from backend
             try {
-              const userResponse = await fetch('/api/auth/me', {
+              const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
                 credentials: 'include',
               })
               if (userResponse.ok) {
@@ -142,7 +148,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +184,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (userData: RegisterData) => {
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,7 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     // Clear session on server (for OAuth users)
     try {
-      await fetch('/auth/logout', {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       })

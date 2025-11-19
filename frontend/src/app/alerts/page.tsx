@@ -1,5 +1,6 @@
 'use client'
 
+import { API_BASE_URL } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -91,7 +92,7 @@ export default function AlertsPage() {
 
   const fetchAlerts = async () => {
     try {
-      const response = await fetch('/api/alerts')
+      const response = await fetch(`${API_BASE_URL}/api/alerts`)
       if (response.ok) {
         const data = await response.json()
         setAlerts(data)
@@ -105,7 +106,7 @@ export default function AlertsPage() {
 
   const fetchWorks = async () => {
     try {
-      const response = await fetch('/api/works?limit=100')
+      const response = await fetch(`${API_BASE_URL}/api/works?limit=100`)
       if (response.ok) {
         const data = await response.json()
         setWorks(data)
@@ -133,7 +134,7 @@ export default function AlertsPage() {
         is_active: true
       }
 
-      const response = await fetch('/api/alerts', {
+      const response = await fetch(`${API_BASE_URL}/api/alerts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +160,7 @@ export default function AlertsPage() {
 
   const handleDeleteAlert = async (alertId: number) => {
     try {
-      const response = await fetch(`/api/alerts/${alertId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/alerts/${alertId}`, {
         method: 'DELETE',
       })
 
@@ -302,8 +303,8 @@ export default function AlertsPage() {
                     onChange={(e) => setThresholdValue(e.target.value)}
                     placeholder={
                       selectedType === 'trend_change' ? 'Enter trend score threshold (0-100)' :
-                      selectedType === 'competition_change' ? 'Enter sales rank threshold' :
-                      'Enter monetization score threshold (0-100)'
+                        selectedType === 'competition_change' ? 'Enter sales rank threshold' :
+                          'Enter monetization score threshold (0-100)'
                     }
                     min="0"
                     max="100"

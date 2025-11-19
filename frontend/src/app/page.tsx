@@ -1,5 +1,6 @@
 'use client'
 
+import { API_BASE_URL } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import {
   BookOpen,
@@ -49,7 +50,7 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/analytics/dashboard')
+      const response = await fetch(`${API_BASE_URL}/api/analytics/dashboard`)
       if (response.ok) {
         const data = await response.json()
         // Ensure top_performing_works is always an array
@@ -65,7 +66,7 @@ export default function Dashboard() {
 
   const fetchRecentWorks = async () => {
     try {
-      const response = await fetch('/api/works?limit=6&sort_by=created_at&sort_order=desc')
+      const response = await fetch(`${API_BASE_URL}/api/works?limit=6&sort_by=created_at&sort_order=desc`)
       if (response.ok) {
         const data = await response.json()
         // Ensure data is an array

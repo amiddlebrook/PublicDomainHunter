@@ -1,5 +1,6 @@
 'use client'
 
+import { API_BASE_URL } from '@/lib/utils'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -97,7 +98,7 @@ export default function SearchPage() {
 
   const fetchSuggestions = async (searchQuery: string) => {
     try {
-      const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(searchQuery)}`)
+      const response = await fetch(`${API_BASE_URL}/api/search/suggestions?q=${encodeURIComponent(searchQuery)}`)
       if (response.ok) {
         const data = await response.json()
         setSuggestions(data.suggestions)
@@ -129,7 +130,7 @@ export default function SearchPage() {
         )
       })
 
-      const response = await fetch(`/api/search/search?${params}`)
+      const response = await fetch(`${API_BASE_URL}/api/search/search?${params}`)
       if (response.ok) {
         const data = await response.json()
         setResults(data)

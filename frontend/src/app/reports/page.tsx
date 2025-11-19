@@ -1,5 +1,6 @@
 'use client'
 
+import { API_BASE_URL } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -71,7 +72,7 @@ export default function ReportsPage() {
 
   const loadTemplates = async () => {
     try {
-      const response = await fetch('/api/reports/templates')
+      const response = await fetch(`${API_BASE_URL}/api/reports/templates`)
       if (response.ok) {
         const data = await response.json()
         setTemplates(data)
@@ -86,7 +87,7 @@ export default function ReportsPage() {
 
   const loadReportHistory = async () => {
     try {
-      const response = await fetch('/api/reports/history')
+      const response = await fetch(`${API_BASE_URL}/api/reports/history`)
       if (response.ok) {
         const data = await response.json()
         setReportHistory(data.reports)
@@ -108,7 +109,7 @@ export default function ReportsPage() {
         format: reportFormat
       }
 
-      const response = await fetch('/api/reports/generate', {
+      const response = await fetch(`${API_BASE_URL}/api/reports/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +165,7 @@ export default function ReportsPage() {
 
   const previewReport = async (template: ReportTemplate) => {
     try {
-      const response = await fetch(`/api/reports/preview/${template.report_type}?format=pdf`)
+      const response = await fetch(`${API_BASE_URL}/api/reports/preview/${template.report_type}?format=pdf`)
       if (response.ok) {
         const data = await response.json()
         console.log('Preview data:', data)
@@ -438,11 +439,10 @@ export default function ReportsPage() {
                 {templates.map((template) => (
                   <Card
                     key={template.template_id}
-                    className={`cursor-pointer transition-colors ${
-                      selectedTemplate?.template_id === template.template_id
+                    className={`cursor-pointer transition-colors ${selectedTemplate?.template_id === template.template_id
                         ? 'ring-2 ring-blue-500 bg-blue-50'
                         : 'hover:bg-gray-50'
-                    }`}
+                      }`}
                     onClick={() => setSelectedTemplate(template)}
                   >
                     <CardContent className="p-4">

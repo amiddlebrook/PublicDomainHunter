@@ -27,6 +27,7 @@ import {
   TestTube
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { API_BASE_URL } from '../lib/utils'
 
 interface Provider {
   provider: string
@@ -68,7 +69,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
 
   const loadProviders = async () => {
     try {
-      const response = await fetch('/api/ai/config/providers')
+      const response = await fetch(`${API_BASE_URL}/api/ai/config/providers`)
       if (response.ok) {
         const data = await response.json()
         setProviders(data)
@@ -86,7 +87,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
   const loadPreferences = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/ai/config/preferences')
+      const response = await fetch(`${API_BASE_URL}/api/ai/config/preferences`)
       if (response.ok) {
         const data = await response.json()
         setPreferences(data)
@@ -111,7 +112,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
 
     setSaving(true)
     try {
-      const response = await fetch('/api/ai/config/preferences', {
+      const response = await fetch(`${API_BASE_URL}/api/ai/config/preferences`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
   const testProvider = async (providerName: string) => {
     setTesting(providerName)
     try {
-      const response = await fetch('/api/ai/config/test', {
+      const response = await fetch(`${API_BASE_URL}/api/ai/config/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

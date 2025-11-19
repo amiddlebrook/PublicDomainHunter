@@ -1,5 +1,6 @@
 'use client'
 
+import { API_BASE_URL } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -133,12 +134,16 @@ export default function AnalyticsPage() {
     }
   }, [user])
 
+  const handleRefresh = () => {
+    fetchAnalytics()
+  }
+
   const fetchAnalytics = async () => {
     try {
       setLoading(true)
       setError('')
 
-      const response = await fetch('/api/analytics/dashboard')
+      const response = await fetch(`${API_BASE_URL}/api/analytics/dashboard`)
       if (response.ok) {
         const data = await response.json()
 
@@ -170,13 +175,9 @@ export default function AnalyticsPage() {
     }
   }
 
-  const handleRefresh = () => {
-    fetchAnalytics()
-  }
-
   const handleExport = async (format: string) => {
     try {
-      const response = await fetch(`/api/analytics/export/dashboard?format=${format}`)
+      const response = await fetch(`${API_BASE_URL}/api/analytics/export?format=${format}`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -187,6 +188,8 @@ export default function AnalyticsPage() {
         a.click()
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
+      } else {
+        console.error('Export failed')
       }
     } catch (error) {
       console.error('Export failed:', error)

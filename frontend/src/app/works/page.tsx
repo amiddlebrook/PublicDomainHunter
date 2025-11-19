@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from 'next/link'
+import { API_BASE_URL } from '@/lib/utils'
 
 interface Work {
   id: number
@@ -66,7 +67,7 @@ export default function WorksPage() {
         )
       })
 
-      const response = await fetch(`/api/works?${params}`)
+      const response = await fetch(`${API_BASE_URL}/api/works?${params}`)
       if (response.ok) {
         const data = await response.json()
         setWorks(Array.isArray(data) ? data : [])
@@ -98,7 +99,7 @@ export default function WorksPage() {
 
   const filteredWorks = works.filter(work => {
     if (searchQuery && !work.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !work.author.toLowerCase().includes(searchQuery.toLowerCase())) {
+      !work.author.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false
     }
     return true

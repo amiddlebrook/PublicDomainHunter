@@ -33,7 +33,7 @@ export default {
     const url = new URL(request.url);
 
     // API routes are handled by the backend
-    if (url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
       return backend.fetch(request, env, ctx);
     }
 
