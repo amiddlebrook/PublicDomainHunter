@@ -623,11 +623,11 @@ app.post('/api/works', async (c) => {
 app.get('/api/search', async (c) => {
   const query = c.req.query('q') || '';
   const page = parseInt(c.req.query('page') || '1');
-  const limit = parseInt(c.req.query('limit') || '20');
+  const page_size = parseInt(c.req.query('page_size') || '20');
   const source = c.req.query('source') as 'gutenberg' | 'archive' | 'all' | undefined;
 
   const searchService = new SearchService(c.env.DB, c.env.CACHE);
-  const results = await searchService.searchCombined(query, page, limit, { source });
+  const searchResults = await searchService.searchCombined(query, page, page_size, { source });
 
   // Track search
   const authHeader = c.req.header('Authorization');
@@ -639,8 +639,32 @@ app.get('/api/search', async (c) => {
     await analyticsService.trackSearch(parseInt(payload.sub), query);
   }
 
-  return c.json(results);
+  // Transform the response to match frontend expectations
+  const results = [
+    ...(searchResults.local || []),
+    ...(searchResults.external || [])
+  ];
+
+  const total_results = searchResults.total || 0;
+  const total_pages = Math.ceil(total_results / page_size);
+
+  return c.json({
+    query,
+    total_results,
+    page,
+    page_size,
+    total_pages,
+    results,
+    facets: {
+      media_types: [],
+      languages: [],
+      decades: [],
+      trend_score_ranges: []
+    },
+    search_time: new Date().toISOString()
+  });
 });
+
 
 /**
  * Get trending works

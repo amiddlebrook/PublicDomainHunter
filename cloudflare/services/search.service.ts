@@ -64,12 +64,12 @@ export class SearchService {
   }
 
   /**
-   * Search external sources
+   * Search external sources with timeout
    */
   async searchExternal(
     query: string,
     source: 'gutenberg' | 'archive' | 'all' = 'all',
-    limit: number = 50
+    limit: number = 20  // Reduced from 50 to 20 for faster responses
   ) {
     const cacheKey = `search:external:${source}:${query}:${limit}`;
 
@@ -81,16 +81,28 @@ export class SearchService {
       }
     }
 
-    const results = await this.pdService.search(query, source, limit);
+    try {
+      // Add timeout to prevent hanging (10 seconds max)
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Search timeout')), 10000)
+      );
 
-    // Cache results for 1 hour
-    if (this.cache) {
-      await this.cache.put(cacheKey, JSON.stringify(results), {
-        expirationTtl: 3600,
-      });
+      const searchPromise = this.pdService.search(query, source, limit);
+
+      const results = await Promise.race([searchPromise, timeout]) as any[];
+
+      // Cache results for 1 hour
+      if (this.cache && results) {
+        await this.cache.put(cacheKey, JSON.stringify(results), {
+          expirationTtl: 3600,
+        });
+      }
+
+      return results || [];
+    } catch (error) {
+      console.error('External search error:', error);
+      return []; // Return empty array on error instead of failing
     }
-
-    return results;
   }
 
   /**
