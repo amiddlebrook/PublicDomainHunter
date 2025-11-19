@@ -719,6 +719,297 @@ app.get('/api/search/suggestions', async (c) => {
   }
 });
 
+// ===== MONETIZATION ENGINE ENDPOINTS =====
+
+/**
+ * Calculate monetization score for a specific work
+ */
+app.get('/api/monetization/score/:id', async (c) => {
+  const workId = parseInt(c.params.id);
+
+  if (isNaN(workId)) {
+    return c.json({ error: 'Invalid work ID' }, 400);
+  }
+
+  try {
+    const { MonetizationEngineService } = await import('./services/monetization-engine.service');
+    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE);
+
+    const score = await engineService.calculateMasterScore(workId);
+
+    return c.json({
+      work_id: workId,
+      scores: score,
+      calculated_at: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Monetization calculation error:', error);
+    return c.json({ error: error.message || 'Failed to calculate scores' }, 500);
+  }
+});
+
+/**
+ * Get top monetization opportunities
+ */
+app.get('/api/monetization/opportunities', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '20');
+  const minScore = parseInt(c.req.query('min_score') || '70');
+  const maxSaturation = parseInt(c.req.query('max_saturation') || '60');
+  const platform = c.req.query('platform'); // film, game, audiobook, etc.
+
+  try {
+    const { MonetizationEngineService } = await import('./services/monetization-engine.service');
+    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE);
+
+    // Build query based on filters
+    let sql = `
+      SELECT
+        w.id, w.title, w.author, w.media_type, w.description,
+        w.original_publication_year, w.public_domain_year,
+        wm.master_monetization_score,
+        wm.market_saturation_index,
+        wm.cross_platform_score,
+        wm.temporal_window_score,
+        wm.demographic_match_score,
+        wm.derivative_potential,
+        wm.competitive_moat_score,
+        wm.film_tv_potential,
+        wm.game_potential,
+        wm.audiobook_potential,
+        wm.merchandise_potential,
+        wm.gen_z_appeal,
+        wm.millennial_appeal,
+        wm.gen_x_appeal,
+        wm.boomer_appeal
+      FROM Work w
+      INNER JOIN WorkMetric wm ON w.id = wm.work_id
+      INNER JOIN (
+        SELECT work_id, MAX(metric_date) as latest_date
+        FROM WorkMetric
+        GROUP BY work_id
+      ) latest ON wm.work_id = latest.work_id AND wm.metric_date = latest.latest_date
+      WHERE w.status = 'active'
+        AND wm.master_monetization_score >= ?
+        AND wm.market_saturation_index <= ?
+    `;
+
+    const params = [minScore, maxSaturation];
+
+    // Add platform filter if specified
+    if (platform) {
+      sql += ` AND wm.${platform}_potential >= 70`;
+    }
+
+    sql += ` ORDER BY wm.master_monetization_score DESC LIMIT ?`;
+    params.push(limit);
+
+    const { results } = await c.env.DB.prepare(sql).bind(...params).all();
+
+    return c.json({
+      opportunities: results || [],
+      filters: {
+        min_score: minScore,
+        max_saturation: maxSaturation,
+        platform: platform || 'all'
+      },
+      count: (results || []).length
+    });
+  } catch (error: any) {
+    console.error('Opportunities query error:', error);
+    return c.json({ error: 'Failed to fetch opportunities' }, 500);
+  }
+});
+
+/**
+ * Get detailed monetization breakdown for a work
+ */
+app.get('/api/monetization/breakdown/:id', async (c) => {
+  const workId = parseInt(c.params.id);
+
+  if (isNaN(workId)) {
+    return c.json({ error: 'Invalid work ID' }, 400);
+  }
+
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT
+        wm.*,
+        w.title, w.author, w.description, w.media_type,
+        w.original_publication_year, w.public_domain_year
+      FROM WorkMetric wm
+      INNER JOIN Work w ON w.id = wm.work_id
+      WHERE wm.work_id = ?
+      ORDER BY wm.metric_date DESC
+      LIMIT 1
+    `).bind(workId).all();
+
+    if (!results || results.length === 0) {
+      return c.json({ error: 'No metrics found for this work' }, 404);
+    }
+
+    const metrics = results[0] as any;
+
+    // Structure the response for easy consumption
+    return c.json({
+      work: {
+        id: workId,
+        title: metrics.title,
+        author: metrics.author,
+        description: metrics.description,
+        media_type: metrics.media_type,
+        publication_year: metrics.original_publication_year,
+        public_domain_year: metrics.public_domain_year
+      },
+      master_score: {
+        overall: metrics.master_monetization_score,
+        grade: getMonetizationGrade(metrics.master_monetization_score),
+        interpretation: getScoreInterpretation(metrics.master_monetization_score)
+      },
+      core_metrics: {
+        market_saturation: {
+          score: metrics.market_saturation_index,
+          level: getSaturationLevel(metrics.market_saturation_index),
+          recommendation: metrics.market_saturation_index < 40 ? 'LOW COMPETITION - Act fast!' :
+            metrics.market_saturation_index < 70 ? 'MODERATE - Find niche angle' :
+              'HIGH - Requires differentiation'
+        },
+        cross_platform: {
+          score: metrics.cross_platform_score,
+          top_platforms: getTopPlatforms(metrics)
+        },
+        timing: {
+          score: metrics.temporal_window_score,
+          urgency: metrics.temporal_window_score > 85 ? 'CRITICAL - Act now' :
+            metrics.temporal_window_score > 65 ? 'HIGH - Plan soon' :
+              'MODERATE - Strategic timing'
+        },
+        demographics: {
+          top_audience: getTopDemographic(metrics),
+          gen_z: metrics.gen_z_appeal,
+          millennial: metrics.millennial_appeal,
+          gen_x: metrics.gen_x_appeal,
+          boomer: metrics.boomer_appeal
+        }
+      },
+      platform_opportunities: {
+        film_tv: metrics.film_tv_potential,
+        gaming: metrics.game_potential,
+        audiobook: metrics.audiobook_potential,
+        merchandise: metrics.merchandise_potential,
+        educational: metrics.educational_potential,
+        mobile_app: metrics.app_potential,
+        publishing: metrics.book_republish_potential
+      },
+      strategy_scores: {
+        derivative_potential: metrics.derivative_potential,
+        competitive_moat: metrics.competitive_moat_score,
+        ai_confidence: metrics.ai_prediction_score
+      },
+      last_updated: metrics.metric_date
+    });
+  } catch (error: any) {
+    console.error('Breakdown query error:', error);
+    return c.json({ error: 'Failed to fetch breakdown' }, 500);
+  }
+});
+
+/**
+ * Bulk calculate scores for multiple works
+ */
+app.post('/api/monetization/calculate-bulk', async (c) => {
+  const { work_ids } = await c.req.json();
+
+  if (!Array.isArray(work_ids) || work_ids.length === 0) {
+    return c.json({ error: 'work_ids must be a non-empty array' }, 400);
+  }
+
+  if (work_ids.length > 100) {
+    return c.json({ error: 'Maximum 100 works at a time' }, 400);
+  }
+
+  try {
+    const { MonetizationEngineService } = await import('./services/monetization-engine.service');
+    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE);
+
+    const results = await Promise.all(
+      work_ids.map(async (id) => {
+        try {
+          const score = await engineService.calculateMasterScore(id);
+          return { work_id: id, success: true, scores: score };
+        } catch (error: any) {
+          return { work_id: id, success: false, error: error.message };
+        }
+      })
+    );
+
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+
+    return c.json({
+      total: work_ids.length,
+      successful,
+      failed,
+      results
+    });
+  } catch (error: any) {
+    console.error('Bulk calculation error:', error);
+    return c.json({ error: 'Bulk calculation failed' }, 500);
+  }
+});
+
+// Helper functions
+function getMonetizationGrade(score: number): string {
+  if (score >= 90) return 'A+ (Exceptional)';
+  if (score >= 80) return 'A (Excellent)';
+  if (score >= 70) return 'B (Good)';
+  if (score >= 60) return 'C (Fair)';
+  if (score >= 50) return 'D (Poor)';
+  return 'F (Very Poor)';
+}
+
+function getScoreInterpretation(score: number): string {
+  if (score >= 85) return 'Outstanding monetization opportunity. High potential across multiple platforms with favorable market conditions.';
+  if (score >= 70) return 'Strong opportunity. Good market fit with clear paths to monetization.';
+  if (score >= 55) return 'Moderate opportunity. Requires strategic positioning and niche targeting.';
+  if (score >= 40) return 'Limited opportunity. High competition or low market demand.';
+  return 'Weak opportunity. Consider alternative works unless you have unique competitive advantage.';
+}
+
+function getSaturationLevel(score: number): string {
+  if (score < 30) return 'VERY LOW';
+  if (score < 50) return 'LOW';
+  if (score < 70) return 'MODERATE';
+  if (score < 85) return 'HIGH';
+  return 'EXTREME';
+}
+
+function getTopPlatforms(metrics: any): Array<{ name: string; score: number }> {
+  const platforms = [
+    { name: 'Film/TV', score: metrics.film_tv_potential },
+    { name: 'Gaming', score: metrics.game_potential },
+    { name: 'Audiobook', score: metrics.audiobook_potential },
+    { name: 'Merchandise', score: metrics.merchandise_potential },
+    { name: 'Educational', score: metrics.educational_potential },
+    { name: 'Mobile App', score: metrics.app_potential },
+    { name: 'Publishing', score: metrics.book_republish_potential }
+  ];
+
+  return platforms
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+}
+
+function getTopDemographic(metrics: any): string {
+  const demographics = [
+    { name: 'Gen Z', score: metrics.gen_z_appeal },
+    { name: 'Millennials', score: metrics.millennial_appeal },
+    { name: 'Gen X', score: metrics.gen_x_appeal },
+    { name: 'Boomers', score: metrics.boomer_appeal }
+  ];
+
+  return demographics.sort((a, b) => b.score - a.score)[0].name;
+}
+
 // ===== ALERTS ENDPOINTS =====
 
 /**

@@ -50,6 +50,8 @@ CREATE TABLE WorkMetric (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     work_id INTEGER NOT NULL,
     metric_date TEXT DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Legacy metrics (maintained for backwards compatibility)
     search_volume INTEGER DEFAULT 0,
     trend_score REAL DEFAULT 0.0,
     competition_score REAL DEFAULT 0.0,
@@ -57,7 +59,43 @@ CREATE TABLE WorkMetric (
     monetization_potential REAL DEFAULT 0.0,
     amazon_sales_rank INTEGER,
     google_trends_interest REAL DEFAULT 0.0,
-    metadata TEXT, -- JSON stored as TEXT
+    
+    -- NEW: Core Monetization Engine Metrics
+    master_monetization_score REAL DEFAULT 0.0,     -- Comprehensive 0-100 score
+    market_saturation_index REAL DEFAULT 0.0,       -- 0-100 (lower is better)
+    cross_platform_score REAL DEFAULT 0.0,          -- 0-100 (multi-format potential)
+    demographic_match_score REAL DEFAULT 0.0,       -- 0-100 (audience fit)
+    temporal_window_score REAL DEFAULT 0.0,         -- 0-100 (timing opportunity)
+    derivative_potential REAL DEFAULT 0.0,          -- 0-100 (spinoff/sequel opportunities)
+    competitive_moat_score REAL DEFAULT 0.0,        -- 0-100 (defensibility)
+    ai_prediction_score REAL DEFAULT 0.0,           -- 0-100 (LLM consensus)
+    patent_invention_score REAL DEFAULT 0.0,        -- 0-100 (tech monetization)
+    
+    -- Platform-specific potential scores
+    film_tv_potential REAL DEFAULT 0.0,             -- 0-100
+    game_potential REAL DEFAULT 0.0,                -- 0-100
+    audiobook_potential REAL DEFAULT 0.0,           -- 0-100
+    merchandise_potential REAL DEFAULT 0.0,         -- 0-100
+    educational_potential REAL DEFAULT 0.0,         -- 0-100
+    app_potential REAL DEFAULT 0.0,                 -- 0-100
+    book_republish_potential REAL DEFAULT 0.0,      -- 0-100
+    
+    -- Demographic appeal breakdown
+    gen_z_appeal REAL DEFAULT 0.0,                  -- 0-100 (ages 18-27)
+    millennial_appeal REAL DEFAULT 0.0,             -- 0-100 (ages 28-43)
+    gen_x_appeal REAL DEFAULT 0.0,                  -- 0-100 (ages 44-59)
+    boomer_appeal REAL DEFAULT 0.0,                 -- 0-100 (ages 60+)
+    
+    -- Market intelligence data (JSON stored as TEXT)
+    saturation_data TEXT,                            -- Existing adaptations count, trademarks, etc.
+    ai_analysis TEXT,                                -- LLM insights and predictions
+    opportunity_angles TEXT,                         -- Recommended strategies
+    comparable_works TEXT,                           -- Similar successful monetizations
+    
+    -- Metadata
+    metadata TEXT,                                   -- Additional metrics data
+    calculation_version TEXT DEFAULT 'v1.0',        -- Track algorithm version
+    last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (work_id) REFERENCES Work(id)
 );
@@ -122,3 +160,11 @@ CREATE INDEX idx_user_email ON User(email);
 CREATE INDEX idx_work_title ON Work(title);
 CREATE INDEX idx_work_author ON Work(author);
 CREATE INDEX idx_work_media_type ON Work(media_type);
+
+-- Indexes for monetization metrics (for fast opportunity queries)
+CREATE INDEX idx_metric_work_date ON WorkMetric(work_id, metric_date DESC);
+CREATE INDEX idx_master_score ON WorkMetric(master_monetization_score DESC);
+CREATE INDEX idx_market_saturation ON WorkMetric(market_saturation_index ASC);
+CREATE INDEX idx_temporal_window ON WorkMetric(temporal_window_score DESC);
+CREATE INDEX idx_film_tv_potential ON WorkMetric(film_tv_potential DESC);
+CREATE INDEX idx_game_potential ON WorkMetric(game_potential DESC);
