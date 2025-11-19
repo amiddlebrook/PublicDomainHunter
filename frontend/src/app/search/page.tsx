@@ -36,12 +36,13 @@ interface SearchResult {
   media_type: string
   language: string
   public_domain_year: number
-  created_at: string
+  created_at?: string
   metadata: any
-  snippet: string
-  relevance_score: number
+  snippet?: string
+  description?: string
+  relevance_score?: number
   has_content: boolean
-  content_length: number
+  content_length?: number
 }
 
 interface SearchFacets {
@@ -478,7 +479,7 @@ export default function SearchPage() {
                                 Relevance: {result.relevance_score.toFixed(1)}
                               </span>
                             )}
-                            {result.content_length > 0 && (
+                            {result.content_length !== undefined && result.content_length > 0 && (
                               <span className="flex items-center gap-1">
                                 <FileText className="h-3 w-3" />
                                 {formatFileSize(result.content_length)}
