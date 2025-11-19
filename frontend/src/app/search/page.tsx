@@ -467,25 +467,29 @@ export default function SearchPage() {
                           <div
                             className="text-gray-700 mb-3"
                             dangerouslySetInnerHTML={{
-                              __html: result.snippet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              __html: (result.snippet || result.description || result.title || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                             }}
                           />
 
                           <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Star className="h-3 w-3" />
-                              Relevance: {result.relevance_score.toFixed(1)}
-                            </span>
+                            {result.relevance_score !== undefined && (
+                              <span className="flex items-center gap-1">
+                                <Star className="h-3 w-3" />
+                                Relevance: {result.relevance_score.toFixed(1)}
+                              </span>
+                            )}
                             {result.content_length > 0 && (
                               <span className="flex items-center gap-1">
                                 <FileText className="h-3 w-3" />
                                 {formatFileSize(result.content_length)}
                               </span>
                             )}
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Added {format(new Date(result.created_at), 'MMM d, yyyy')}
-                            </span>
+                            {result.created_at && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                Added {format(new Date(result.created_at), 'MMM d, yyyy')}
+                              </span>
+                            )}
                           </div>
                         </div>
 
