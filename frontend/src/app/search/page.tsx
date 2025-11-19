@@ -130,7 +130,7 @@ export default function SearchPage() {
         )
       })
 
-      const response = await fetch(`${API_BASE_URL}/api/search/search?${params}`)
+      const response = await fetch(`${API_BASE_URL}/api/search?${params}`)
       if (response.ok) {
         const data = await response.json()
         setResults(data)

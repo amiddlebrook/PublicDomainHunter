@@ -89,14 +89,14 @@ app.get('/api/auth/health', async (c) => {
   try {
     // Cannot directly check queue, but binding should exist
     if (c.env.JOBS_QUEUE) {
-        status.queues_jobs = 'bound';
+      status.queues_jobs = 'bound';
     } else {
-        status.queues_jobs = 'unbound';
-        if (overallStatus !== 'error') overallStatus = 'degraded';
+      status.queues_jobs = 'unbound';
+      if (overallStatus !== 'error') overallStatus = 'degraded';
     }
   } catch (e: any) {
-      status.queues_jobs = `error: ${e.message}`;
-      if (overallStatus !== 'error') overallStatus = 'degraded';
+    status.queues_jobs = `error: ${e.message}`;
+    if (overallStatus !== 'error') overallStatus = 'degraded';
   }
 
   // 8. Check JWT Secret
@@ -662,6 +662,37 @@ app.get('/api/search/opportunities', async (c) => {
   const opportunities = await searchService.getTopOpportunities(limit);
 
   return c.json({ opportunities });
+});
+
+/**
+ * Get search suggestions
+ */
+app.get('/api/search/suggestions', async (c) => {
+  const query = c.req.query('q') || '';
+
+  if (!query || query.length < 2) {
+    return c.json({ suggestions: [] });
+  }
+
+  try {
+    // Search for matching titles and authors from local database
+    const { results } = await c.env.DB.prepare(`
+      SELECT DISTINCT title as suggestion FROM Work 
+      WHERE title LIKE ? 
+      UNION 
+      SELECT DISTINCT author as suggestion FROM Work 
+      WHERE author LIKE ? AND author IS NOT NULL
+      ORDER BY suggestion
+      LIMIT 10
+    `).bind(`%${query}%`, `%${query}%`).all();
+
+    const suggestions = (results || []).map((r: any) => r.suggestion);
+
+    return c.json({ suggestions });
+  } catch (error) {
+    console.error('Search suggestions error:', error);
+    return c.json({ suggestions: [] });
+  }
 });
 
 // ===== ALERTS ENDPOINTS =====
