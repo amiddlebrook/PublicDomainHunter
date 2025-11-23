@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { API_BASE_URL } from '@/lib/utils'
+import { MonetizationPanel } from '@/components/MonetizationPanel'
 
 interface Work {
   id: number
@@ -229,6 +230,9 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Monetization Panel */}
+      <MonetizationPanel workId={work.id} />
 
       {/* Metadata */}
       {work.metadata && Object.keys(work.metadata).length > 0 && (

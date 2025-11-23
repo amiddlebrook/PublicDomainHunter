@@ -6,6 +6,8 @@
  */
 
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types';
+import { LLMService, AIProvider, Message } from './llm.service';
+import { SearchService } from './search.service';
 
 // ===== TYPES =====
 
@@ -96,6 +98,25 @@ export interface ComparableWork {
     production_budget?: string;
     market_angle: string;
     success_factors: string[];
+    market_angle: string;
+    success_factors: string[];
+}
+
+export interface ProductIdea {
+    title: string;
+    product_type: 'audiobook' | 'merchandise' | 'course' | 'app' | 'film' | 'game' | 'book' | 'other';
+    description: string;
+    target_audience: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    revenue_potential: 'low' | 'medium' | 'high';
+    reasoning: string;
+}
+
+export interface ViabilityResult {
+    work: Work;
+    score: MasterScore;
+    viability_reasoning: string;
+    recommended_path: string;
 }
 
 // ===== SERVICE =====
@@ -103,7 +124,8 @@ export interface ComparableWork {
 export class MonetizationEngineService {
     constructor(
         private db: D1Database,
-        private cache?: KVNamespace
+        private cache?: KVNamespace,
+        private env?: any // Need env for LLMService
     ) { }
 
     /**
@@ -638,5 +660,204 @@ export class MonetizationEngineService {
     `).bind(limit).all();
 
         return results || [];
+    }
+
+    /**
+     * Generate product ideas using AI
+     */
+    async generateProductIdeas(work: Work, provider: AIProvider = AIProvider.OPENAI): Promise<ProductIdea[]> {
+        if (!this.env) {
+            throw new Error('Environment variables required for AI services');
+        }
+
+        const llmService = new LLMService(this.env);
+
+        const prompt = `
+        Generate 5 specific, high-potential digital product ideas for this public domain work:
+        
+        Title: ${work.title}
+        Author: ${work.author || 'Unknown'}
+        Type: ${work.media_type || 'Unknown'}
+        Description: ${work.description || 'No description available'}
+        
+        For each idea, provide:
+        1. A catchy title
+        2. Product type (audiobook, merchandise, course, app, film, game, book, other)
+        3. Brief description (1-2 sentences)
+        4. Target audience
+        5. Difficulty to create (easy/medium/hard)
+        6. Revenue potential (low/medium/high)
+        7. Why this would work (reasoning)
+        
+        Return ONLY a valid JSON array of objects with keys: title, product_type, description, target_audience, difficulty, revenue_potential, reasoning.
+        `;
+
+        const messages: Message[] = [
+            {
+                role: 'system',
+                content: 'You are a product strategy expert specializing in monetizing public domain content. Output strictly valid JSON.'
+            },
+            {
+                role: 'user',
+                content: prompt
+            }
+        ];
+
+        try {
+            const response = await llmService.generate(messages, provider, { temperature: 0.7 });
+
+            // Clean up code blocks if present
+            let content = response.content.trim();
+            if (content.startsWith('```json')) {
+                content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+            } else if (content.startsWith('```')) {
+                content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+            }
+
+            return JSON.parse(content);
+        } catch (error) {
+            console.error('Error generating product ideas:', error);
+            // Fallback static ideas if AI fails
+            return [
+                {
+                    title: `Modern Edition of ${work.title}`,
+                    product_type: 'book',
+                    description: 'Annotated version with modern context and analysis.',
+                    target_audience: 'Students and collectors',
+                    difficulty: 'easy',
+                    revenue_potential: 'medium',
+                    reasoning: 'Classic works always have a market for high-quality editions.'
+                }
+            ];
+        }
+    }
+
+    /**
+     * Distill search results into a curated list of viable opportunities
+     * Market Viability Engine Core Logic
+     */
+    async distillViableWorks(query: string, limit: number = 10, provider: AIProvider = AIProvider.OPENAI): Promise<ViabilityResult[]> {
+        if (!this.env) {
+            throw new Error('Environment variables required for AI services');
+        }
+
+        // Step 1: Broad Search
+        const searchService = new SearchService(this.db, this.cache);
+        // Fetch more candidates to filter down
+        const searchResults = await searchService.searchCombined(query, 1, 50);
+
+        if (searchResults.total === 0) {
+            return [];
+        }
+
+        // Step 2: Calculate Scores & Filter
+        // We need to calculate scores for works that might not have them yet
+        const scoredCandidates: { work: Work, score: MasterScore }[] = [];
+
+        for (const work of searchResults.local) { // Currently only processing local results for deep analysis to save time/cost
+            // In a real production system, we'd queue these for background processing if not scored
+            // For now, we calculate on the fly if needed
+            try {
+                const score = await this.calculateMasterScore(work.id);
+                if (score.master_monetization_score >= 60) { // Filter out low potential
+                    scoredCandidates.push({ work, score });
+                }
+            } catch (e) {
+                console.warn(`Failed to score work ${work.id}`, e);
+            }
+        }
+
+        // Sort by score
+        scoredCandidates.sort((a, b) => b.score.master_monetization_score - a.score.master_monetization_score);
+
+        // Take top 20 for AI analysis
+        const topCandidates = scoredCandidates.slice(0, 20);
+
+        if (topCandidates.length === 0) {
+            return [];
+        }
+
+        // Step 3: AI Distillation
+        const llmService = new LLMService(this.env);
+
+        const candidatesJson = topCandidates.map(c => ({
+            id: c.work.id,
+            title: c.work.title,
+            author: c.work.author,
+            score: c.score.master_monetization_score,
+            saturation: c.score.market_saturation_index,
+            description: c.work.description?.substring(0, 200) // Truncate for token limits
+        }));
+
+        const prompt = `
+        Analyze these ${topCandidates.length} public domain works and select the top ${limit} most commercially viable opportunities.
+        
+        Candidates:
+        ${JSON.stringify(candidatesJson, null, 2)}
+        
+        Criteria:
+        - High monetization score
+        - Low market saturation
+        - Clear commercial angle
+        
+        For each selected work, provide:
+        1. The Work ID
+        2. Viability Reasoning (Why this specific work? What's the angle?)
+        3. Recommended Path (e.g., "Film adaptation", "Luxury reprint")
+        
+        Return ONLY a valid JSON array of objects with keys: id, viability_reasoning, recommended_path.
+        `;
+
+        const messages: Message[] = [
+            {
+                role: 'system',
+                content: 'You are a high-stakes media acquisitions editor. You only pick hits. Output strictly valid JSON.'
+            },
+            {
+                role: 'user',
+                content: prompt
+            }
+        ];
+
+        try {
+            const response = await llmService.generate(messages, provider, { temperature: 0.5 });
+
+            // Clean up code blocks
+            let content = response.content.trim();
+            if (content.startsWith('```json')) {
+                content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+            } else if (content.startsWith('```')) {
+                content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+            }
+
+            const aiSelections: { id: number, viability_reasoning: string, recommended_path: string }[] = JSON.parse(content);
+
+            // Merge AI results with full work data
+            const results: ViabilityResult[] = [];
+
+            for (const selection of aiSelections) {
+                const candidate = topCandidates.find(c => c.work.id === selection.id);
+                if (candidate) {
+                    results.push({
+                        work: candidate.work,
+                        score: candidate.score,
+                        viability_reasoning: selection.viability_reasoning,
+                        recommended_path: selection.recommended_path
+                    });
+                }
+            }
+
+            return results;
+
+        } catch (error) {
+            console.error('Error in AI distillation:', error);
+            // Fallback: just return top candidates by score
+            return topCandidates.slice(0, limit).map(c => ({
+                work: c.work,
+                score: c.score,
+                viability_reasoning: 'Selected based on high algorithmic score.',
+                recommended_path: 'General commercialization'
+            }));
+        }
     }
 }

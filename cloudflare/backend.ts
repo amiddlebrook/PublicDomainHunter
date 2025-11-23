@@ -16,6 +16,8 @@ import { AnalyticsService } from './services/analytics.service';
 import { LLMService } from './services/llm.service';
 import { PublicDomainService } from './services/public-domain.service';
 import { StorageService } from './services/storage.service';
+import { AIPreferenceService } from './services/db/ai-preference.service';
+import { PROVIDER_CONFIGS, AIProvider } from './services/llm.service';
 
 export type Bindings = {
   DB: D1Database;
@@ -733,7 +735,7 @@ app.get('/api/monetization/score/:id', async (c) => {
 
   try {
     const { MonetizationEngineService } = await import('./services/monetization-engine.service');
-    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE);
+    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE, c.env);
 
     const score = await engineService.calculateMasterScore(workId);
 
@@ -754,76 +756,6 @@ app.get('/api/monetization/score/:id', async (c) => {
 app.get('/api/monetization/opportunities', async (c) => {
   const limit = parseInt(c.req.query('limit') || '20');
   const minScore = parseInt(c.req.query('min_score') || '70');
-  const maxSaturation = parseInt(c.req.query('max_saturation') || '60');
-  const platform = c.req.query('platform'); // film, game, audiobook, etc.
-
-  try {
-    const { MonetizationEngineService } = await import('./services/monetization-engine.service');
-    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE);
-
-    // Build query based on filters
-    let sql = `
-      SELECT
-        w.id, w.title, w.author, w.media_type, w.description,
-        w.original_publication_year, w.public_domain_year,
-        wm.master_monetization_score,
-        wm.market_saturation_index,
-        wm.cross_platform_score,
-        wm.temporal_window_score,
-        wm.demographic_match_score,
-        wm.derivative_potential,
-        wm.competitive_moat_score,
-        wm.film_tv_potential,
-        wm.game_potential,
-        wm.audiobook_potential,
-        wm.merchandise_potential,
-        wm.gen_z_appeal,
-        wm.millennial_appeal,
-        wm.gen_x_appeal,
-        wm.boomer_appeal
-      FROM Work w
-      INNER JOIN WorkMetric wm ON w.id = wm.work_id
-      INNER JOIN (
-        SELECT work_id, MAX(metric_date) as latest_date
-        FROM WorkMetric
-        GROUP BY work_id
-      ) latest ON wm.work_id = latest.work_id AND wm.metric_date = latest.latest_date
-      WHERE w.status = 'active'
-        AND wm.master_monetization_score >= ?
-        AND wm.market_saturation_index <= ?
-    `;
-
-    const params = [minScore, maxSaturation];
-
-    // Add platform filter if specified
-    if (platform) {
-      sql += ` AND wm.${platform}_potential >= 70`;
-    }
-
-    sql += ` ORDER BY wm.master_monetization_score DESC LIMIT ?`;
-    params.push(limit);
-
-    const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-
-    return c.json({
-      opportunities: results || [],
-      filters: {
-        min_score: minScore,
-        max_saturation: maxSaturation,
-        platform: platform || 'all'
-      },
-      count: (results || []).length
-    });
-  } catch (error: any) {
-    console.error('Opportunities query error:', error);
-    return c.json({ error: 'Failed to fetch opportunities' }, 500);
-  }
-});
-
-/**
- * Get detailed monetization breakdown for a work
- */
-app.get('/api/monetization/breakdown/:id', async (c) => {
   const workId = parseInt(c.params.id);
 
   if (isNaN(workId)) {
@@ -1139,6 +1071,111 @@ app.post('/api/ai/marketing', async (c) => {
 
   return c.json({ content });
 });
+
+/**
+ * Get available AI providers
+ */
+app.get('/api/ai/config/providers', async (c) => {
+  // Return list of providers with their availability status
+  // In a real app, we might check if API keys are configured in env
+  const providers = Object.values(PROVIDER_CONFIGS).map(config => {
+    const apiKey = c.env[config.apiKeyEnv as keyof Bindings];
+    return {
+      provider: config.provider,
+      model: config.model,
+      available: !!apiKey,
+      description: getProviderDescription(config.provider)
+    };
+  });
+
+  return c.json(providers);
+});
+
+/**
+ * Get user AI preferences
+ */
+app.get('/api/ai/config/preferences', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const preferenceService = new AIPreferenceService(c.env.DB);
+  const preferences = await preferenceService.getPreferences(parseInt(payload.sub));
+
+  return c.json(preferences);
+});
+
+/**
+ * Update user AI preferences
+ */
+app.put('/api/ai/config/preferences', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const data = await c.req.json();
+  const preferenceService = new AIPreferenceService(c.env.DB);
+
+  try {
+    const preferences = await preferenceService.updatePreferences(parseInt(payload.sub), data);
+    return c.json(preferences);
+  } catch (error) {
+    console.error('Failed to update preferences:', error);
+    return c.json({ error: 'Failed to update preferences' }, 500);
+  }
+});
+
+/**
+ * Test an AI provider
+ */
+app.post('/api/ai/config/test', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const { provider, prompt } = await c.req.json();
+
+  if (!provider) {
+    return c.json({ error: 'Provider is required' }, 400);
+  }
+
+  try {
+    const llmService = new LLMService(c.env);
+    const response = await llmService.generate(
+      [{ role: 'user', content: prompt || 'Hello' }],
+      provider as AIProvider,
+      { maxTokens: 50 }
+    );
+
+    return c.json({ success: true, response });
+  } catch (error: any) {
+    console.error('Provider test failed:', error);
+    return c.json({ success: false, error: error.message }, 400);
+  }
+});
+
+function getProviderDescription(provider: string): string {
+  switch (provider) {
+    case AIProvider.OPENAI: return 'OpenAI GPT-4 Turbo - High intelligence, good for complex tasks';
+    case AIProvider.CLAUDE: return 'Anthropic Claude 3.5 Sonnet - Excellent reasoning and coding capabilities';
+    case AIProvider.GEMINI: return 'Google Gemini Pro - Fast and capable, good for creative tasks';
+    case AIProvider.OPENROUTER_QWEN3_CODER: return 'Qwen 2.5 Coder - Specialized for code analysis';
+    case AIProvider.OPENROUTER_DEEPSEEK_R1T2: return 'DeepSeek R1 - Strong reasoning capabilities';
+    default: return 'AI Model via OpenRouter';
+  }
+}
 
 // ===== ANALYTICS ENDPOINTS =====
 
