@@ -101,7 +101,7 @@ export class SearchService {
       return results || [];
     } catch (error) {
       console.error('External search error:', error);
-      return []; // Return empty array on error instead of failing
+      return [];
     }
   }
 
@@ -118,65 +118,25 @@ export class SearchService {
     const localResults = await this.searchLocal(query, page, limit, filters);
 
     // If we don't have enough results, search external sources
-    if (localResults.works.length < limit && page === 1) {
-      const externalResults = await this.searchExternal(
-        query,
-        filters?.source || 'all',
-        limit - localResults.works.length
-      );
-
-      return {
-        local: localResults.works,
-        external: externalResults,
-        total: localResults.total + externalResults.length,
-      };
+    let externalResults: any[] = [];
+    // Only search external if on first page and not restricted to local
+    if (page === 1 && (!filters?.source || filters.source !== 'local')) {
+      try {
+        externalResults = await this.searchExternal(
+          query,
+          filters?.source || 'all',
+          limit
+        );
+      } catch (e) {
+        console.error('External search failed', e);
+      }
     }
 
     return {
       local: localResults.works,
-      external: [],
-      total: localResults.total,
+      external: externalResults,
+      total: localResults.total + externalResults.length,
     };
-  }
-
-  /**
-   * Get trending works based on metrics
-   */
-  async getTrending(limit: number = 20) {
-    const cacheKey = `trending:${limit}`;
-
-    // Check cache (5 minute TTL for trending)
-    if (this.cache) {
-      const cached = await this.cache.get(cacheKey);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    }
-
-    const { results } = await this.db.prepare(`
-      SELECT
-        w.id, w.title, w.author, w.media_type, w.description,
-        wm.trend_score, wm.google_trends_interest, wm.search_volume
-      FROM Work w
-      INNER JOIN WorkMetric wm ON w.id = wm.work_id
-      INNER JOIN (
-        SELECT work_id, MAX(metric_date) as latest_date
-        FROM WorkMetric
-        GROUP BY work_id
-      ) latest ON wm.work_id = latest.work_id AND wm.metric_date = latest.latest_date
-      WHERE w.status = 'active'
-      ORDER BY wm.trend_score DESC
-      LIMIT ?
-    `).bind(limit).all();
-
-    // Cache for 5 minutes
-    if (this.cache) {
-      await this.cache.put(cacheKey, JSON.stringify(results), {
-        expirationTtl: 300,
-      });
-    }
-
-    return results;
   }
 
   /**

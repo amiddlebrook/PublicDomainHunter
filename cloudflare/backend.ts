@@ -889,6 +889,91 @@ app.post('/api/monetization/calculate-bulk', async (c) => {
   }
 });
 
+/**
+ * Generate product ideas for a work
+ */
+app.get('/api/works/:id/product-ideas', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const workId = parseInt(c.req.param('id'));
+  if (isNaN(workId)) {
+    return c.json({ error: 'Invalid work ID' }, 400);
+  }
+
+  try {
+    const { MonetizationEngineService } = await import('./services/monetization-engine.service');
+    const { AIPreferenceService } = await import('./services/db/ai-preference.service');
+
+    // Get work details
+    const { results } = await c.env.DB.prepare('SELECT * FROM Work WHERE id = ?').bind(workId).all();
+    if (!results || results.length === 0) {
+      return c.json({ error: 'Work not found' }, 404);
+    }
+    const work = results[0] as any;
+
+    // Get user AI preferences
+    const aiPrefService = new AIPreferenceService(c.env.DB);
+    const userPrefs = await aiPrefService.getPreferences(parseInt(payload.sub));
+
+    // Initialize engine with env for LLM access
+    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE, c.env);
+
+    // Generate ideas
+    const ideas = await engineService.generateProductIdeas(work, userPrefs.preferred_provider as any);
+
+    return c.json({ ideas });
+  } catch (error: any) {
+    console.error('Product idea generation error:', error);
+    return c.json({ error: 'Failed to generate product ideas' }, 500);
+  }
+});
+
+/**
+ * Market Viability Search
+ */
+app.get('/api/market/viability-search', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const query = c.req.query('q');
+  const limit = parseInt(c.req.query('limit') || '10');
+
+  if (!query) {
+    return c.json({ error: 'Query parameter "q" is required' }, 400);
+  }
+
+  try {
+    const { MonetizationEngineService } = await import('./services/monetization-engine.service');
+    const { AIPreferenceService } = await import('./services/db/ai-preference.service');
+
+    // Get user AI preferences
+    const aiPrefService = new AIPreferenceService(c.env.DB);
+    const userPrefs = await aiPrefService.getPreferences(parseInt(payload.sub));
+
+    // Initialize engine
+    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE, c.env);
+
+    // Distill viable works
+    const results = await engineService.distillViableWorks(query, limit, userPrefs.preferred_provider as any);
+
+    return c.json({ results });
+  } catch (error: any) {
+    console.error('Viability search error:', error);
+    return c.json({ error: 'Failed to perform viability search' }, 500);
+  }
+});
+
 // Helper functions
 function getMonetizationGrade(score: number): string {
   if (score >= 90) return 'A+ (Exceptional)';
