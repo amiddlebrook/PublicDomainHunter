@@ -10,9 +10,15 @@ import {
   TrendingUp,
   FileText,
   Globe,
-  Hash
+  Hash,
+  Download,
+  Share2,
+  Bookmark,
+  Activity,
+  BarChart3,
+  Target
 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { API_BASE_URL } from '@/lib/utils'
@@ -70,190 +76,210 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
     fetchWork()
   }, [workId])
 
-  const getMediaTypeIcon = (mediaType: string) => {
-    switch (mediaType.toLowerCase()) {
-      case 'book':
-        return <BookOpen className="h-5 w-5" />
-      case 'document':
-        return <FileText className="h-5 w-5" />
-      default:
-        return <BookOpen className="h-5 w-5" />
-    }
-  }
-
-  const getTrendScoreColor = (score?: number) => {
-    if (!score) return 'secondary'
-    if (score >= 70) return 'success'
-    if (score >= 40) return 'warning'
-    return 'secondary'
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
 
   if (error || !work) {
     return (
-      <div className="space-y-6">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="bg-red-50 p-4 rounded-full mb-4">
+          <BookOpen className="h-8 w-8 text-red-500" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">{error || 'Asset not found'}</h3>
         <Button variant="outline" asChild>
-          <Link href="/works">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Works
-          </Link>
+          <Link href="/works">Return to Asset Inspector</Link>
         </Button>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{error || 'Work not found'}</h3>
-            <p className="text-gray-500">
-              The work you're looking for could not be found.
-            </p>
-          </CardContent>
-        </Card>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Back Button */}
-      <Button variant="outline" asChild>
-        <Link href="/works">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Works
-        </Link>
-      </Button>
+      {/* Asset Header */}
+      <div className="bg-white border-b border-gray-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-8 shadow-sm">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
+                <Link href="/works" className="hover:text-indigo-600 flex items-center gap-1">
+                  <ArrowLeft className="h-4 w-4" />
+                  Asset Inspector
+                </Link>
+                <span>/</span>
+                <span className="uppercase tracking-wider font-semibold text-xs">{work.media_type}</span>
+                <span>/</span>
+                <span className="font-mono text-xs">{work.id}</span>
+              </div>
 
-      {/* Work Header */}
-      <div>
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              {getMediaTypeIcon(work.media_type)}
-              <Badge variant="outline">{work.media_type}</Badge>
-              {work.metadata?.trend_score && (
-                <Badge variant={getTrendScoreColor(work.metadata.trend_score)}>
-                  <TrendingUp className="mr-1 h-3 w-3" />
-                  Trend Score: {work.metadata.trend_score.toFixed(0)}
-                </Badge>
-              )}
-              <Badge variant="outline">{work.status}</Badge>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">{work.title}</h1>
+              <div className="flex items-center gap-4 text-gray-600">
+                <span className="font-medium">{work.author || 'Unknown Author'}</span>
+                {work.original_publication_year && (
+                  <>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                    <span>{work.original_publication_year}</span>
+                  </>
+                )}
+                <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                <span className="uppercase">{work.language}</span>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{work.title}</h1>
-            <p className="text-xl text-gray-600">by {work.author || 'Unknown Author'}</p>
+
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm">
+                <Bookmark className="h-4 w-4 mr-2" />
+                Track
+              </Button>
+              <Button variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+              {work.source_url && (
+                <Button size="sm" asChild>
+                  <a href={work.source_url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Source
+                  </a>
+                </Button>
+              )}
+            </div>
           </div>
-          {work.source_url && (
-            <Button asChild>
-              <a href={work.source_url} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-2 h-4 w-4" />
-                View Source
-              </a>
-            </Button>
-          )}
+
+          {/* Key Metrics Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100">
+            <div>
+              <div className="text-sm font-medium text-gray-500 mb-1">Trend Score</div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-gray-900">
+                  {work.metadata?.trend_score || '-'}
+                </span>
+                <span className="text-xs font-medium text-emerald-600 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  High
+                </span>
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-500 mb-1">Public Domain</div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-gray-900">{work.public_domain_year}</span>
+                <span className="text-xs font-medium text-gray-500">Global</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-500 mb-1">Content Status</div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-gray-900 capitalize">{work.status}</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-500 mb-1">Data Quality</div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-gray-900">A+</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Work Details */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Publication Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-2 text-gray-700">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">Public Domain Year:</span>
-              <span>{work.public_domain_year}</span>
-            </div>
-            {work.original_publication_year && (
-              <div className="flex items-center gap-2 text-gray-700">
-                <Calendar className="h-4 w-4 text-gray-500" />
-                <span className="font-medium">Original Publication:</span>
-                <span>{work.original_publication_year}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Analysis Column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Monetization Engine */}
+          <MonetizationPanel workId={work.id} />
+
+          {/* Description & Content */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-gray-500" />
+                Asset Description
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {work.description || 'No description available for this asset.'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar Column */}
+        <div className="space-y-6">
+          {/* Metadata Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                Technical Metadata
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-500">Media Type</span>
+                <span className="text-sm font-medium text-gray-900 capitalize">{work.media_type}</span>
               </div>
-            )}
-            <div className="flex items-center gap-2 text-gray-700">
-              <Globe className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">Language:</span>
-              <span className="uppercase">{work.language}</span>
-            </div>
-            {work.page_count && (
-              <div className="flex items-center gap-2 text-gray-700">
-                <FileText className="h-4 w-4 text-gray-500" />
-                <span className="font-medium">Page Count:</span>
-                <span>{work.page_count} pages</span>
+              <div className="flex justify-between py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-500">Language</span>
+                <span className="text-sm font-medium text-gray-900 uppercase">{work.language}</span>
               </div>
-            )}
-            <div className="flex items-center gap-2 text-gray-700">
-              <Hash className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">Work ID:</span>
-              <span>{work.id}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>System Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-start gap-2 text-gray-700">
-              <span className="font-medium min-w-24">Status:</span>
-              <span className="capitalize">{work.status}</span>
-            </div>
-            <div className="flex items-start gap-2 text-gray-700">
-              <span className="font-medium min-w-24">Created:</span>
-              <span>{new Date(work.created_at).toLocaleDateString()}</span>
-            </div>
-            {work.updated_at && (
-              <div className="flex items-start gap-2 text-gray-700">
-                <span className="font-medium min-w-24">Updated:</span>
-                <span>{new Date(work.updated_at).toLocaleDateString()}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Description */}
-      {work.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{work.description}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Monetization Panel */}
-      <MonetizationPanel workId={work.id} />
-
-      {/* Metadata */}
-      {work.metadata && Object.keys(work.metadata).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Additional Metadata</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {Object.entries(work.metadata).map(([key, value]) => (
-                <div key={key} className="flex items-start gap-2 text-gray-700">
-                  <span className="font-medium capitalize min-w-32">
-                    {key.replace(/_/g, ' ')}:
-                  </span>
-                  <span className="flex-1">{JSON.stringify(value)}</span>
+              {work.page_count && (
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-500">Page Count</span>
+                  <span className="text-sm font-medium text-gray-900">{work.page_count}</span>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              )}
+              <div className="flex justify-between py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-500">Added to System</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {new Date(work.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="pt-4">
+                <Button className="w-full" variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Metadata
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Market Signals (Placeholder for future expansion) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                Market Signals
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-700">Search Volume</span>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">High</Badge>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '85%' }}></div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-700">Competition</span>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Med</Badge>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

@@ -20,6 +20,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { Sidebar } from '@/components/layout/Sidebar'
 
 // Load RealTimeNotification only on client side to avoid SSR/hydration issues
 const RealTimeNotification = dynamic(
@@ -80,95 +81,14 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, userMenuOp
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar */}
-      <div
-        className={clsx('fixed inset-0 z-50 lg:hidden', sidebarOpen ? 'block' : 'hidden')}
-      >
-        <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75"
-          onClick={() => setSidebarOpen(false)}
-        />
-        <div className="relative flex w-full max-w-xs flex-col bg-white pt-5 pb-4 shadow-xl">
-          <div className="absolute top-0 right-0 -mr-12 pt-2">
-            <button
-              type="button"
-              className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-6 w-6 text-white" />
-            </button>
-          </div>
-          <div className="flex flex-shrink-0 items-center px-4">
-            <BookOpen className="h-8 w-8 text-primary-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900">PD Hunter</span>
-          </div>
-          <nav className="mt-8 flex-1 px-2">
-            <ul className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href
-                return (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className={clsx(
-                        'group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-primary-100 text-primary-900'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                      )}
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                      {item.name}
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar Navigation */}
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex min-h-0 flex-1 flex-col bg-white shadow-sm">
-          <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
-            <div className="flex flex-shrink-0 items-center px-4">
-              <BookOpen className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Public Domain Hunter</span>
-            </div>
-            <nav className="mt-8 flex-1 px-2">
-              <ul className="space-y-1">
-                {navigation.map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={clsx(
-                          'group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors',
-                          isActive
-                            ? 'bg-primary-100 text-primary-900'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                        )}
-                      >
-                        <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                        {item.name}
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top navigation */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Header */}
+        <header className="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -177,44 +97,34 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, userMenuOp
             <Menu className="h-6 w-6" />
           </button>
 
-          {/* Separator */}
-          <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
-
-          <div className="flex flex-1 items-center">
-            <h1 className="text-lg font-semibold text-gray-900">
-              {navigation.find((item) => item.href === pathname)?.name || 'Dashboard'}
-            </h1>
-          </div>
-          <div className="flex items-center gap-x-4 lg:gap-x-6">
-            <button
-              type="button"
-              className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              <Bell className="h-6 w-6" />
-            </button>
-            <button
-              type="button"
-              className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              <Settings className="h-6 w-6" />
-            </button>
-            <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />
+          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1 items-center">
+              <h1 className="text-lg font-semibold text-gray-900">
+                {navigation.find((item) => item.href === pathname)?.name || 'Dashboard'}
+              </h1>
+            </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <RealTimeNotification />
-              {isAuthenticated && user ? (
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  >
-                    <User className="h-6 w-6" />
-                    <span className="text-sm font-medium text-gray-700">{user.username}</span>
-                  </button>
+              <div className="flex items-center gap-x-4 lg:gap-x-6">
+                <RealTimeNotification />
+                {isAuthenticated && user ? (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    >
+                      <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="hidden lg:flex lg:items-center">
+                        <span className="text-sm font-medium text-gray-700" aria-hidden="true">
+                          {user.username}
+                        </span>
+                      </span>
+                    </button>
 
-                  {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                      <div className="py-1">
+                    {userMenuOpen && (
+                      <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                         <div className="border-b px-4 py-2 text-sm text-gray-700">
                           <div className="font-medium">{user.full_name || user.username}</div>
                           <div className="text-gray-500">{user.email}</div>
@@ -234,29 +144,29 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, userMenuOp
                           Sign out
                         </button>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-gray-500">
-                    Sign in
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="text-sm font-medium text-primary-600 hover:text-primary-500"
-                  >
-                    Sign up
-                  </Link>
-                </div>
-              )}
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-gray-500">
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    >
+                      Sign up
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Page content */}
-        <main className="py-8">
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+        {/* Main Page Content */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+          {children}
         </main>
       </div>
     </div>
