@@ -11,7 +11,8 @@ import {
   TrendingUp,
   ExternalLink,
   Grid3X3,
-  List
+  List,
+  Database
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -136,9 +137,15 @@ export default function WorksPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Public Domain Works</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="h-6 w-6 text-purple-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Asset Inspector</h1>
+          </div>
           <p className="mt-2 text-gray-600">
-            Browse and explore our catalog of public domain content.
+            Comprehensive catalog of all public domain works with detailed metadata, trend scores, and analysis tools.
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Click any work for in-depth analysis including monetization scores, similar works, and AI-powered insights.
           </p>
         </div>
         <div className="flex gap-3">

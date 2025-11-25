@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
@@ -27,10 +26,11 @@ import {
   ChevronRight,
   ChevronLeft,
   DollarSign,
-  Activity
+  Activity,
+  Sparkles,
+  Info
 } from 'lucide-react'
 import { format } from 'date-fns'
-import { ViabilitySearch } from '@/components/ViabilitySearch'
 import Link from 'next/link'
 import clsx from 'clsx'
 
@@ -134,8 +134,12 @@ export default function SearchPage() {
       {/* Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Market Intelligence</h1>
-          <p className="text-sm text-gray-500">Analyze public domain assets and identify opportunities.</p>
+          <div className="flex items-center gap-2 mb-2">
+            <Search className="h-6 w-6 text-indigo-600" />
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Market Intelligence</h1>
+          </div>
+          <p className="text-sm text-gray-600">Search our catalog of public domain works with advanced filters and monetization metrics.</p>
+          <p className="text-xs text-gray-500 mt-1">Filter by media type, year range, and monetization potential to find the best opportunities.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
@@ -145,12 +149,17 @@ export default function SearchPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="standard" className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between border-b border-gray-200 pb-4 shrink-0">
-          <TabsList>
-            <TabsTrigger value="standard">Asset Discovery</TabsTrigger>
-            <TabsTrigger value="viability">Viability Engine</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">Catalog Search</h2>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/viability">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Try Viability Lab
+              </Link>
+            </Button>
+          </div>
 
           <div className="flex items-center gap-2">
             <Button
@@ -181,7 +190,7 @@ export default function SearchPage() {
           </div>
         </div>
 
-        <TabsContent value="standard" className="flex-1 flex flex-col min-h-0 mt-4">
+        <div className="flex-1 flex flex-col min-h-0 mt-4">
           <div className="flex flex-1 gap-6 min-h-0 relative">
             {/* Filter Sidebar */}
             <aside
@@ -425,12 +434,9 @@ export default function SearchPage() {
               </div>
             </div >
           </div >
-        </TabsContent>
+        </div>
 
-        <TabsContent value="viability" className="flex-1 min-h-0 mt-4 overflow-auto">
-          <ViabilitySearch />
-        </TabsContent>
-      </Tabs >
+      </div>
     </div >
   )
 }

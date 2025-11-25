@@ -22,9 +22,10 @@ import { useAuth } from '@/contexts/AuthContext'
 const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Market Intelligence', href: '/search', icon: Search },
-    { name: 'Asset Inspector', href: '/works', icon: Database },
     { name: 'Viability Lab', href: '/viability', icon: Sparkles },
+    { name: 'Asset Inspector', href: '/works', icon: Database },
     { name: 'Portfolio', href: '/portfolio', icon: Briefcase },
+    { name: 'AI Insights', href: '/ai-insights', icon: Sparkles },
     { name: 'Reports', href: '/reports', icon: FileBarChart },
     { name: 'Upload', href: '/upload', icon: Upload },
 ]
