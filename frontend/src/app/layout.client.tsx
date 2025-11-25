@@ -44,6 +44,7 @@ interface ClientLayoutProps {
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -61,17 +62,19 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     )
   }
 
-  return <ClientLayoutContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} userMenuOpen={userMenuOpen} setUserMenuOpen={setUserMenuOpen}>{children}</ClientLayoutContent>
+  return <ClientLayoutContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} userMenuOpen={userMenuOpen} setUserMenuOpen={setUserMenuOpen}>{children}</ClientLayoutContent>
 }
 
 interface ClientLayoutContentProps extends ClientLayoutProps {
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
+  sidebarCollapsed: boolean
+  setSidebarCollapsed: (collapsed: boolean) => void
   userMenuOpen: boolean
   setUserMenuOpen: (open: boolean) => void
 }
 
-function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, userMenuOpen, setUserMenuOpen }: ClientLayoutContentProps) {
+function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed, userMenuOpen, setUserMenuOpen }: ClientLayoutContentProps) {
   const pathname = usePathname()
   const { user, logout, isAuthenticated } = useAuth()
 
@@ -83,7 +86,7 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, userMenuOp
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar Navigation */}
-      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

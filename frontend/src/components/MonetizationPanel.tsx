@@ -214,7 +214,7 @@ export function MonetizationPanel({ workId }: MonetizationPanelProps) {
                                                 </div>
                                             </div>
                                             <div className="bg-white p-2 rounded border text-slate-600 italic">
-                                                "{idea.reasoning}"
+                                                "                                                &quot;{idea.reasoning}&quot;"
                                             </div>
                                         </CardContent>
                                     </Card>

@@ -11,6 +11,7 @@ export interface SearchFilters {
   language?: string;
   min_year?: number;
   max_year?: number;
+  min_score?: number;
   source?: 'gutenberg' | 'archive' | 'all';
 }
 
@@ -41,25 +42,77 @@ export class SearchService {
     filters?: SearchFilters
   ): Promise<SearchResult> {
     const offset = (page - 1) * limit;
+    const params: any[] = [];
 
-    const works = await this.workService.list(limit, offset, {
-      search_query: query,
-      author: filters?.author,
-      media_type: filters?.media_type,
-      language: filters?.language,
-    });
+    let sql = `
+      SELECT 
+        w.*,
+        wm.master_monetization_score as monetization_score,
+        wm.market_saturation_index as saturation_index
+      FROM Work w
+      LEFT JOIN (
+        SELECT work_id, master_monetization_score, market_saturation_index, MAX(metric_date)
+        FROM WorkMetric
+        GROUP BY work_id
+      ) wm ON w.id = wm.work_id
+      WHERE 1=1
+    `;
 
-    const total = await this.workService.count({
-      author: filters?.author,
-      media_type: filters?.media_type,
-    });
+    // Text search
+    if (query) {
+      sql += ' AND (w.title LIKE ? OR w.author LIKE ? OR w.description LIKE ?)';
+      const searchTerm = `%${query}%`;
+      params.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    // Filters
+    if (filters?.author) {
+      sql += ' AND w.author LIKE ?';
+      params.push(`%${filters.author}%`);
+    }
+
+    if (filters?.media_type) {
+      sql += ' AND w.media_type = ?';
+      params.push(filters.media_type);
+    }
+
+    if (filters?.language) {
+      sql += ' AND w.language = ?';
+      params.push(filters.language);
+    }
+
+    if (filters?.min_year) {
+      sql += ' AND w.original_publication_year >= ?';
+      params.push(filters.min_year);
+    }
+
+    if (filters?.max_year) {
+      sql += ' AND w.original_publication_year <= ?';
+      params.push(filters.max_year);
+    }
+
+    if (filters?.min_score) {
+      sql += ' AND wm.master_monetization_score >= ?';
+      params.push(filters.min_score);
+    }
+
+    // Count total
+    const countSql = `SELECT COUNT(*) as count FROM (${sql})`;
+    const countResult = await this.db.prepare(countSql).bind(...params).first<{ count: number }>();
+    const total = countResult?.count || 0;
+
+    // Get paginated results
+    sql += ' ORDER BY w.created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    const { results } = await this.db.prepare(sql).bind(...params).all<Work>();
 
     return {
-      works,
+      works: results || [],
       total,
       page,
       limit,
-      hasMore: offset + works.length < total,
+      hasMore: offset + (results?.length || 0) < total,
     };
   }
 

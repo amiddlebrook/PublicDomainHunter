@@ -628,8 +628,20 @@ app.get('/api/search', async (c) => {
   const page_size = parseInt(c.req.query('page_size') || '20');
   const source = c.req.query('source') as 'gutenberg' | 'archive' | 'all' | undefined;
 
+  // Parse filters
+  const media_type = c.req.query('media_type');
+  const min_year = c.req.query('min_year') ? parseInt(c.req.query('min_year')!) : undefined;
+  const max_year = c.req.query('max_year') ? parseInt(c.req.query('max_year')!) : undefined;
+  const min_score = c.req.query('min_score') ? parseInt(c.req.query('min_score')!) : undefined;
+
   const searchService = new SearchService(c.env.DB, c.env.CACHE);
-  const searchResults = await searchService.searchCombined(query, page, page_size, { source });
+  const searchResults = await searchService.searchCombined(query, page, page_size, {
+    source,
+    media_type,
+    min_year,
+    max_year,
+    min_score
+  });
 
   // Track search
   const authHeader = c.req.header('Authorization');
@@ -665,6 +677,32 @@ app.get('/api/search', async (c) => {
     },
     search_time: new Date().toISOString()
   });
+});
+
+/**
+ * Market Viability Search
+ * AI-powered distillation of opportunities
+ */
+app.get('/api/market/viability-search', async (c) => {
+  const query = c.req.query('q') || '';
+  const limit = parseInt(c.req.query('limit') || '5');
+
+  if (!query) {
+    return c.json({ results: [] });
+  }
+
+  try {
+    const { MonetizationEngineService } = await import('./services/monetization-engine.service');
+    const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE, c.env);
+
+    // Use AI to distill results
+    const results = await engineService.distillViableWorks(query, limit);
+
+    return c.json({ results });
+  } catch (error: any) {
+    console.error('Viability search error:', error);
+    return c.json({ error: error.message || 'Failed to perform viability search' }, 500);
+  }
 });
 
 
