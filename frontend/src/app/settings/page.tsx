@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
 import {
     User,
     Lock,
@@ -328,8 +327,7 @@ export default function SettingsPage() {
                                     </Select>
                                 </div>
                             </div>
-                            <Separator />
-                            <Button onClick={handleSavePreferences} disabled={saving}>
+                            <Button onClick={handleSavePreferences} disabled={saving} className="mt-6">
                                 <Save className="h-4 w-4 mr-2" />
                                 {saving ? 'Saving...' : 'Save Preferences'}
                             </Button>
