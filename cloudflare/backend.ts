@@ -1467,4 +1467,138 @@ app.post('/api/external/import', async (c) => {
   return c.json({ message: 'Work import queued' });
 });
 
+// ===== TRACKING ENDPOINTS =====
+
+/**
+ * Add work to tracking list
+ */
+app.post('/api/tracking/add', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const { work_id } = await c.req.json();
+    const userId = parseInt(payload.sub);
+
+    // Create Tracking table if not exists
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS Tracking (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        work_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, work_id)
+      )
+    `).run();
+
+    // Add to tracking
+    await c.env.DB.prepare(`
+      INSERT OR IGNORE INTO Tracking (user_id, work_id)
+      VALUES (?, ?)
+    `).bind(userId, work_id).run();
+
+    return c.json({ message: 'Added to tracking list' });
+  } catch (error: any) {
+    console.error('Tracking error:', error);
+    return c.json({ error: 'Failed to add to tracking' }, 500);
+  }
+});
+
+/**
+ * Get user's tracking list
+ */
+app.get('/api/tracking/list', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const userId = parseInt(payload.sub);
+  const { results } = await c.env.DB.prepare(`
+    SELECT t.*, w.title, w.author, w.media_type
+    FROM Tracking t
+    LEFT JOIN Work w ON w.id = t.work_id
+    WHERE t.user_id = ?
+    ORDER BY t.created_at DESC
+  `).bind(userId).all();
+
+  return c.json({ tracking: results });
+});
+
+// ===== PORTFOLIO ENDPOINTS =====
+
+/**
+ * Add work to portfolio
+ */
+app.post('/api/portfolio/add', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const { work_id } = await c.req.json();
+    const userId = parseInt(payload.sub);
+
+    // Create Portfolio table if not exists
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS Portfolio (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        work_id INTEGER NOT NULL,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, work_id)
+      )
+    `).run();
+
+    // Add to portfolio
+    await c.env.DB.prepare(`
+      INSERT OR IGNORE INTO Portfolio (user_id, work_id)
+      VALUES (?, ?)
+    `).bind(userId, work_id).run();
+
+    return c.json({ message: 'Added to portfolio' });
+  } catch (error: any) {
+    console.error('Portfolio error:', error);
+    return c.json({ error: 'Failed to add to portfolio' }, 500);
+  }
+});
+
+/**
+ * Get user's portfolio
+ */
+app.get('/api/portfolio/list', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const userId = parseInt(payload.sub);
+  const { results } = await c.env.DB.prepare(`
+    SELECT p.*, w.title, w.author, w.media_type
+    FROM Portfolio p
+    LEFT JOIN Work w ON w.id = p.work_id
+    WHERE p.user_id = ?
+    ORDER BY p.created_at DESC
+  `).bind(userId).all();
+
+  return c.json({ portfolio: results });
+});
+
 export default app;
+

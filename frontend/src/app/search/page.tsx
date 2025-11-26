@@ -127,6 +127,88 @@ export default function SearchPage() {
     })
   }
 
+  const handleExport = (format: 'json' | 'csv') => {
+    if (!results) return
+
+    const timestamp = new Date().toISOString().split('T')[0]
+    const filename = `market-intelligence-${timestamp}.${format}`
+
+    if (format === 'json') {
+      const json = JSON.stringify(results, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    } else {
+      // CSV export
+      const headers = ['Title', 'Author', 'Type', 'Year', 'Monetization Score', 'Saturation Index']
+      const rows = results.results.map((r: SearchResult) => [
+        r.title,
+        r.author || 'Unknown',
+        r.media_type,
+        r.public_domain_year,
+        r.monetization_score || 0,
+        r.saturation_index || 0
+      ])
+      const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  const handleTrack = async (workId: number) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_BASE_URL}/api/tracking/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ work_id: workId })
+      })
+      if (response.ok) {
+        alert('Added to tracking list!')
+      }
+    } catch (error) {
+      console.error('Failed to track work', error)
+    }
+  }
+
+  const handleShare = (workId: number) => {
+    const url = `${window.location.origin}/works/${workId}`
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link copied to clipboard!')
+    })
+  }
+
+  const handleSaveToPortfolio = async (workId: number) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_BASE_URL}/api/portfolio/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ work_id: workId })
+      })
+      if (response.ok) {
+        alert('Added to portfolio!')
+      }
+    } catch (error) {
+      console.error('Failed to add to portfolio', error)
+    }
+  }
+
   if (!user) return <div className="p-8 text-center text-gray-500">Please log in to access Market Intelligence.</div>
 
   return (
@@ -142,9 +224,23 @@ export default function SearchPage() {
           <p className="text-xs text-gray-500 mt-1">Filter by media type, year range, and monetization potential to find the best opportunities.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport('json')}
+            disabled={!results || results.results.length === 0}
+          >
             <Download className="mr-2 h-4 w-4" />
-            Export Report
+            Export JSON
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport('csv')}
+            disabled={!results || results.results.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
           </Button>
         </div>
       </div>
@@ -354,12 +450,23 @@ export default function SearchPage() {
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-right">
-                                <Button variant="ghost" size="sm" asChild>
-                                  <Link href={`/works/${result.id}`}>
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    Analyze
-                                  </Link>
-                                </Button>
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button variant="ghost" size="sm" onClick={() => handleTrack(result.id)}>
+                                    <TrendingUp className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={() => handleShare(result.id)}>
+                                    <Activity className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={() => handleSaveToPortfolio(result.id)}>
+                                    <DollarSign className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" asChild>
+                                    <Link href={`/works/${result.id}`}>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Analyze
+                                    </Link>
+                                  </Button>
+                                </div>
                               </td>
                             </tr>
                           )
@@ -420,7 +527,19 @@ export default function SearchPage() {
                                   </div>
                                 </div>
 
-                                <Button className="w-full mt-4" variant="outline" asChild>
+                                <div className="flex gap-2">
+                                  <Button className="flex-1" variant="outline" onClick={() => handleSaveToPortfolio(result.id)}>
+                                    <DollarSign className="h-4 w-4 mr-2" />
+                                    Portfolio
+                                  </Button>
+                                  <Button variant="outline" size="icon" onClick={() => handleTrack(result.id)}>
+                                    <TrendingUp className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="outline" size="icon" onClick={() => handleShare(result.id)}>
+                                    <Activity className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <Button className="w-full mt-2" asChild>
                                   <Link href={`/works/${result.id}`}>View Analysis</Link>
                                 </Button>
                               </div>
