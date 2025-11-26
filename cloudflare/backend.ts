@@ -573,25 +573,48 @@ app.get('/api/works', async (c) => {
  * Get a single work by ID
  */
 app.get('/api/works/:id', async (c) => {
-  const id = parseInt(c.req.param('id'));
-  const workService = new WorkService(c.env.DB);
-  const work = await workService.findById(id);
+  const idParam = c.req.param('id');
 
-  if (!work) {
-    return c.json({ error: 'Work not found' }, 404);
+  // Check if this is a numeric ID (local database) or external ID (e.g., gutenberg_12345)
+  const isNumericId = /^\d+$/.test(idParam);
+
+  if (isNumericId) {
+    // Handle local database works
+    const id = parseInt(idParam);
+    const workService = new WorkService(c.env.DB);
+    const work = await workService.findById(id);
+
+    if (!work) {
+      return c.json({ error: 'Work not found' }, 404);
+    }
+
+    // Track view
+    const authHeader = c.req.header('Authorization');
+    const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+    const payload = await authMiddleware(authHeader, jwtSecret);
+
+    if (payload) {
+      const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
+      await analyticsService.trackWorkView(parseInt(payload.sub), id);
+    }
+
+    return c.json(work);
+  } else {
+    // Handle external works (e.g., from Gutenberg, Internet Archive)
+    try {
+      const pdService = new PublicDomainService(c.env.CACHE);
+      const work = await pdService.getById(idParam);
+
+      if (!work) {
+        return c.json({ error: 'Work not found' }, 404);
+      }
+
+      return c.json(work);
+    } catch (error) {
+      console.error(`Error fetching external work ${idParam}:`, error);
+      return c.json({ error: 'Failed to fetch work details' }, 500);
+    }
   }
-
-  // Track view
-  const authHeader = c.req.header('Authorization');
-  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
-
-  if (payload) {
-    const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
-    await analyticsService.trackWorkView(parseInt(payload.sub), id);
-  }
-
-  return c.json(work);
 });
 
 /**
