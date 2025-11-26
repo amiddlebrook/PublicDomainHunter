@@ -3,6 +3,7 @@
 import { API_BASE_URL } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import {
   BookOpen,
   TrendingUp,
@@ -19,6 +20,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+
+// Dynamically import WorkDetailClient to handle work detail routes
+const WorkDetailClient = dynamic(() => import('./works/[id]/WorkDetailClient'), { ssr: false })
 
 interface DashboardStats {
   total_works: number
@@ -45,10 +49,10 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
-  // Fix for SPA fallback serving dashboard on non-dashboard routes
-  // Just return null and let Next.js routing handle it
-  if (pathname && pathname !== '/' && pathname !== '') {
-    return null
+  // Manual client-side routing for work detail pages (SPA fallback workaround)
+  if (pathname && pathname.startsWith('/works/') && pathname !== '/works') {
+    const workId = pathname.split('/works/')[1]
+    return <WorkDetailClient workId={workId} />
   }
 
   useEffect(() => {
