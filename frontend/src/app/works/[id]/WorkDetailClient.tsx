@@ -21,7 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { API_BASE_URL } from '@/lib/utils'
+import { API_BASE_URL, sanitizeText } from '@/lib/utils'
 import { MonetizationPanel } from '@/components/MonetizationPanel'
 
 interface Work {
@@ -207,7 +207,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {work.description || 'No description available for this asset.'}
+                {sanitizeText(work.description) || 'No description available for this asset.'}
               </p>
             </CardContent>
           </Card>
