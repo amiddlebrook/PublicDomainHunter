@@ -133,26 +133,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <div className="flex-1">
-              <Input
-                type="text"
-                placeholder="Search for public domain works..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Button type="submit" className="px-8">
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+
 
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

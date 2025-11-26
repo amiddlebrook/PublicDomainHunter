@@ -72,7 +72,7 @@ export default function SearchPage() {
   const [showFilters, setShowFilters] = useState(true)
   const [filters, setFilters] = useState<any>({
     minYear: 1800,
-    maxYear: 1928,
+    maxYear: 2030,
     mediaTypes: [] as string[],
     minScore: 0
   })
@@ -232,8 +232,8 @@ export default function SearchPage() {
                   <h3 className="text-sm font-medium text-gray-900 mb-3">Public Domain Year</h3>
                   <div className="px-2">
                     <Slider
-                      defaultValue={[1800, 1928]}
-                      max={1928}
+                      defaultValue={[1800, 2030]}
+                      max={2030}
                       min={1800}
                       step={1}
                       className="my-4"
