@@ -507,26 +507,31 @@ app.get('/auth/github/callback', async (c) => {
  * Check session status
  */
 app.get('/auth/session', async (c) => {
-  const sessionId = c.req.cookie('session_id');
+  try {
+    const sessionId = c.req.cookie('session_id');
 
-  if (!sessionId) {
+    if (!sessionId) {
+      return c.json({ authenticated: false });
+    }
+
+    const session = await getSession(c.env.SESSIONS, sessionId);
+
+    if (!session) {
+      return c.json({ authenticated: false });
+    }
+
+    return c.json({
+      authenticated: true,
+      user: {
+        id: session.userId,
+        email: session.email,
+        username: session.username,
+      },
+    });
+  } catch (error) {
+    console.error('Session check error:', error);
     return c.json({ authenticated: false });
   }
-
-  const session = await getSession(c.env.SESSIONS, sessionId);
-
-  if (!session) {
-    return c.json({ authenticated: false });
-  }
-
-  return c.json({
-    authenticated: true,
-    user: {
-      id: session.userId,
-      email: session.email,
-      username: session.username,
-    },
-  });
 });
 
 /**
