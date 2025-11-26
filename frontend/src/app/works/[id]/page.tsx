@@ -13,19 +13,34 @@ export default async function WorkDetailPage({ params }: PageProps) {
 // This function is required for static export with dynamic routes
 // It generates the list of all possible [id] values at build time
 export async function generateStaticParams() {
-  // For a production build, you would fetch all work IDs here if the API is accessible
-  // Example:
-  // try {
-  //   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/works?limit=1000`)
-  //   const works = await response.json()
-  //   return works.map((work: any) => ({ id: work.id.toString() }))
-  // } catch (error) {
-  //   console.error('Could not fetch works for static generation:', error)
-  // }
+  // Fetch all work IDs from the API at build time
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://publicdomainhunter.averymiddlebrook2014.workers.dev'
+    const response = await fetch(`${apiUrl}/api/works?limit=1000`)
 
-  // Return a placeholder page to satisfy Next.js static export requirements
-  // The actual page content will be loaded client-side
+    if (response.ok) {
+      const data = await response.json()
+      const works = Array.isArray(data) ? data : (data.works || [])
+
+      if (works.length > 0) {
+        return works.map((work: any) => ({ id: work.id.toString() }))
+      }
+    }
+  } catch (error) {
+    console.error('Could not fetch works for static generation:', error)
+  }
+
+  // Fallback: return at least a few pages if API is unreachable
   return [
-    { id: '1' }
+    { id: '1' },
+    { id: '2' },
+    { id: '3' },
+    { id: '4' },
+    { id: '5' },
+    { id: '6' },
+    { id: '7' },
+    { id: '8' },
+    { id: '9' },
+    { id: '10' }
   ]
 }
