@@ -12,7 +12,7 @@ import { SearchService } from './search.service';
 // ===== TYPES =====
 
 export interface Work {
-    id: number;
+    id: number | string;
     title: string;
     author?: string;
     original_publication_year?: number;
@@ -24,7 +24,7 @@ export interface Work {
 }
 
 export interface MasterScore {
-    work_id: number;
+    work_id: number | string;
     master_monetization_score: number;
     market_saturation_index: number;
     cross_platform_score: number;
@@ -98,8 +98,6 @@ export interface ComparableWork {
     production_budget?: string;
     market_angle: string;
     success_factors: string[];
-    market_angle: string;
-    success_factors: string[];
 }
 
 export interface ProductIdea {
@@ -131,19 +129,39 @@ export class MonetizationEngineService {
     /**
      * Calculate comprehensive monetization score for a work
      */
-    async calculateMasterScore(workId: number): Promise<MasterScore> {
-        const cacheKey = `monetization:score:${workId}`;
+    /**
+     * Calculate comprehensive monetization score for a work
+     */
+    async calculateMasterScore(workOrId: number | string | Work, save: boolean = true): Promise<MasterScore> {
+        let work: Work | null = null;
+        let workId: number | string;
 
-        // Check cache (1 hour TTL)
-        if (this.cache) {
-            const cached = await this.cache.get(cacheKey);
-            if (cached) {
-                return JSON.parse(cached);
+        // Resolve work object
+        if (typeof workOrId === 'object') {
+            work = workOrId;
+            workId = work.id;
+        } else {
+            workId = workOrId;
+            const cacheKey = `monetization:score:${workId}`;
+
+            // Check cache (1 hour TTL)
+            if (this.cache) {
+                const cached = await this.cache.get(cacheKey);
+                if (cached) {
+                    return JSON.parse(cached);
+                }
+            }
+
+            // Get work details
+            if (typeof workId === 'number') {
+                work = await this.getWork(workId);
+            } else {
+                // For string IDs (external works), we can't fetch from DB if not passed in
+                // This case should be handled by passing the full work object
+                throw new Error(`Cannot fetch external work ${workId} from database. Pass full work object.`);
             }
         }
 
-        // Get work details
-        const work = await this.getWork(workId);
         if (!work) {
             throw new Error(`Work ${workId} not found`);
         }
@@ -216,12 +234,14 @@ export class MonetizationEngineService {
             ...demographicScores
         };
 
-        // Save to database
-        await this.saveMetrics(masterScore);
+        // Save to database only if requested and ID is numeric (local DB)
+        if (save && typeof workId === 'number') {
+            await this.saveMetrics(masterScore);
+        }
 
         // Cache result
         if (this.cache) {
-            await this.cache.put(cacheKey, JSON.stringify(masterScore), {
+            await this.cache.put(`monetization:score:${workId}`, JSON.stringify(masterScore), {
                 expirationTtl: 3600 // 1 hour
             });
         }
@@ -754,18 +774,47 @@ export class MonetizationEngineService {
         // We need to calculate scores for works that might not have them yet
         const scoredCandidates: { work: Work, score: MasterScore }[] = [];
 
-        for (const work of searchResults.local) { // Currently only processing local results for deep analysis to save time/cost
-            // In a real production system, we'd queue these for background processing if not scored
-            // For now, we calculate on the fly if needed
+        // Process local results
+        for (const work of searchResults.local) {
             try {
                 const score = await this.calculateMasterScore(work.id);
                 if (score.master_monetization_score >= 60) { // Filter out low potential
                     scoredCandidates.push({ work, score });
                 }
             } catch (e) {
-                console.warn(`Failed to score work ${work.id}`, e);
+                console.warn(`Failed to score local work ${work.id}`, e);
             }
         }
+
+        // Process external results
+        for (const extWork of searchResults.external) {
+            try {
+                // Map external result to Work interface if needed
+                // Assuming searchResults.external already matches Work interface mostly
+                const work: Work = {
+                    id: extWork.id, // Keep as string (e.g. 'gutenberg_123')
+                    title: extWork.title,
+                    author: extWork.author,
+                    media_type: extWork.media_type || 'book',
+                    language: extWork.language,
+                    original_publication_year: extWork.publication_year || extWork.public_domain_year,
+                    public_domain_year: extWork.public_domain_year,
+                    description: extWork.description || extWork.snippet || '',
+                    metadata: extWork.metadata || {}
+                };
+
+                // Calculate score without saving to DB
+                const score = await this.calculateMasterScore(work, false);
+
+                if (score.master_monetization_score >= 60) {
+                    scoredCandidates.push({ work, score });
+                }
+            } catch (e) {
+                console.warn(`Failed to score external work ${extWork.id}`, e);
+            }
+        }
+
+
 
         // Sort by score
         scoredCandidates.sort((a, b) => b.score.master_monetization_score - a.score.master_monetization_score);

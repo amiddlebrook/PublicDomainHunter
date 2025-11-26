@@ -35,17 +35,19 @@ interface ViabilityResult {
 }
 
 interface ViabilitySearchProps {
-    onSearch?: () => void
+    onSearch?: (query: string) => void
     initialQuery?: string
     embedded?: boolean
     showResults?: boolean
+    performSearch?: boolean
 }
 
 export function ViabilitySearch({
     onSearch,
     initialQuery = '',
     embedded = false,
-    showResults = false
+    showResults = false,
+    performSearch = true
 }: ViabilitySearchProps = {}) {
     const [query, setQuery] = useState(initialQuery)
     const [results, setResults] = useState<ViabilityResult[]>([])
@@ -58,15 +60,25 @@ export function ViabilitySearch({
         }
     }, [initialQuery, query])
 
+    // Auto-search when showing results with an initial query
+    useEffect(() => {
+        if (showResults && initialQuery && !searched && performSearch) {
+            handleSearch()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showResults, initialQuery, performSearch])
+
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault()
         if (!query.trim()) return
 
+        if (onSearch) onSearch(query)
+
+        if (!performSearch) return
+
         setLoading(true)
         setSearched(true)
         setResults([])
-
-        if (onSearch) onSearch()
 
         try {
             const token = localStorage.getItem('token')

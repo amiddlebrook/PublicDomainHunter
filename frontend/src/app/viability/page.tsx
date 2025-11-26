@@ -57,9 +57,13 @@ export default function ViabilityLabPage() {
                         {/* Search Bar - Always Visible */}
                         <div className="max-w-2xl mx-auto">
                             <ViabilitySearch
-                                onSearch={() => setHasSearched(true)}
+                                onSearch={(query) => {
+                                    setSearchQuery(query)
+                                    setHasSearched(true)
+                                }}
                                 initialQuery={searchQuery}
                                 embedded={true}
+                                performSearch={false}
                             />
                         </div>
 
@@ -116,9 +120,10 @@ export default function ViabilityLabPage() {
                 <div className="bg-gray-50 px-6 py-12">
                     <div className="max-w-6xl mx-auto">
                         <ViabilitySearch
-                            onSearch={() => setHasSearched(true)}
+                            key={searchQuery} // Force remount on new search
                             initialQuery={searchQuery}
                             showResults={true}
+                            embedded={true} // Hide the search bar in results view
                         />
                     </div>
                 </div>
