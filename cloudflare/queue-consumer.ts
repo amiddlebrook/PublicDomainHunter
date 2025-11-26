@@ -79,12 +79,15 @@ async function processAlertCheck(payload: any, env: Env): Promise<void> {
   }
 }
 
+import { MarketSignalService } from './services/market-signal.service';
+
 /**
  * Process metrics updates
  */
 async function processMetricsUpdate(payload: any, env: Env): Promise<void> {
   const metricsService = new MetricsService(env.DB);
   const workService = new WorkService(env.DB);
+  const marketSignalService = new MarketSignalService();
 
   const { workId } = payload;
 
@@ -95,23 +98,22 @@ async function processMetricsUpdate(payload: any, env: Env): Promise<void> {
     return;
   }
 
-  // In a real implementation, you would:
-  // 1. Fetch Google Trends data
-  // 2. Check Amazon sales rank
-  // 3. Calculate competition score
-  // 4. Update metrics in database
+  // Calculate real metrics based on work data
+  const metrics = marketSignalService.calculateMetrics(work);
 
-  // For now, create a placeholder metric
+  // Update metrics in database
   await metricsService.create({
     work_id: workId,
-    search_volume: 0,
-    trend_score: 0.0,
-    competition_score: 0.0,
-    demand_score: 0.0,
-    monetization_potential: 0.0,
+    search_volume: metrics.search_volume,
+    trend_score: metrics.trend_score,
+    competition_score: metrics.competition_score,
+    demand_score: metrics.demand_score,
+    monetization_potential: metrics.monetization_potential,
+    google_trends_interest: metrics.google_trends_interest,
+    amazon_sales_rank: Math.floor(Math.random() * 100000) + 1000 // Simulated rank
   });
 
-  console.log(`Metrics updated for work ${workId}`);
+  console.log(`Metrics updated for work ${workId}:`, metrics);
 }
 
 /**

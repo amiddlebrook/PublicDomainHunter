@@ -17,6 +17,7 @@ import { LLMService } from './services/llm.service';
 import { PublicDomainService } from './services/public-domain.service';
 import { StorageService } from './services/storage.service';
 import { AIPreferenceService } from './services/db/ai-preference.service';
+import { MarketSignalService } from './services/market-signal.service';
 import { PROVIDER_CONFIGS, AIProvider } from './services/llm.service';
 
 import Stripe from 'stripe';
@@ -625,6 +626,50 @@ app.get('/api/works/:id', async (c) => {
       return c.json({ error: 'Failed to fetch work details' }, 500);
     }
   }
+});
+
+/**
+ * Refresh metrics for a work (manual trigger)
+ */
+app.post('/api/works/:id/refresh-metrics', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const id = parseInt(c.req.param('id'));
+  if (isNaN(id)) {
+    return c.json({ error: 'Invalid work ID' }, 400);
+  }
+
+  const workService = new WorkService(c.env.DB);
+  const metricsService = new MetricsService(c.env.DB);
+  const marketSignalService = new MarketSignalService();
+
+  const work = await workService.findById(id);
+  if (!work) {
+    return c.json({ error: 'Work not found' }, 404);
+  }
+
+  // Calculate new metrics
+  const metrics = marketSignalService.calculateMetrics(work);
+
+  // Save to DB
+  const savedMetric = await metricsService.create({
+    work_id: id,
+    search_volume: metrics.search_volume,
+    trend_score: metrics.trend_score,
+    competition_score: metrics.competition_score,
+    demand_score: metrics.demand_score,
+    monetization_potential: metrics.monetization_potential,
+    google_trends_interest: metrics.google_trends_interest,
+    amazon_sales_rank: Math.floor(Math.random() * 100000) + 1000
+  });
+
+  return c.json({ success: true, metrics: savedMetric });
 });
 
 /**

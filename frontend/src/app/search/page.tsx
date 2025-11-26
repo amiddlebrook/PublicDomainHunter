@@ -218,9 +218,9 @@ export default function SearchPage() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Search className="h-6 w-6 text-indigo-600" />
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Market Intelligence</h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Market Intelligence</h1>
           </div>
-          <p className="text-sm text-gray-600">Search our catalog of public domain works with advanced filters and monetization metrics.</p>
+          <p className="text-sm text-gray-400">Search our catalog of public domain works with advanced filters and monetization metrics.</p>
           <p className="text-xs text-gray-500 mt-1">Filter by media type, year range, and monetization potential to find the best opportunities.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -246,9 +246,9 @@ export default function SearchPage() {
       </div>
 
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4 shrink-0">
+        <div className="flex items-center justify-between border-b border-dark-700 pb-4 shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-900">Catalog Search</h2>
+            <h2 className="text-lg font-semibold text-white">Catalog Search</h2>
             <Button variant="outline" size="sm" asChild>
               <Link href="/viability">
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -262,23 +262,23 @@ export default function SearchPage() {
               variant="ghost"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={clsx("text-gray-500", showFilters && "bg-gray-100 text-gray-900")}
+              className={clsx("text-gray-400", showFilters && "bg-dark-800 text-white")}
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
             <div className="w-px h-4 bg-gray-200 mx-2" />
-            <div className="flex items-center border rounded-md bg-white shadow-sm">
+            <div className="flex items-center border border-dark-700 rounded-md bg-dark-900 shadow-sm">
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-2 ${viewMode === 'table' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                className={`p-2 ${viewMode === 'table' ? 'bg-dark-800 text-white' : 'text-gray-400 hover:text-white'}`}
               >
                 <TableIcon className="h-4 w-4" />
               </button>
               <div className="w-px h-4 bg-gray-200" />
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                className={`p-2 ${viewMode === 'grid' ? 'bg-dark-800 text-white' : 'text-gray-400 hover:text-white'}`}
               >
                 <LayoutGrid className="h-4 w-4" />
               </button>
@@ -291,7 +291,7 @@ export default function SearchPage() {
             {/* Filter Sidebar */}
             <aside
               className={clsx(
-                "w-full md:w-64 shrink-0 overflow-y-auto pr-2 border-r border-gray-100 bg-gray-50/95 backdrop-blur-sm md:bg-transparent p-4 md:p-0 z-20 transition-all duration-200",
+                "w-full md:w-64 shrink-0 overflow-y-auto pr-2 border-r border-dark-700 bg-dark-950/95 backdrop-blur-sm md:bg-transparent p-4 md:p-0 z-20 transition-all duration-200",
                 showFilters ? "block" : "hidden",
                 "absolute inset-0 md:static"
               )}
@@ -304,7 +304,7 @@ export default function SearchPage() {
               </div>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Media Type</h3>
+                  <h3 className="text-sm font-medium text-white mb-3">Media Type</h3>
                   <div className="space-y-2">
                     {['book', 'image', 'audio', 'video'].map((type) => (
                       <div key={type} className="flex items-center space-x-2">
@@ -325,7 +325,7 @@ export default function SearchPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Public Domain Year</h3>
+                  <h3 className="text-sm font-medium text-white mb-3">Public Domain Year</h3>
                   <div className="px-2">
                     <Slider
                       defaultValue={[1800, 2030]}
@@ -346,7 +346,7 @@ export default function SearchPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Monetization Potential</h3>
+                  <h3 className="text-sm font-medium text-white mb-3">Monetization Potential</h3>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -389,11 +389,11 @@ export default function SearchPage() {
               </div>
 
               {/* Results Area */}
-              <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+              <div className="flex-1 bg-dark-900 rounded-lg border border-dark-700 shadow-sm overflow-hidden flex flex-col">
                 {viewMode === 'table' ? (
                   <div className="flex-1 overflow-auto">
                     <table className="w-full text-sm text-left relative">
-                      <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                      <thead className="text-xs text-gray-400 uppercase bg-dark-950 border-b border-dark-700 sticky top-0 z-10">
                         <tr>
                           <th className="px-6 py-3 font-medium">Asset Name</th>
                           <th className="px-6 py-3 font-medium">Type</th>
@@ -404,14 +404,14 @@ export default function SearchPage() {
                           <th className="px-6 py-3 font-medium text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-dark-700">
                         {results?.results.map((result) => {
                           const monetizationScore = result.monetization_score || 0
                           const saturationIndex = result.saturation_index || 0
 
                           return (
-                            <tr key={result.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4 font-medium text-gray-900">
+                            <tr key={result.id} className="hover:bg-dark-800 transition-colors">
+                              <td className="px-6 py-4 font-medium text-white">
                                 <Link href={`/works/${result.id}`} className="hover:text-indigo-600 hover:underline">
                                   {result.title}
                                 </Link>
@@ -421,14 +421,14 @@ export default function SearchPage() {
                                   {result.media_type}
                                 </Badge>
                               </td>
-                              <td className="px-6 py-4 text-gray-600">{result.author || 'Unknown'}</td>
-                              <td className="px-6 py-4 text-gray-600">{result.public_domain_year}</td>
+                              <td className="px-6 py-4 text-gray-400">{result.author || 'Unknown'}</td>
+                              <td className="px-6 py-4 text-gray-400">{result.public_domain_year}</td>
                               <td className="px-6 py-4">
                                 <div className="flex flex-col gap-1 w-24">
                                   <div className="flex justify-between text-xs">
                                     <span className="font-medium text-emerald-700">{monetizationScore}</span>
                                   </div>
-                                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-dark-800 rounded-full overflow-hidden">
                                     <div
                                       className="h-full bg-emerald-500 rounded-full"
                                       style={{ width: `${monetizationScore}%` }}
@@ -441,7 +441,7 @@ export default function SearchPage() {
                                   <div className="flex justify-between text-xs">
                                     <span className="font-medium text-blue-700">{saturationIndex}</span>
                                   </div>
-                                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-dark-800 rounded-full overflow-hidden">
                                     <div
                                       className="h-full bg-blue-500 rounded-full"
                                       style={{ width: `${saturationIndex}%` }}
@@ -473,7 +473,7 @@ export default function SearchPage() {
                         })}
                         {!results && !loading && (
                           <tr>
-                            <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                            <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
                               Enter a search term to begin market analysis.
                             </td>
                           </tr>
@@ -499,15 +499,15 @@ export default function SearchPage() {
                                 </div>
                               </div>
                               <h3 className="font-bold text-lg mb-1 line-clamp-1" title={result.title}>{result.title}</h3>
-                              <p className="text-sm text-gray-500 mb-4">{result.author}</p>
+                              <p className="text-sm text-gray-400 mb-4">{result.author}</p>
 
                               <div className="mt-auto space-y-3">
                                 <div>
-                                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                  <div className="flex justify-between text-xs text-gray-400 mb-1">
                                     <span>Monetization</span>
                                     <span>{monetizationScore}/100</span>
                                   </div>
-                                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-dark-800 rounded-full overflow-hidden">
                                     <div
                                       className="h-full bg-emerald-500 rounded-full"
                                       style={{ width: `${monetizationScore}%` }}
@@ -515,11 +515,11 @@ export default function SearchPage() {
                                   </div>
                                 </div>
                                 <div>
-                                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                  <div className="flex justify-between text-xs text-gray-400 mb-1">
                                     <span>Saturation</span>
                                     <span>{saturationIndex}/100</span>
                                   </div>
-                                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-dark-800 rounded-full overflow-hidden">
                                     <div
                                       className="h-full bg-blue-500 rounded-full"
                                       style={{ width: `${saturationIndex}%` }}
