@@ -1,7 +1,7 @@
 'use client'
 
 import { API_BASE_URL } from '@/lib/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   BookOpen,
@@ -41,6 +41,7 @@ interface Work {
 export default function Dashboard() {
   const pathname = usePathname()
   const router = useRouter()
+  const hasRedirected = useRef(false)
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentWorks, setRecentWorks] = useState<Work[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -48,9 +49,10 @@ export default function Dashboard() {
 
   // Fix for SPA fallback serving dashboard on work detail routes
   useEffect(() => {
-    if (pathname && pathname.startsWith('/works/') && pathname !== '/works') {
+    if (pathname && pathname.startsWith('/works/') && pathname !== '/works' && !hasRedirected.current) {
       // We're on a work detail route but dashboard is rendering (SPA fallback issue)
       // Force a router replace to make Next.js use the correct route handler
+      hasRedirected.current = true
       router.replace(pathname)
       return // Don't load dashboard data
     }
