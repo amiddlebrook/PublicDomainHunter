@@ -1,8 +1,8 @@
 'use client'
 
 import { API_BASE_URL } from '@/lib/utils'
-import { useEffect, useState, useRef } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import {
   BookOpen,
   TrendingUp,
@@ -40,31 +40,21 @@ interface Work {
 
 export default function Dashboard() {
   const pathname = usePathname()
-  const router = useRouter()
-  const hasRedirected = useRef(false)
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentWorks, setRecentWorks] = useState<Work[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
-  // Fix for SPA fallback serving dashboard on work detail routes
-  useEffect(() => {
-    if (pathname && pathname.startsWith('/works/') && pathname !== '/works' && !hasRedirected.current) {
-      // We're on a work detail route but dashboard is rendering (SPA fallback issue)
-      // Force a router replace to make Next.js use the correct route handler
-      hasRedirected.current = true
-      router.replace(pathname)
-      return // Don't load dashboard data
-    }
-  }, [pathname, router])
+  // Fix for SPA fallback serving dashboard on non-dashboard routes
+  // Just return null and let Next.js routing handle it
+  if (pathname && pathname !== '/' && pathname !== '') {
+    return null
+  }
 
   useEffect(() => {
-    // Only fetch dashboard data if we're actually on the dashboard
-    if (!pathname || pathname === '/' || pathname === '') {
-      fetchDashboardData()
-      fetchRecentWorks()
-    }
-  }, [pathname])
+    fetchDashboardData()
+    fetchRecentWorks()
+  }, [])
 
   const fetchDashboardData = async () => {
     try {
