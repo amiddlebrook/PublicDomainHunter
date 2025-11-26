@@ -19,6 +19,8 @@ import { StorageService } from './services/storage.service';
 import { AIPreferenceService } from './services/db/ai-preference.service';
 import { PROVIDER_CONFIGS, AIProvider } from './services/llm.service';
 
+import Stripe from 'stripe';
+
 export type Bindings = {
   DB: D1Database;
   SESSIONS: KVNamespace;
@@ -33,6 +35,9 @@ export type Bindings = {
   CLAUDE_API_KEY?: string;
   GEMINI_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  FRONTEND_URL?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -1598,6 +1603,142 @@ app.get('/api/portfolio/list', async (c) => {
   `).bind(userId).all();
 
   return c.json({ portfolio: results });
+});
+
+// ===== BILLING ENDPOINTS =====
+
+/**
+ * Create Stripe Checkout Session
+ */
+app.post('/api/billing/checkout', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  if (!c.env.STRIPE_SECRET_KEY) {
+    return c.json({ error: 'Stripe not configured' }, 500);
+  }
+
+  const { priceId } = await c.req.json();
+  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27.acacia' }); // Use latest or compatible version
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${c.env.FRONTEND_URL || 'https://publicdomainhunter.com'}/settings?billing=success`,
+      cancel_url: `${c.env.FRONTEND_URL || 'https://publicdomainhunter.com'}/settings?billing=cancel`,
+      customer_email: payload.email,
+      metadata: {
+        userId: payload.sub,
+      },
+    });
+
+    return c.json({ url: session.url });
+  } catch (error: any) {
+    console.error('Stripe checkout error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+/**
+ * Create Customer Portal Session
+ */
+app.post('/api/billing/portal', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  if (!c.env.STRIPE_SECRET_KEY) {
+    return c.json({ error: 'Stripe not configured' }, 500);
+  }
+
+  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27.acacia' });
+
+  try {
+    // In a real app, you'd store the Stripe Customer ID in your DB
+    // For now, we'll search for the customer by email
+    const customers = await stripe.customers.list({
+      email: payload.email,
+      limit: 1,
+    });
+
+    if (customers.data.length === 0) {
+      return c.json({ error: 'No billing account found' }, 404);
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customers.data[0].id,
+      return_url: `${c.env.FRONTEND_URL || 'https://publicdomainhunter.com'}/settings`,
+    });
+
+    return c.json({ url: session.url });
+  } catch (error: any) {
+    console.error('Stripe portal error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+/**
+ * Stripe Webhook Handler
+ */
+app.post('/api/billing/webhook', async (c) => {
+  const signature = c.req.header('stripe-signature');
+  const body = await c.req.text();
+
+  if (!c.env.STRIPE_SECRET_KEY || !c.env.STRIPE_WEBHOOK_SECRET) {
+    return c.json({ error: 'Stripe not configured' }, 500);
+  }
+
+  if (!signature) {
+    return c.json({ error: 'No signature' }, 400);
+  }
+
+  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27.acacia' });
+
+  try {
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      c.env.STRIPE_WEBHOOK_SECRET
+    );
+
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object as Stripe.Checkout.Session;
+        // TODO: Update user subscription status in DB
+        console.log('Payment successful for user:', session.metadata?.userId);
+        break;
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted':
+        const subscription = event.data.object as Stripe.Subscription;
+        // TODO: Update user subscription status in DB
+        console.log('Subscription updated:', subscription.id);
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    return c.json({ received: true });
+  } catch (err: any) {
+    console.error(`Webhook Error: ${err.message}`);
+    return c.json({ error: `Webhook Error: ${err.message}` }, 400);
+  }
 });
 
 export default app;
