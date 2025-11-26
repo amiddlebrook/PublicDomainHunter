@@ -1,5 +1,8 @@
 import WorkDetailClient from './WorkDetailClient'
 
+// Enable dynamic parameters at runtime (for external work IDs)
+export const dynamicParams = true
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
