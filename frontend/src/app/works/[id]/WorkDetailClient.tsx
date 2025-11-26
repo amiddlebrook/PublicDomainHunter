@@ -25,22 +25,22 @@ import { API_BASE_URL } from '@/lib/utils'
 import { MonetizationPanel } from '@/components/MonetizationPanel'
 
 interface Work {
-  id: number
+  id: number | string
   title: string
-  author: string
+  author?: string
   original_publication_year?: number
-  public_domain_year: number
+  public_domain_year?: number
   description?: string
   source_url?: string
-  media_type: string
-  language: string
+  media_type?: string
+  language?: string
   page_count?: number
   metadata?: {
     trend_score?: number
     [key: string]: any
   }
-  status: string
-  created_at: string
+  status?: string
+  created_at?: string
   updated_at?: string
 }
 
@@ -111,7 +111,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
                   Asset Inspector
                 </Link>
                 <span>/</span>
-                <span className="uppercase tracking-wider font-semibold text-xs">{work.media_type}</span>
+                <span className="uppercase tracking-wider font-semibold text-xs">{work.media_type || 'WORK'}</span>
                 <span>/</span>
                 <span className="font-mono text-xs">{work.id}</span>
               </div>
@@ -125,8 +125,12 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
                     <span>{work.original_publication_year}</span>
                   </>
                 )}
-                <span className="w-1 h-1 bg-gray-300 rounded-full" />
-                <span className="uppercase">{work.language}</span>
+                {work.language && (
+                  <>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                    <span className="uppercase">{work.language}</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -167,14 +171,14 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
             <div>
               <div className="text-sm font-medium text-gray-500 mb-1">Public Domain</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900">{work.public_domain_year}</span>
-                <span className="text-xs font-medium text-gray-500">Global</span>
+                <span className="text-2xl font-bold text-gray-900">{work.public_domain_year || 'Yes'}</span>
+                {work.public_domain_year && <span className="text-xs font-medium text-gray-500">Global</span>}
               </div>
             </div>
             <div>
               <div className="text-sm font-medium text-gray-500 mb-1">Content Status</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900 capitalize">{work.status}</span>
+                <span className="text-2xl font-bold text-gray-900 capitalize">{work.status || 'active'}</span>
               </div>
             </div>
             <div>
@@ -219,26 +223,32 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Media Type</span>
-                <span className="text-sm font-medium text-gray-900 capitalize">{work.media_type}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Language</span>
-                <span className="text-sm font-medium text-gray-900 uppercase">{work.language}</span>
-              </div>
+              {work.media_type && (
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-500">Media Type</span>
+                  <span className="text-sm font-medium text-gray-900 capitalize">{work.media_type}</span>
+                </div>
+              )}
+              {work.language && (
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-500">Language</span>
+                  <span className="text-sm font-medium text-gray-900 uppercase">{work.language}</span>
+                </div>
+              )}
               {work.page_count && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-500">Page Count</span>
                   <span className="text-sm font-medium text-gray-900">{work.page_count}</span>
                 </div>
               )}
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Added to System</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {new Date(work.created_at).toLocaleDateString()}
-                </span>
-              </div>
+              {work.created_at && (
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-500">Added to System</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {new Date(work.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
               <div className="pt-4">
                 <Button className="w-full" variant="outline">
                   <Download className="h-4 w-4 mr-2" />

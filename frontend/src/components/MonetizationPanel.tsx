@@ -30,7 +30,7 @@ interface MonetizationScores {
 }
 
 interface MonetizationPanelProps {
-    workId: number
+    workId: number | string
 }
 
 export function MonetizationPanel({ workId }: MonetizationPanelProps) {
