@@ -694,68 +694,11 @@ app.get('/api/market/viability-search', async (c) => {
   try {
     const { MonetizationEngineService } = await import('./services/monetization-engine.service');
     const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE, c.env);
-
-    // Use AI to distill results
     const results = await engineService.distillViableWorks(query, limit);
-
     return c.json({ results });
   } catch (error: any) {
     console.error('Viability search error:', error);
     return c.json({ error: error.message || 'Failed to perform viability search' }, 500);
-  }
-});
-
-
-/**
- * Get trending works
- */
-app.get('/api/search/trending', async (c) => {
-  const limit = parseInt(c.req.query('limit') || '20');
-  const searchService = new SearchService(c.env.DB, c.env.CACHE);
-  const trending = await searchService.getTrending(limit);
-
-  return c.json({ trending });
-});
-
-/**
- * Get top monetization opportunities
- */
-app.get('/api/search/opportunities', async (c) => {
-  const limit = parseInt(c.req.query('limit') || '20');
-  const searchService = new SearchService(c.env.DB, c.env.CACHE);
-  const opportunities = await searchService.getTopOpportunities(limit);
-
-  return c.json({ opportunities });
-});
-
-/**
- * Get search suggestions
- */
-app.get('/api/search/suggestions', async (c) => {
-  const query = c.req.query('q') || '';
-
-  if (!query || query.length < 2) {
-    return c.json({ suggestions: [] });
-  }
-
-  try {
-    // Search for matching titles and authors from local database
-    const { results } = await c.env.DB.prepare(`
-      SELECT DISTINCT title as suggestion FROM Work 
-      WHERE title LIKE ? 
-      UNION 
-      SELECT DISTINCT author as suggestion FROM Work 
-      WHERE author LIKE ? AND author IS NOT NULL
-      ORDER BY suggestion
-      LIMIT 10
-    `).bind(`%${query}%`, `%${query}%`).all();
-
-    const suggestions = (results || []).map((r: any) => r.suggestion);
-
-    return c.json({ suggestions });
-  } catch (error) {
-    console.error('Search suggestions error:', error);
-    return c.json({ suggestions: [] });
   }
 });
 
@@ -765,26 +708,17 @@ app.get('/api/search/suggestions', async (c) => {
  * Calculate monetization score for a specific work
  */
 app.get('/api/monetization/score/:id', async (c) => {
-  const workId = parseInt(c.params.id);
-
-  if (isNaN(workId)) {
-    return c.json({ error: 'Invalid work ID' }, 400);
-  }
+  const workId = parseInt(c.req.param('id'));
+  if (isNaN(workId)) return c.json({ error: 'Invalid ID' }, 400);
 
   try {
     const { MonetizationEngineService } = await import('./services/monetization-engine.service');
     const engineService = new MonetizationEngineService(c.env.DB, c.env.CACHE, c.env);
-
     const score = await engineService.calculateMasterScore(workId);
-
-    return c.json({
-      work_id: workId,
-      scores: score,
-      calculated_at: new Date().toISOString()
-    });
-  } catch (error: any) {
-    console.error('Monetization calculation error:', error);
-    return c.json({ error: error.message || 'Failed to calculate scores' }, 500);
+    return c.json(score);
+  } catch (e: any) {
+    console.error('Score calculation error:', e);
+    return c.json({ error: e.message || 'Failed to calculate score' }, 500);
   }
 });
 

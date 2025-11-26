@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -62,12 +62,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
   const [testing, setTesting] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
-  useEffect(() => {
-    loadProviders()
-    loadPreferences()
-  }, [])
-
-  const loadProviders = async () => {
+  const loadProviders = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/ai/config/providers`)
       if (response.ok) {
@@ -82,9 +77,9 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
         variant: 'destructive'
       })
     }
-  }
+  }, [toast])
 
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch(`${API_BASE_URL}/api/ai/config/preferences`)
@@ -105,7 +100,12 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
     } finally {
       setLoading(false)
     }
-  }
+  }, [onPreferencesChange, toast])
+
+  useEffect(() => {
+    loadProviders()
+    loadPreferences()
+  }, [loadProviders, loadPreferences])
 
   const savePreferences = async () => {
     if (!preferences) return

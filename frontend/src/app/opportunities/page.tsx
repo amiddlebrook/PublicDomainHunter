@@ -1,7 +1,7 @@
 'use client'
 
 import { API_BASE_URL } from '@/lib/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -65,13 +65,7 @@ export default function OpportunitiesPage() {
     const [platform, setPlatform] = useState<string>('all')
     const [limit, setLimit] = useState(20)
 
-    useEffect(() => {
-        if (user) {
-            fetchOpportunities()
-        }
-    }, [user, minScore, maxSaturation, platform, limit])
-
-    const fetchOpportunities = async () => {
+    const fetchOpportunities = useCallback(async () => {
         setLoading(true)
         setError('')
 
@@ -99,7 +93,13 @@ export default function OpportunitiesPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [minScore, maxSaturation, platform, limit])
+
+    useEffect(() => {
+        if (user) {
+            fetchOpportunities()
+        }
+    }, [user, fetchOpportunities])
 
     const getGradeColor = (score: number): string => {
         if (score >= 90) return 'bg-emerald-100 text-emerald-800 border-emerald-300'

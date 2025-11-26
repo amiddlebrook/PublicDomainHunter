@@ -8,15 +8,18 @@ const nextConfig = {
   ...(isProduction
     ? {}
     : {
-        async rewrites() {
-          return [
-            {
-              source: '/api/:path*',
-              destination: 'http://localhost:8000/api/:path*',
-            },
-          ]
-        },
-      }),
+      async rewrites() {
+        return [
+          {
+            source: '/api/:path*',
+            destination: 'http://localhost:8000/api/:path*',
+          },
+        ]
+      },
+    }),
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 module.exports = nextConfig

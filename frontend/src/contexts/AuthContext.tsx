@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { API_BASE_URL } from '../lib/utils'
 
 interface User {
@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return headers
   }
 
-  const fetchWithAuth = async (input: RequestInfo, init: RequestInit = {}) => {
+  const fetchWithAuth = useCallback(async (input: RequestInfo, init: RequestInit = {}) => {
     const headers = new Headers(init.headers || {})
     const tokenHeaders = getAuthHeaders()
     tokenHeaders.forEach((value, key) => {
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw new Error(`Request failed with status ${response.status}`)
     }
     return response
-  }
+  }, [])
 
   // Check if user is authenticated on mount
   useEffect(() => {

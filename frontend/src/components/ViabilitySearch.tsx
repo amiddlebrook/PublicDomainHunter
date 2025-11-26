@@ -56,7 +56,7 @@ export function ViabilitySearch({
         if (initialQuery && initialQuery !== query) {
             setQuery(initialQuery)
         }
-    }, [initialQuery])
+    }, [initialQuery, query])
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault()
@@ -192,7 +192,7 @@ export function ViabilitySearch({
                                 setQuery(suggestion)
                                 handleSearch()
                             }}>
-                                Try "{suggestion}"
+                                Try &quot;{suggestion}&quot;
                             </Button>
                         ))}
                     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   BookOpen,
   Search,
@@ -54,11 +54,7 @@ export default function WorksPage() {
   })
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  useEffect(() => {
-    fetchWorks()
-  }, [filters])
-
-  const fetchWorks = async () => {
+  const fetchWorks = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -81,7 +77,11 @@ export default function WorksPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters])
+
+  useEffect(() => {
+    fetchWorks()
+  }, [fetchWorks])
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }))
@@ -133,9 +133,9 @@ export default function WorksPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" >
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      < div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between" >
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Database className="h-6 w-6 text-purple-600" />
@@ -153,10 +153,10 @@ export default function WorksPage() {
             {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid3X3 className="h-4 w-4" />}
           </Button>
         </div>
-      </div>
+      </div >
 
       {/* Search and Filters */}
-      <Card>
+      < Card >
         <CardContent className="pt-6">
           <div className="space-y-4">
             <div className="flex gap-4">
@@ -227,10 +227,10 @@ export default function WorksPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card >
 
       {/* Results Summary */}
-      <div className="flex items-center justify-between">
+      < div className="flex items-center justify-between" >
         <p className="text-gray-600">
           Showing {filteredWorks.length} of {works.length} works
         </p>
@@ -238,94 +238,96 @@ export default function WorksPage() {
           <TrendingUp className="h-4 w-4" />
           Sorted by {filters.sort_by} ({filters.sort_order})
         </div>
-      </div>
+      </div >
 
       {/* Works Grid/List */}
-      {filteredWorks.length > 0 ? (
-        <div className={viewMode === 'grid'
-          ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'
-          : 'space-y-4'
-        }>
-          {filteredWorks.map((work) => (
-            <Card key={work.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      {getMediaTypeIcon(work.media_type)}
-                      <Badge variant="outline">{work.media_type}</Badge>
-                      {work.metadata?.trend_score && (
-                        <Badge variant={getTrendScoreColor(work.metadata.trend_score)}>
-                          <TrendingUp className="mr-1 h-3 w-3" />
-                          {work.metadata.trend_score.toFixed(0)}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {work.source_url && (
-                        <Button variant="ghost" size="sm" asChild>
-                          <a href={work.source_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
+      {
+        filteredWorks.length > 0 ? (
+          <div className={viewMode === 'grid'
+            ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'
+            : 'space-y-4'
+          }>
+            {filteredWorks.map((work) => (
+              <Card key={work.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        {getMediaTypeIcon(work.media_type)}
+                        <Badge variant="outline">{work.media_type}</Badge>
+                        {work.metadata?.trend_score && (
+                          <Badge variant={getTrendScoreColor(work.metadata.trend_score)}>
+                            <TrendingUp className="mr-1 h-3 w-3" />
+                            {work.metadata.trend_score.toFixed(0)}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {work.source_url && (
+                          <Button variant="ghost" size="sm" asChild>
+                            <a href={work.source_url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button size="sm" asChild>
+                          <Link href={`/works/${work.id}`}>
+                            <ArrowUpRight className="h-4 w-4" />
+                          </Link>
                         </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        {work.title}
+                      </h3>
+                      <p className="text-gray-600">
+                        by {work.author || 'Unknown Author'}
+                      </p>
+                    </div>
+
+                    {work.description && (
+                      <p className="text-gray-600 text-sm line-clamp-2">
+                        {work.description}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        Public Domain: {work.public_domain_year}
+                      </span>
+                      {work.original_publication_year && (
+                        <span>
+                          Originally Published: {work.original_publication_year}
+                        </span>
                       )}
-                      <Button size="sm" asChild>
-                        <Link href={`/works/${work.id}`}>
-                          <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
+                      {work.page_count && (
+                        <span>{work.page_count} pages</span>
+                      )}
+                      <span className="uppercase">{work.language}</span>
                     </div>
                   </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {work.title}
-                    </h3>
-                    <p className="text-gray-600">
-                      by {work.author || 'Unknown Author'}
-                    </p>
-                  </div>
-
-                  {work.description && (
-                    <p className="text-gray-600 text-sm line-clamp-2">
-                      {work.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      Public Domain: {work.public_domain_year}
-                    </span>
-                    {work.original_publication_year && (
-                      <span>
-                        Originally Published: {work.original_publication_year}
-                      </span>
-                    )}
-                    {work.page_count && (
-                      <span>{work.page_count} pages</span>
-                    )}
-                    <span className="uppercase">{work.language}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No works found</h3>
-            <p className="text-gray-500 mb-4">
-              Try adjusting your search terms or filters to find more results.
-            </p>
-            <Button variant="outline" onClick={clearFilters}>
-              Clear all filters
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No works found</h3>
+              <p className="text-gray-500 mb-4">
+                Try adjusting your search terms or filters to find more results.
+              </p>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear all filters
+              </Button>
+            </CardContent>
+          </Card>
+        )
+      }
+    </div >
   )
 }
