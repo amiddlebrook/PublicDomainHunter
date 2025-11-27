@@ -41,8 +41,8 @@
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
-    /* Brighter card for better visibility */
-    --card: 240 8% 10%;
+    /* Card with purple tint for distinct visibility */
+    --card: 260 15% 12%;
     --card-foreground: 0 0% 98%;
 
     --popover: 240 8% 7%;
