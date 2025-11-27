@@ -37,7 +37,7 @@ export default function PortfolioPage() {
                         <div className="p-2 bg-indigo-100 rounded-lg">
                             <Briefcase className="h-6 w-6 text-indigo-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900">Portfolio</h1>
+                        <h1 className="text-3xl font-bold text-white">Portfolio</h1>
                     </div>
                     <p className="text-gray-600">
                         Track and organize public domain works you&apos;re considering for development
@@ -66,7 +66,7 @@ export default function PortfolioPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-bold text-gray-900">Build Your Portfolio</h2>
+                            <h2 className="text-2xl font-bold text-white">Build Your Portfolio</h2>
                             <p className="text-gray-600">
                                 Save works you&apos;re interested in developing, organize them into collections, and track monetization opportunities.
                             </p>

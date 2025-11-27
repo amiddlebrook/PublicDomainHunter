@@ -90,7 +90,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
         <div className="bg-red-50 p-4 rounded-full mb-4">
           <BookOpen className="h-8 w-8 text-red-500" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{error || 'Asset not found'}</h3>
+        <h3 className="text-xl font-bold text-white mb-2">{error || 'Asset not found'}</h3>
         <Button variant="outline" asChild>
           <Link href="/works">Return to Asset Inspector</Link>
         </Button>
@@ -116,7 +116,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
                 <span className="font-mono text-xs">{work.id}</span>
               </div>
 
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">{work.title}</h1>
+              <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">{work.title}</h1>
               <div className="flex items-center gap-4 text-gray-600">
                 <span className="font-medium">{work.author || 'Unknown Author'}</span>
                 {work.original_publication_year && (
@@ -159,7 +159,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
             <div>
               <div className="text-sm font-medium text-gray-500 mb-1">Trend Score</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-white">
                   {work.metadata?.trend_score || '-'}
                 </span>
                 <span className="text-xs font-medium text-emerald-600 flex items-center">
@@ -171,20 +171,20 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
             <div>
               <div className="text-sm font-medium text-gray-500 mb-1">Public Domain</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900">{work.public_domain_year || 'Yes'}</span>
+                <span className="text-2xl font-bold text-white">{work.public_domain_year || 'Yes'}</span>
                 {work.public_domain_year && <span className="text-xs font-medium text-gray-500">Global</span>}
               </div>
             </div>
             <div>
               <div className="text-sm font-medium text-gray-500 mb-1">Content Status</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900 capitalize">{work.status || 'active'}</span>
+                <span className="text-2xl font-bold text-white capitalize">{work.status || 'active'}</span>
               </div>
             </div>
             <div>
               <div className="text-sm font-medium text-gray-500 mb-1">Data Quality</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900">A+</span>
+                <span className="text-2xl font-bold text-white">A+</span>
               </div>
             </div>
           </div>
@@ -226,25 +226,25 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
               {work.media_type && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-500">Media Type</span>
-                  <span className="text-sm font-medium text-gray-900 capitalize">{work.media_type}</span>
+                  <span className="text-sm font-medium text-white capitalize">{work.media_type}</span>
                 </div>
               )}
               {work.language && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-500">Language</span>
-                  <span className="text-sm font-medium text-gray-900 uppercase">{work.language}</span>
+                  <span className="text-sm font-medium text-white uppercase">{work.language}</span>
                 </div>
               )}
               {work.page_count && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-500">Page Count</span>
-                  <span className="text-sm font-medium text-gray-900">{work.page_count}</span>
+                  <span className="text-sm font-medium text-white">{work.page_count}</span>
                 </div>
               )}
               {work.created_at && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-500">Added to System</span>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-white">
                     {new Date(work.created_at).toLocaleDateString()}
                   </span>
                 </div>

@@ -138,7 +138,7 @@ export default function UploadPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">File Upload</h1>
+        <h1 className="text-3xl font-bold text-white">File Upload</h1>
         <p className="mt-2 text-gray-600">
           Upload EPUB or PDF files to automatically extract metadata and create public domain works.
         </p>
@@ -182,8 +182,8 @@ export default function UploadPage() {
           {!selectedFile ? (
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-300 hover:border-gray-400'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-300 hover:border-gray-400'
                 }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -191,7 +191,7 @@ export default function UploadPage() {
               onDrop={handleDrop}
             >
               <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <div className="text-lg font-medium text-gray-900 mb-2">
+              <div className="text-lg font-medium text-white mb-2">
                 Drop your file here, or click to browse
               </div>
               <div className="text-gray-600 mb-4">
@@ -286,12 +286,12 @@ export default function UploadPage() {
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="font-medium text-gray-900">Work Created</h4>
+                  <h4 className="font-medium text-white">Work Created</h4>
                   <p className="text-gray-600">{result.work_title}</p>
                   <p className="text-sm text-gray-500">ID: {result.work_id}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">Processing Results</h4>
+                  <h4 className="font-medium text-white">Processing Results</h4>
                   <div className="space-y-1 text-sm text-gray-600">
                     <p>Words extracted: {result.metadata.content?.word_count || 'N/A'}</p>
                     <p>Language: {result.metadata.analysis?.detected_language || 'N/A'}</p>

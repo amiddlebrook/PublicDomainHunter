@@ -134,7 +134,7 @@ export default function ViabilityLabPage() {
                 <div className="bg-gray-50 px-6 py-20">
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
                                 How It Works
                             </h2>
                             <p className="text-lg text-gray-600">
@@ -173,7 +173,7 @@ export default function ViabilityLabPage() {
                                         <div className="absolute top-4 right-4 text-6xl font-black text-gray-100 group-hover:text-gray-200 transition-colors">
                                             {idx + 1}
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
+                                        <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
                                         <p className="text-gray-600 leading-relaxed">{step.description}</p>
                                     </div>
                                 </div>
@@ -184,7 +184,7 @@ export default function ViabilityLabPage() {
                         <div className="mt-16 text-center">
                             <div className="inline-block bg-gradient-to-r from-violet-600 to-pink-600 p-1 rounded-2xl">
                                 <div className="bg-gray-50 px-8 py-6 rounded-xl">
-                                    <p className="text-2xl font-black text-gray-900 mb-4">
+                                    <p className="text-2xl font-black text-white mb-4">
                                         Ready to change the world? 🚀
                                     </p>
                                     <Button

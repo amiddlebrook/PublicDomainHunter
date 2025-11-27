@@ -236,7 +236,7 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <FileText className="h-8 w-8 text-green-600" />
             Advanced Reporting
           </h1>
@@ -351,7 +351,7 @@ export default function ReportsPage() {
 
                 {selectedTemplate && (
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">{selectedTemplate.name}</h4>
+                    <h4 className="font-medium text-white mb-2">{selectedTemplate.name}</h4>
                     <p className="text-sm text-gray-600 mb-3">{selectedTemplate.description}</p>
                     <div className="flex flex-wrap gap-2">
                       <Badge className={getTemplateColor(selectedTemplate.report_type)}>
@@ -440,8 +440,8 @@ export default function ReportsPage() {
                   <Card
                     key={template.template_id}
                     className={`cursor-pointer transition-colors ${selectedTemplate?.template_id === template.template_id
-                        ? 'ring-2 ring-blue-500 bg-blue-50'
-                        : 'hover:bg-gray-50'
+                      ? 'ring-2 ring-blue-500 bg-blue-50'
+                      : 'hover:bg-gray-50'
                       }`}
                     onClick={() => setSelectedTemplate(template)}
                   >
@@ -451,7 +451,7 @@ export default function ReportsPage() {
                           {getTemplateIcon(template.report_type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900">{template.name}</h3>
+                          <h3 className="font-semibold text-white">{template.name}</h3>
                           <p className="text-sm text-gray-600 mt-1">{template.description}</p>
                           <div className="flex flex-wrap gap-2 mt-2">
                             <Badge className={getTemplateColor(template.report_type)}>
@@ -486,7 +486,7 @@ export default function ReportsPage() {
               {reportHistory.length === 0 ? (
                 <div className="text-center py-8">
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Reports Yet</h3>
+                  <h3 className="text-lg font-medium text-white mb-2">No Reports Yet</h3>
                   <p className="text-gray-600 mb-4">
                     Generate your first report to see it here
                   </p>
@@ -504,7 +504,7 @@ export default function ReportsPage() {
                           <div className="flex items-center gap-3">
                             {getStatusIcon(report.status)}
                             <div>
-                              <h4 className="font-medium text-gray-900 capitalize">
+                              <h4 className="font-medium text-white capitalize">
                                 {report.report_type} Report
                               </h4>
                               <p className="text-sm text-gray-600">

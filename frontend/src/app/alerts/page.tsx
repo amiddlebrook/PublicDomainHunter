@@ -206,7 +206,7 @@ export default function AlertsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Alert Management</h1>
+          <h1 className="text-3xl font-bold text-white">Alert Management</h1>
           <p className="mt-2 text-gray-600">
             Create and manage alerts for public domain works and opportunities.
           </p>
@@ -325,13 +325,13 @@ export default function AlertsPage() {
 
       {/* Alerts List */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900">Your Alerts ({alerts.length})</h2>
+        <h2 className="text-xl font-semibold text-white">Your Alerts ({alerts.length})</h2>
 
         {alerts.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
               <Bell className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No alerts yet</h3>
+              <h3 className="text-lg font-medium text-white mb-2">No alerts yet</h3>
               <p className="text-gray-500 mb-4">
                 Create your first alert to get notified about public domain opportunities.
               </p>
@@ -357,7 +357,7 @@ export default function AlertsPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">{typeInfo.label}</h3>
+                            <h3 className="font-semibold text-white">{typeInfo.label}</h3>
                             {getStatusBadge(alert.is_active)}
                           </div>
                           <p className="text-sm text-gray-600 mb-2">{typeInfo.description}</p>
@@ -420,7 +420,7 @@ export default function AlertsPage() {
                     <Icon className={`h-5 w-5 text-${type.color}-600`} />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{type.label}</h4>
+                    <h4 className="font-medium text-white">{type.label}</h4>
                     <p className="text-sm text-gray-600">{type.description}</p>
                   </div>
                 </div>

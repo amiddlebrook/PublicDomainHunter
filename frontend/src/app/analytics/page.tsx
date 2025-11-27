@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+          <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
           <p className="mt-2 text-gray-600">
             Comprehensive insights into public domain content and market trends.
           </p>
@@ -263,7 +263,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Works</p>
-                <p className="text-2xl font-bold text-gray-900">{overview.total_works.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-white">{overview.total_works.toLocaleString()}</p>
               </div>
               <BookOpen className="h-8 w-8 text-blue-500" />
             </div>
@@ -279,7 +279,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Alerts</p>
-                <p className="text-2xl font-bold text-gray-900">{overview.active_alerts.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-white">{overview.active_alerts.toLocaleString()}</p>
               </div>
               <Bell className="h-8 w-8 text-yellow-500" />
             </div>
@@ -295,7 +295,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg Trend Score</p>
-                <p className="text-2xl font-bold text-gray-900">{overview.avg_trend_score}/100</p>
+                <p className="text-2xl font-bold text-white">{overview.avg_trend_score}/100</p>
               </div>
               <Target className="h-8 w-8 text-green-500" />
             </div>
@@ -311,7 +311,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Platform Users</p>
-                <p className="text-2xl font-bold text-gray-900">{overview.total_users.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-white">{overview.total_users.toLocaleString()}</p>
               </div>
               <Users className="h-8 w-8 text-purple-500" />
             </div>
@@ -463,7 +463,7 @@ export default function AnalyticsPage() {
                   {Array.isArray(top_performers.trending_works) && top_performers.trending_works.slice(0, 5).map((work, index) => (
                     <div key={work.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">{work.title}</div>
+                        <div className="font-medium text-white">{work.title}</div>
                         <div className="text-sm text-gray-600">{work.author}</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -512,7 +512,7 @@ export default function AnalyticsPage() {
                   {Array.isArray(market_insights.opportunities) && market_insights.opportunities.slice(0, 5).map((opportunity, index) => (
                     <div key={opportunity.work_id} className="p-3 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="font-medium text-gray-900">{opportunity.title}</div>
+                        <div className="font-medium text-white">{opportunity.title}</div>
                         <Badge variant={opportunity.opportunity_level === 'high' ? 'default' : 'secondary'}>
                           {opportunity.opportunity_level}
                         </Badge>

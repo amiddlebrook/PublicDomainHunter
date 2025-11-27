@@ -208,7 +208,7 @@ export default function AIInsightsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Brain className="h-8 w-8 text-purple-600" />
             AI Insights
           </h1>
@@ -306,7 +306,7 @@ export default function AIInsightsPage() {
               {recommendations.length === 0 ? (
                 <div className="text-center py-8">
                   <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recommendations yet</h3>
+                  <h3 className="text-lg font-medium text-white mb-2">No recommendations yet</h3>
                   <p className="text-gray-600 mb-4">
                     Start exploring content to get personalized recommendations
                   </p>
@@ -324,7 +324,7 @@ export default function AIInsightsPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <BookOpen className="h-4 w-4 text-gray-500" />
-                              <h3 className="font-semibold text-gray-900">{rec.title}</h3>
+                              <h3 className="font-semibold text-white">{rec.title}</h3>
                               {rec.author && (
                                 <span className="text-gray-600">by {rec.author}</span>
                               )}
@@ -515,7 +515,7 @@ export default function AIInsightsPage() {
               ) : (
                 <div className="text-center py-8">
                   <Lightbulb className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Select Content to Analyze</h3>
+                  <h3 className="text-lg font-medium text-white mb-2">Select Content to Analyze</h3>
                   <p className="text-gray-600 mb-4">
                     Choose a work from recommendations or search to get AI insights
                   </p>
@@ -615,7 +615,7 @@ export default function AIInsightsPage() {
                             </p>
                           </div>
                           <div className="p-3 bg-gray-50 rounded-lg">
-                            <p className="font-medium text-gray-900">Data Quality</p>
+                            <p className="font-medium text-white">Data Quality</p>
                             <p className="text-gray-700 text-xs mt-1">
                               Based on {trendPredictions.recent_works} recent works
                             </p>
@@ -628,7 +628,7 @@ export default function AIInsightsPage() {
               ) : (
                 <div className="text-center py-8">
                   <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Trend Analysis</h3>
+                  <h3 className="text-lg font-medium text-white mb-2">Loading Trend Analysis</h3>
                   <p className="text-gray-600 mb-4">
                     Analyzing content trends and patterns...
                   </p>
@@ -657,7 +657,7 @@ export default function AIInsightsPage() {
             <CardContent>
               <div className="text-center py-12">
                 <Sparkles className="h-16 w-16 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-gray-900 mb-2">LLM Analysis Ready</h3>
+                <h3 className="text-xl font-medium text-white mb-2">LLM Analysis Ready</h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   Use powerful language models from OpenAI, Claude, Gemini, and others to analyze
                   content, generate insights, and provide intelligent recommendations.

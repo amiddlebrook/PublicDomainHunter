@@ -102,7 +102,7 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCol
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
-              <h1 className="text-lg font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-white">
                 {navigation.find((item) => item.href === pathname)?.name || 'Dashboard'}
               </h1>
             </div>

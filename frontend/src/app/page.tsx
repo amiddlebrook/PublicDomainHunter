@@ -207,10 +207,10 @@ export default function Dashboard() {
               {Array.isArray(recentWorks) && recentWorks.slice(0, 5).map((work) => (
                 <div key={work.id} className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-white truncate">
                       {work.title}
                     </p>
-                    <p className="text-sm text-gray-500 truncate">
+                    <p className="text-sm text-gray-400 truncate">
                       {work.author} • {work.public_domain_year}
                     </p>
                   </div>
@@ -254,10 +254,10 @@ export default function Dashboard() {
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-white truncate">
                         {work.title}
                       </p>
-                      <p className="text-sm text-gray-500 truncate">
+                      <p className="text-sm text-gray-400 truncate">
                         {work.author}
                       </p>
                     </div>

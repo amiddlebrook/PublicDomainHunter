@@ -163,7 +163,7 @@ export default function OpportunitiesPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">💰 Monetization Opportunities</h1>
+                <h1 className="text-3xl font-bold text-white">💰 Monetization Opportunities</h1>
                 <p className="mt-2 text-gray-600">
                     Discover high-value public domain works with strong monetization potential
                 </p>

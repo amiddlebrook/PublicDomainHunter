@@ -139,7 +139,7 @@ export default function WorksPage() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Database className="h-6 w-6 text-purple-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Asset Inspector</h1>
+            <h1 className="text-3xl font-bold text-white">Asset Inspector</h1>
           </div>
           <p className="mt-2 text-gray-600">
             Comprehensive catalog of all public domain works with detailed metadata, trend scores, and analysis tools.
@@ -279,7 +279,7 @@ export default function WorksPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <h3 className="text-lg font-semibold text-white mb-1">
                         {work.title}
                       </h3>
                       <p className="text-gray-600">
@@ -317,7 +317,7 @@ export default function WorksPage() {
           <Card>
             <CardContent className="pt-6 text-center">
               <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No works found</h3>
+              <h3 className="text-lg font-medium text-white mb-2">No works found</h3>
               <p className="text-gray-500 mb-4">
                 Try adjusting your search terms or filters to find more results.
               </p>
