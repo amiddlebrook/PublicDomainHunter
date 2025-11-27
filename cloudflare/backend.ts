@@ -742,11 +742,49 @@ app.get('/api/search', async (c) => {
     await analyticsService.trackSearch(parseInt(payload.sub), query);
   }
 
+  // Helper functions for fast heuristics
+  function calculatePublicDomainYear(work: any): number {
+    if (work.public_domain_year) return work.public_domain_year;
+    if (work.original_publication_year) return work.original_publication_year;
+    if (work.author_death_year) return work.author_death_year + 70;
+    return new Date().getFullYear(); // Fallback
+  }
+
+  function calculateQuickScore(work: any): number {
+    let score = 50; // Base score
+
+    // Age bonus (older works often have nostalgia value)
+    const year = calculatePublicDomainYear(work);
+    if (year < 1900) score += 20;
+    else if (year < 1950) score += 10;
+
+    // Known authors (pre-defined list)
+    const famousAuthors = ['Shakespeare', 'Dickens', 'Austen', 'Poe', 'Twain', 'Verne', 'Wells', 'Doyle', 'Wilde', 'Shelley'];
+    if (work.author && famousAuthors.some(author => work.author.includes(author))) {
+      score += 30;
+    }
+
+    // Media type preference
+    if (work.media_type === 'book') score += 10;
+
+    // Language
+    if (work.language === 'en') score += 5;
+
+    return Math.min(score, 100);
+  }
+
   // Transform the response to match frontend expectations
   const results = [
     ...(searchResults.local || []),
     ...(searchResults.external || [])
-  ];
+  ].map(work => ({
+    ...work,
+    public_domain_year: calculatePublicDomainYear(work),
+    // Quick heuristic scores (no API calls)
+    quick_score: calculateQuickScore(work),
+    monetization_score: work.monetization_score || 0, // Keep existing if available (local), else 0
+    saturation_index: work.saturation_index || 0
+  }));
 
   const total_results = searchResults.total || 0;
   const total_pages = Math.ceil(total_results / page_size);
