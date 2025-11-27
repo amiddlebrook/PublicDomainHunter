@@ -44,9 +44,7 @@ interface Work {
 
 export default function Dashboard() {
   const pathname = usePathname()
-  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentWorks, setRecentWorks] = useState<Work[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
   // Manual client-side routing for work detail pages (SPA fallback workaround)
@@ -56,32 +54,14 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    fetchDashboardData()
     fetchRecentWorks()
   }, [])
-
-  const fetchDashboardData = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/analytics/dashboard`)
-      if (response.ok) {
-        const data = await response.json()
-        // Ensure top_performing_works is always an array
-        if (data && !Array.isArray(data.top_performing_works)) {
-          data.top_performing_works = []
-        }
-        setStats(data)
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-    }
-  }
 
   const fetchRecentWorks = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/works?limit=6&sort_by=created_at&sort_order=desc`)
       if (response.ok) {
         const data = await response.json()
-        // Ensure data is an array
         setRecentWorks(Array.isArray(data) ? data : [])
       }
     } catch (error) {
@@ -92,17 +72,10 @@ export default function Dashboard() {
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
@@ -114,26 +87,18 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
           <p className="mt-2 text-gray-400">
-            Welcome back! Here&apos;s what&apos;s happening with your public domain content.
+            Welcome to your Opportunity Engine.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button asChild>
+          <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
             <Link href="/search">
               <Search className="mr-2 h-4 w-4" />
-              Search Works
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/works">
-              <BookOpen className="mr-2 h-4 w-4" />
-              Browse All
+              Find Opportunities
             </Link>
           </Button>
         </div>
       </div>
-
-
 
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -143,176 +108,153 @@ export default function Dashboard() {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_works || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Public domain works in catalog
-            </p>
+            <div className="text-2xl font-bold">15M+</div>
+            <Link href="/sources" className="text-xs text-indigo-400 hover:underline">
+              View Data Sources
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:bg-dark-800 transition-colors cursor-pointer" asChild>
+          <Link href="/search?sort=created_at&order=desc">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
+              <Calendar className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-500">View All</div>
+              <p className="text-xs text-muted-foreground">
+                Fresh public domain entries
+              </p>
+            </CardContent>
+          </Link>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">My Opportunities</CardTitle>
+            <Star className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <Link href="/portfolio" className="text-xs text-indigo-400 hover:underline">
+              Go to Portfolio
+            </Link>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Today</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Recent Searches</CardTitle>
+            <Search className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.new_works_today || 0}</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">
-              Works added today
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Trend Score</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.average_trend_score ? stats.average_trend_score.toFixed(1) : '0.0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Average market interest
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              Monitoring opportunities
+              Start searching to populate
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Works and Top Performers */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Works */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Works</CardTitle>
-            <CardDescription>
-              Latest additions to the catalog
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Array.isArray(recentWorks) && recentWorks.slice(0, 5).map((work) => (
-                <div key={work.id} className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
-                      {work.title}
-                    </p>
-                    <p className="text-sm text-gray-400 truncate">
-                      {work.author} • {work.public_domain_year}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {work.metadata?.trend_score && (
-                      <Badge variant={work.metadata.trend_score > 70 ? 'success' : work.metadata.trend_score > 40 ? 'warning' : 'secondary'}>
-                        {work.metadata.trend_score.toFixed(0)}
-                      </Badge>
-                    )}
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/works/${work.id}`}>
-                        <ArrowUpRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
+      {/* The Factory - Quick Start */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">The Factory</h2>
+          <Badge variant="outline" className="text-indigo-400 border-indigo-400">Beta</Badge>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="group hover:border-indigo-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                  <ArrowUpRight className="h-5 w-5" />
                 </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-4 border-t">
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/works">View All Works</Link>
+                Create Poster Series
+              </CardTitle>
+              <CardDescription>
+                Turn vintage illustrations into high-res wall art.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="ghost" className="w-full justify-between group-hover:text-indigo-400">
+                Start Project <ArrowUpRight className="h-4 w-4" />
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Top Performing Works */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Performers</CardTitle>
-            <CardDescription>
-              Highest trend scores this month
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Array.isArray(stats?.top_performing_works) && stats.top_performing_works.slice(0, 5).map((work, index) => (
-                <div key={work.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-600 text-sm font-medium">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
-                        {work.title}
-                      </p>
-                      <p className="text-sm text-gray-400 truncate">
-                        {work.author}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="success" className="flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
-                      {work.metadata?.trend_score?.toFixed(0) || 'N/A'}
-                    </Badge>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/works/${work.id}`}>
-                        <ArrowUpRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
+          <Card className="group hover:border-pink-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-pink-500/10 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+                  <BookOpen className="h-5 w-5" />
                 </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-4 border-t">
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/analytics">View Analytics</Link>
+                Publish E-Book
+              </CardTitle>
+              <CardDescription>
+                Format classic texts for Kindle & print-on-demand.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="ghost" className="w-full justify-between group-hover:text-pink-400">
+                Start Project <ArrowUpRight className="h-4 w-4" />
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:border-emerald-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                3D Print Model
+              </CardTitle>
+              <CardDescription>
+                Convert patent drawings into 3D printable files.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="ghost" className="w-full justify-between group-hover:text-emerald-400">
+                Start Project <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Recent Works */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle>Recent Additions</CardTitle>
           <CardDescription>
-            Common tasks to help you get started
+            Latest public domain works added to the catalog
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Button variant="outline" className="h-20 flex-col gap-2" asChild>
-              <Link href="/search">
-                <Search className="h-5 w-5" />
-                Search Works
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2" asChild>
-              <Link href="/trends">
-                <TrendingUp className="h-5 w-5" />
-                Trend Analysis
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2" asChild>
-              <Link href="/alerts">
-                <Bell className="h-5 w-5" />
-                Manage Alerts
-              </Link>
-            </Button>
+          <div className="space-y-4">
+            {Array.isArray(recentWorks) && recentWorks.slice(0, 5).map((work) => (
+              <div key={work.id} className="flex items-center justify-between py-2 border-b border-dark-800 last:border-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">
+                    {work.title}
+                  </p>
+                  <p className="text-sm text-gray-400 truncate">
+                    {work.author} • {work.public_domain_year}
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/works/${work.id}`}>
+                    View Asset
+                  </Link>
+                </Button>
+              </div>
+            ))}
+            {recentWorks.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No recent works found.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
