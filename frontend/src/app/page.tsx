@@ -115,8 +115,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="hover:bg-dark-800 transition-colors cursor-pointer" asChild>
-          <Link href="/search?sort=created_at&order=desc">
+        <Link href="/search?sort=created_at&order=desc">
+          <Card className="hover:bg-dark-800 transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
               <Calendar className="h-4 w-4 text-emerald-500" />
@@ -127,8 +127,8 @@ export default function Dashboard() {
                 Fresh public domain entries
               </p>
             </CardContent>
-          </Link>
-        </Card>
+          </Card>
+        </Link>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
