@@ -164,62 +164,68 @@ export default function Dashboard() {
           <Badge variant="outline" className="text-indigo-400 border-indigo-400">Beta</Badge>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
-          <Card className="group hover:border-indigo-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                  <ArrowUpRight className="h-5 w-5" />
-                </div>
-                Create Poster Series
-              </CardTitle>
-              <CardDescription>
-                Turn vintage illustrations into high-res wall art.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" className="w-full justify-between group-hover:text-indigo-400">
-                Start Project <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+          <Link href="/factory/posters">
+            <Card className="group hover:border-indigo-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950 h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                    <ArrowUpRight className="h-5 w-5" />
+                  </div>
+                  Create Poster Series
+                </CardTitle>
+                <CardDescription>
+                  Turn vintage illustrations into high-res wall art.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="ghost" className="w-full justify-between group-hover:text-indigo-400">
+                  Start Project <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="group hover:border-pink-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-pink-500/10 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-colors">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                Publish E-Book
-              </CardTitle>
-              <CardDescription>
-                Format classic texts for Kindle & print-on-demand.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" className="w-full justify-between group-hover:text-pink-400">
-                Start Project <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+          <Link href="/factory/ebooks">
+            <Card className="group hover:border-pink-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950 h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-pink-500/10 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                  Publish E-Book
+                </CardTitle>
+                <CardDescription>
+                  Format classic texts for Kindle & print-on-demand.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="ghost" className="w-full justify-between group-hover:text-pink-400">
+                  Start Project <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="group hover:border-emerald-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
-                3D Print Model
-              </CardTitle>
-              <CardDescription>
-                Convert patent drawings into 3D printable files.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" className="w-full justify-between group-hover:text-emerald-400">
-                Start Project <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+          <Link href="/factory/3d-models">
+            <Card className="group hover:border-emerald-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950 h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  3D Print Model
+                </CardTitle>
+                <CardDescription>
+                  Convert patent drawings into 3D printable files.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="ghost" className="w-full justify-between group-hover:text-emerald-400">
+                  Start Project <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
 
