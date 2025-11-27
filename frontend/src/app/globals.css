@@ -115,44 +115,61 @@
 
   .btn-outline {
     @apply border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground focus:ring-primary;
-
-    .badge-success {
-      @apply bg-accent/10 text-accent border-accent/20;
-    }
-
-    .badge-warning {
-      @apply bg-yellow-500/10 text-yellow-400 border-yellow-500/20;
-    }
-
-    .badge-danger {
-      @apply bg-destructive/10 text-destructive border-destructive/20;
-    }
-
-    .badge-info {
-      @apply bg-primary/10 text-primary border-primary/20;
-    }
   }
 
-  @layer utilities {
-    .text-gradient {
-      @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
-    }
-
-    .text-gradient-primary {
-      @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      @apply bg-background;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      @apply bg-muted rounded-full hover:bg-muted-foreground/50 transition-colors;
-    }
+  .input {
+    @apply w-full px-3 py-2 bg-card border-2 border-border focus:border-primary rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent transition-all;
   }
+
+  .card {
+    @apply bg-card border-2 border-primary/20 rounded-xl p-6 shadow-xl shadow-primary/10 hover:border-primary/40 hover:shadow-primary/15 transition-all duration-300;
+  }
+
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-lg border-2 border-secondary/30 shadow-xl shadow-secondary/10 hover:border-secondary/50 hover:shadow-secondary/15 transition-all duration-300;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border;
+  }
+
+  .badge-success {
+    @apply bg-accent/10 text-accent border-accent/20;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-500/10 text-yellow-400 border-yellow-500/20;
+  }
+
+  .badge-danger {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+
+  .badge-info {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full hover:bg-muted-foreground/50 transition-colors;
+  }
+}
