@@ -28,7 +28,8 @@ import {
   DollarSign,
   Activity,
   Sparkles,
-  Info
+  Info,
+  Star
 } from 'lucide-react'
 import { format } from 'date-fns'
 import Link from 'next/link'
@@ -74,7 +75,8 @@ export default function SearchPage() {
     minYear: 1800,
     maxYear: 2030,
     mediaTypes: [] as string[],
-    minScore: 0
+    minScore: 0,
+    maxSaturation: 100
   })
 
   const performSearch = useCallback(async (searchQuery: string, page: number = 1) => {
@@ -297,33 +299,289 @@ export default function SearchPage() {
               )}
             >
               <div className="flex justify-between items-center md:hidden mb-4">
-                <DollarSign className="h-4 w-4 mr-2" />
-                Portfolio
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => handleTrack(result.id)}>
-                <TrendingUp className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => handleShare(result.id)}>
-                <Activity className="h-4 w-4" />
-              </Button>
-          </div>
-          <Button className="w-full mt-2" asChild>
-            <Link href={`/works/${result.id}`}>View Analysis</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-})}
-                    </div >
-                  </div >
-                )}
-              </div >
-            </div >
-          </div >
-        </div >
+                <h3 className="font-semibold text-lg">Filters</h3>
+                <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
 
-      </div >
-    </div >
+              <div className="space-y-6">
+                {/* Media Type Filter */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-gray-300">Media Type</Label>
+                  <div className="space-y-2">
+                    {['Book', 'Image', 'Audio', 'Video'].map((type) => (
+                      <div key={type} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={type}
+                          checked={filters.mediaTypes.includes(type.toLowerCase())}
+                          onCheckedChange={() => toggleMediaType(type.toLowerCase())}
+                          className="border-gray-600 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                        />
+                        <label
+                          htmlFor={type}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400"
+                        >
+                          {type}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-px bg-dark-700" />
+
+                {/* Public Domain Year Filter */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-gray-300">PD Year Range</Label>
+                    <span className="text-xs text-gray-500">
+                      {filters.minYear} - {filters.maxYear}
+                    </span>
+                  </div>
+                  <Slider
+                    defaultValue={[1800, 2030]}
+                    min={1800}
+                    max={2095}
+                    step={1}
+                    value={[filters.minYear, filters.maxYear]}
+                    onValueChange={(value) => {
+                      setFilters((prev: any) => ({ ...prev, minYear: value[0], maxYear: value[1] }))
+                    }}
+                    className="py-4"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Target works entering public domain in specific future years.
+                  </p>
+                </div>
+
+                <div className="h-px bg-dark-700" />
+
+                {/* Monetization Score Filter */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-gray-300">Min. Monetization Score</Label>
+                    <span className="text-xs text-indigo-400 font-bold">{filters.minScore}</span>
+                  </div>
+                  <Slider
+                    defaultValue={[0]}
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={[filters.minScore]}
+                    onValueChange={(value) => handleFilterChange('minScore', value[0])}
+                    className="py-4"
+                  />
+                </div>
+
+                {/* Saturation Index Filter */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-gray-300">Max. Saturation Index</Label>
+                    <span className="text-xs text-pink-400 font-bold">{filters.maxSaturation || 100}</span>
+                  </div>
+                  <Slider
+                    defaultValue={[100]}
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={[filters.maxSaturation || 100]}
+                    onValueChange={(value) => handleFilterChange('maxSaturation', value[0])}
+                    className="py-4"
+                  />
+                </div>
+
+                <Button
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 mt-4"
+                  onClick={handleSearch}
+                >
+                  Apply Filters
+                </Button>
+              </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main className="flex-1 min-w-0 flex flex-col min-h-0">
+              {/* Search Bar */}
+              <div className="flex gap-2 mb-6 shrink-0">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search for works (e.g., 'Frankenstein', 'Space', 'Botanical')..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="pl-10 bg-dark-800 border-dark-700 text-white placeholder:text-gray-500 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <Button onClick={handleSearch} className="bg-indigo-600 hover:bg-indigo-700 shrink-0">
+                  Search
+                </Button>
+              </div>
+
+              {/* Results Area */}
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+                {loading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                  </div>
+                ) : !results ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-center text-gray-500">
+                    <Search className="h-12 w-12 mb-4 opacity-20" />
+                    <p className="text-lg font-medium">Ready to explore?</p>
+                    <p className="text-sm">Enter a search term or apply filters to find opportunities.</p>
+                  </div>
+                ) : results.results.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-center text-gray-500">
+                    <p className="text-lg font-medium">No results found.</p>
+                    <p className="text-sm">Try adjusting your filters or search query.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-gray-400">
+                        Found <span className="font-medium text-white">{results.total_results}</span> results
+                        {results.search_time && <span className="text-xs ml-2 opacity-50">({results.search_time})</span>}
+                      </p>
+                    </div>
+
+                    {viewMode === 'table' ? (
+                      <div className="border border-dark-700 rounded-md overflow-hidden bg-dark-900/50">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-dark-800 text-gray-400 font-medium">
+                            <tr>
+                              <th className="px-4 py-3">Title / Author</th>
+                              <th className="px-4 py-3">Type</th>
+                              <th className="px-4 py-3">PD Year</th>
+                              <th className="px-4 py-3 text-right">Quick Score</th>
+                              <th className="px-4 py-3 text-right">Monetization</th>
+                              <th className="px-4 py-3 text-right">Saturation</th>
+                              <th className="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-dark-700">
+                            {results.results.map((work) => (
+                              <tr key={work.id} className="hover:bg-dark-800/50 transition-colors group">
+                                <td className="px-4 py-3">
+                                  <div className="font-medium text-white truncate max-w-[200px]" title={work.title}>
+                                    {work.title}
+                                  </div>
+                                  <div className="text-xs text-gray-500 truncate max-w-[200px]">
+                                    {work.author}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Badge variant="secondary" className="text-xs bg-dark-700 text-gray-300 border-0">
+                                    {work.media_type}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3 text-gray-300">
+                                  {work.public_domain_year}
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <span className={clsx(
+                                      "font-bold",
+                                      (work as any).quick_score >= 80 ? "text-emerald-400" :
+                                        (work as any).quick_score >= 50 ? "text-yellow-400" : "text-gray-500"
+                                    )}>
+                                      {(work as any).quick_score || '-'}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <span className={clsx(
+                                      "font-bold",
+                                      (work.monetization_score || 0) >= 80 ? "text-emerald-400" :
+                                        (work.monetization_score || 0) >= 50 ? "text-yellow-400" : "text-gray-500"
+                                    )}>
+                                      {work.monetization_score || '-'}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <span className={clsx(
+                                      "font-bold",
+                                      (work.saturation_index || 0) <= 30 ? "text-emerald-400" :
+                                        (work.saturation_index || 0) <= 70 ? "text-yellow-400" : "text-pink-400"
+                                    )}>
+                                      {work.saturation_index || '-'}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => handleSaveToPortfolio(work.id)} title="Save to Portfolio">
+                                      <Star className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => handleTrack(work.id)} title="Track">
+                                      <Activity className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" asChild title="View Details">
+                                      <Link href={`/works/${work.id}`}>
+                                        <ChevronRight className="h-4 w-4" />
+                                      </Link>
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {results.results.map((work) => (
+                          <Card key={work.id} className="bg-dark-900 border-dark-700 hover:border-indigo-500/50 transition-all group">
+                            <CardContent className="p-4 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <Badge variant="outline" className="bg-dark-800 text-gray-400 border-dark-600">
+                                  {work.media_type}
+                                </Badge>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-500 hover:text-yellow-400" onClick={() => handleSaveToPortfolio(work.id)}>
+                                    <Star className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+
+                              <div>
+                                <h3 className="font-semibold text-white truncate" title={work.title}>{work.title}</h3>
+                                <p className="text-sm text-gray-400 truncate">{work.author}</p>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div className="bg-dark-800 rounded p-2 text-center">
+                                  <div className="text-gray-500 mb-1">PD Year</div>
+                                  <div className="font-medium text-white">{work.public_domain_year}</div>
+                                </div>
+                                <div className="bg-dark-800 rounded p-2 text-center">
+                                  <div className="text-gray-500 mb-1">Quick Score</div>
+                                  <div className={clsx("font-bold", (work as any).quick_score >= 70 ? "text-emerald-400" : "text-yellow-400")}>
+                                    {(work as any).quick_score}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <Button className="w-full bg-dark-800 hover:bg-dark-700 text-gray-300" size="sm" asChild>
+                                <Link href={`/works/${work.id}`}>
+                                  View Analysis
+                                </Link>
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
