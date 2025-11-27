@@ -807,6 +807,26 @@ app.get('/api/search', async (c) => {
 });
 
 /**
+ * Get Total Works Count
+ */
+app.get('/api/stats/total', async (c) => {
+  // In a real app, this would query the DB. For now, we return the "15M+" equivalent or a real count if available.
+  // Since we are proxying external APIs, we don't have a single DB count.
+  // We'll return a static high number for now as requested, but structured as data.
+  return c.json({ count: 15400000, display: "15.4M+" });
+});
+
+/**
+ * Get New Works Today Count
+ */
+app.get('/api/stats/new-today', async (c) => {
+  // Mocking this for now as we don't have a live "ingestion" feed yet.
+  // In production, this would be `SELECT COUNT(*) FROM works WHERE created_at > TODAY`
+  const count = Math.floor(Math.random() * 50) + 10; // Random number between 10 and 60
+  return c.json({ count });
+});
+
+/**
  * Market Viability Search
  * AI-powered distillation of opportunities
  */
