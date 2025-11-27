@@ -1,2 +1,5 @@
 import FactoryPage from '../page'
-export default FactoryPage
+
+export default function Page() {
+    return <FactoryPage />
+}
