@@ -34,6 +34,12 @@ export const useWebSocket = (url?: string): UseWebSocketReturn => {
   const wsUrl = url || defaultUrl
 
   const connect = useCallback(() => {
+    // WebSockets are disabled for now - Cloudflare Workers require Durable Objects
+    // for WebSocket support, which are not yet implemented in this application.
+    // This prevents console errors from failed connection attempts.
+    setConnectionStatus('disconnected')
+    return
+
     // Only connect on client side
     if (!isClient || !wsUrl || !user) {
       setConnectionStatus('disconnected')
