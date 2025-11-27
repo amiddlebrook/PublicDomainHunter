@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
 import {
     User,
     Lock,
@@ -25,7 +26,7 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false)
 
     const [profile, setProfile] = useState({
-        fullName: user?.fullName || '',
+        fullName: user?.full_name || '',
         email: user?.email || '',
         username: user?.username || ''
     })
