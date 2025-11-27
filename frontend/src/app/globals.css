@@ -36,56 +36,69 @@
     --radius: 0.5rem;
   }
 
-  --primary: 271 91% 65%;
-  --primary-foreground: 0 0% 100%;
+  .dark {
+    /* Dark mode colors - Gen Z Professional Aesthetic */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-  /* Neon cyan accent */
-  --secondary: 189 94% 60%;
-  --secondary-foreground: 240 10% 3.9%;
+    /* Brighter card for better visibility */
+    --card: 240 8% 10%;
+    --card-foreground: 0 0% 98%;
 
-  /* Subtle elevated surface */
-  --muted: 240 8% 12%;
-  --muted-foreground: 240 5% 64.9%;
+    --popover: 240 8% 7%;
+    --popover-foreground: 0 0% 98%;
 
-  /* Cyber lime accent */
-  --accent: 84 81% 69%;
-  --accent-foreground: 240 10% 3.9%;
+    /* Vibrant electric purple - main brand color */
+    --primary: 271 91% 65%;
+    --primary-foreground: 0 0% 100%;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+    /* Neon cyan accent */
+    --secondary: 189 94% 60%;
+    --secondary-foreground: 240 10% 3.9%;
 
-  /* Subtle borders for depth */
-  --border: 240 8% 15%;
-  --input: 240 8% 12%;
-  --ring: 271 91% 65%;
-}
+    /* Subtle elevated surface */
+    --muted: 240 8% 12%;
+    --muted-foreground: 240 5% 64.9%;
 
-html {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  scroll-behavior: smooth;
-}
+    /* Cyber lime accent */
+    --accent: 84 81% 69%;
+    --accent-foreground: 240 10% 3.9%;
 
-/* Force dark mode always */
-html,
-body {
-  @apply dark;
-}
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-feature-settings: "rlig" 1, "calt" 1;
-}
+    /* Subtle borders for depth */
+    --border: 240 8% 15%;
+    --input: 240 8% 12%;
+    --ring: 271 91% 65%;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-outfit), system-ui, sans-serif;
-  @apply tracking-tight;
-}
+  html {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  /* Force dark mode always */
+  html,
+  body {
+    @apply dark;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-outfit), system-ui, sans-serif;
+    @apply tracking-tight;
+  }
 }
 
 @layer components {
