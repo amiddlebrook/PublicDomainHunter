@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { StatsSourceModal } from '@/components/StatsSourceModal'
 
 // Dynamically import WorkDetailClient to handle work detail routes
 const WorkDetailClient = dynamic(() => import('./works/[id]/WorkDetailClient'), { ssr: false })
@@ -47,6 +48,8 @@ export default function Dashboard() {
   const [recentWorks, setRecentWorks] = useState<Work[]>([])
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({ total: "15M+", newToday: 0 })
+  const [sources, setSources] = useState({ database: 0, gutenberg: 0, archive: 0 })
+  const [sourceModalOpen, setSourceModalOpen] = useState(false)
   const [portfolioCount, setPortfolioCount] = useState(0)
   const [recentSearches, setRecentSearches] = useState<any[]>([])
 
@@ -81,6 +84,11 @@ export default function Dashboard() {
         total: totalData.display || "15M+",
         newToday: newData.count || 0
       })
+
+      // Store sources if available
+      if (totalData.sources) {
+        setSources(totalData.sources)
+      }
 
       // 2. Fetch Portfolio Count (Local Storage for now)
       const savedPortfolio = localStorage.getItem('pdh_portfolio')
@@ -132,7 +140,10 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card
+          className="hover:bg-dark-800 transition-colors cursor-pointer"
+          onClick={() => setSourceModalOpen(true)}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Works</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -140,7 +151,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">
-              Across all connected databases
+              Click to see data sources
             </p>
           </CardContent>
         </Card>
@@ -294,6 +305,14 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Stats Source Modal */}
+      <StatsSourceModal
+        open={sourceModalOpen}
+        onOpenChange={setSourceModalOpen}
+        sources={sources}
+        total={stats.total}
+      />
     </div>
   )
 }
