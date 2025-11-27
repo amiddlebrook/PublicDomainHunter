@@ -21,8 +21,6 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
-// Dynamically import WorkDetailClient to handle work detail routes
-const WorkDetailClient = dynamic(() => import('./works/[id]/WorkDetailClient'), { ssr: false })
 
 interface DashboardStats {
   total_works: number
@@ -48,12 +46,6 @@ export default function Dashboard() {
   const [recentWorks, setRecentWorks] = useState<Work[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
-
-  // Manual client-side routing for work detail pages (SPA fallback workaround)
-  if (pathname && pathname.startsWith('/works/') && pathname !== '/works') {
-    const workId = pathname.split('/works/')[1]
-    return <WorkDetailClient workId={workId} />
-  }
 
   useEffect(() => {
     fetchDashboardData()
