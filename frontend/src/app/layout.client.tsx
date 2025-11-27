@@ -56,7 +56,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   if (!mounted) {
     // Return a minimal loading state during SSR
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
       </div>
     )
@@ -84,17 +84,17 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCol
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar Navigation */}
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <header className="flex h-16 items-center gap-x-4 border-b border-border bg-card px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+            className="-m-2.5 p-2.5 text-foreground lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-6 w-6" />
@@ -102,7 +102,7 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCol
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
-              <h1 className="text-lg font-semibold text-white">
+              <h1 className="text-lg font-semibold text-foreground">
                 {navigation.find((item) => item.href === pathname)?.name || 'Dashboard'}
               </h1>
             </div>
@@ -113,35 +113,35 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCol
                   <div className="relative">
                     <button
                       type="button"
-                      className="flex items-center gap-2 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      className="flex items-center gap-2 rounded-full bg-card p-1 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
                     >
                       <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium">
                         {user.username.charAt(0).toUpperCase()}
                       </div>
                       <span className="hidden lg:flex lg:items-center">
-                        <span className="text-sm font-medium text-gray-700" aria-hidden="true">
+                        <span className="text-sm font-medium text-foreground" aria-hidden="true">
                           {user.username}
                         </span>
                       </span>
                     </button>
 
                     {userMenuOpen && (
-                      <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                        <div className="border-b px-4 py-2 text-sm text-gray-700">
+                      <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-card py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-border">
+                        <div className="border-b border-border px-4 py-2 text-sm text-foreground">
                           <div className="font-medium">{user.full_name || user.username}</div>
-                          <div className="text-gray-500">{user.email}</div>
+                          <div className="text-muted-foreground">{user.email}</div>
                         </div>
                         <Link
                           href="/profile"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           Profile Settings
                         </Link>
                         <button
                           onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted"
                         >
                           <LogOut className="mr-2 inline h-4 w-4" />
                           Sign out
@@ -151,7 +151,7 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCol
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-gray-500">
+                    <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                       Sign in
                     </Link>
                     <Link
@@ -168,7 +168,7 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCol
         </header>
 
         {/* Main Page Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-background p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

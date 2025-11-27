@@ -70,7 +70,7 @@ export default function SettingsPage() {
 
     if (!user) {
         return (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-muted-foreground">
                 Please log in to access settings.
             </div>
         )
@@ -82,9 +82,9 @@ export default function SettingsPage() {
             <div>
                 <div className="flex items-center gap-3 mb-2">
                     <SettingsIcon className="h-8 w-8 text-indigo-600" />
-                    <h1 className="text-3xl font-bold text-white">Settings</h1>
+                    <h1 className="text-3xl font-bold text-foreground">Settings</h1>
                 </div>
-                <p className="text-gray-400">
+                <p className="text-muted-foreground">
                     Manage your account settings and preferences
                 </p>
             </div>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>Email Notifications</Label>
-                                    <p className="text-sm text-gray-400">Receive email updates about your account</p>
+                                    <p className="text-sm text-muted-foreground">Receive email updates about your account</p>
                                 </div>
                                 <Switch
                                     checked={notifications.emailNotifications}
@@ -233,7 +233,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>Market Alerts</Label>
-                                    <p className="text-sm text-gray-400">Get notified about new market opportunities</p>
+                                    <p className="text-sm text-muted-foreground">Get notified about new market opportunities</p>
                                 </div>
                                 <Switch
                                     checked={notifications.marketAlerts}
@@ -246,7 +246,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>New Opportunities</Label>
-                                    <p className="text-sm text-gray-400">Alert when high-value works become public domain</p>
+                                    <p className="text-sm text-muted-foreground">Alert when high-value works become public domain</p>
                                 </div>
                                 <Switch
                                     checked={notifications.newOpportunities}
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>Weekly Digest</Label>
-                                    <p className="text-sm text-gray-400">Weekly summary of top opportunities</p>
+                                    <p className="text-sm text-muted-foreground">Weekly summary of top opportunities</p>
                                 </div>
                                 <Switch
                                     checked={notifications.weeklyDigest}
@@ -397,7 +397,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>Email Notifications</Label>
-                                    <p className="text-sm text-gray-500">Receive email updates about your account</p>
+                                    <p className="text-sm text-muted-foreground">Receive email updates about your account</p>
                                 </div>
                                 <Switch
                                     checked={notifications.emailNotifications}
@@ -410,7 +410,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>Market Alerts</Label>
-                                    <p className="text-sm text-gray-500">Get notified about new market opportunities</p>
+                                    <p className="text-sm text-muted-foreground">Get notified about new market opportunities</p>
                                 </div>
                                 <Switch
                                     checked={notifications.marketAlerts}
@@ -423,7 +423,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>New Opportunities</Label>
-                                    <p className="text-sm text-gray-500">Alert when high-value works become public domain</p>
+                                    <p className="text-sm text-muted-foreground">Alert when high-value works become public domain</p>
                                 </div>
                                 <Switch
                                     checked={notifications.newOpportunities}
@@ -436,7 +436,7 @@ export default function SettingsPage() {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label>Weekly Digest</Label>
-                                    <p className="text-sm text-gray-500">Weekly summary of top opportunities</p>
+                                    <p className="text-sm text-muted-foreground">Weekly summary of top opportunities</p>
                                 </div>
                                 <Switch
                                     checked={notifications.weeklyDigest}
@@ -529,8 +529,8 @@ export default function SettingsPage() {
                                 <div className="border rounded-lg p-6 space-y-4">
                                     <div className="space-y-2">
                                         <h3 className="font-bold text-xl">Free</h3>
-                                        <p className="text-2xl font-bold">$0<span className="text-sm font-normal text-gray-400">/month</span></p>
-                                        <p className="text-gray-400">Essential tools for public domain research.</p>
+                                        <p className="text-2xl font-bold">$0<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                                        <p className="text-muted-foreground">Essential tools for public domain research.</p>
                                     </div>
                                     <ul className="space-y-2 text-sm">
                                         <li className="flex items-center"><span className="mr-2 text-green-500">✓</span> Basic Search</li>
@@ -541,14 +541,14 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* Pro Plan */}
-                                <div className="border border-indigo-200 bg-indigo-50 rounded-lg p-6 space-y-4 relative overflow-hidden">
+                                <div className="border border-indigo-500/20 bg-indigo-500/5 rounded-lg p-6 space-y-4 relative overflow-hidden">
                                     <div className="absolute top-0 right-0 bg-indigo-500 text-white text-xs px-3 py-1 rounded-bl-lg">POPULAR</div>
                                     <div className="space-y-2">
-                                        <h3 className="font-bold text-xl text-indigo-900">Pro Hunter</h3>
-                                        <p className="text-2xl font-bold text-indigo-900">$29<span className="text-sm font-normal text-indigo-600">/month</span></p>
-                                        <p className="text-indigo-700">Advanced tools for serious sellers.</p>
+                                        <h3 className="font-bold text-xl text-indigo-400">Pro Hunter</h3>
+                                        <p className="text-2xl font-bold text-indigo-400">$29<span className="text-sm font-normal text-indigo-300">/month</span></p>
+                                        <p className="text-indigo-300">Advanced tools for serious sellers.</p>
                                     </div>
-                                    <ul className="space-y-2 text-sm text-indigo-800">
+                                    <ul className="space-y-2 text-sm text-indigo-300">
                                         <li className="flex items-center"><span className="mr-2 text-indigo-500">✓</span> Unlimited Search</li>
                                         <li className="flex items-center"><span className="mr-2 text-indigo-500">✓</span> Unlimited Viability Checks</li>
                                         <li className="flex items-center"><span className="mr-2 text-indigo-500">✓</span> Market Signals & Trends</li>
@@ -588,7 +588,7 @@ export default function SettingsPage() {
 
                             <div className="pt-6 border-t">
                                 <h4 className="font-medium mb-4">Manage Subscription</h4>
-                                <p className="text-sm text-gray-400 mb-4">
+                                <p className="text-sm text-muted-foreground mb-4">
                                     Already have a subscription? Manage your payment methods and billing history.
                                 </p>
                                 <Button
