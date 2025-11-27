@@ -101,14 +101,14 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
   return (
     <div className="space-y-6">
       {/* Asset Header */}
-      <div className="bg-white border-b border-gray-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-8 shadow-sm">
+      <div className="bg-dark-900 border-b border-dark-700 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-8 shadow-sm">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
-                <Link href="/works" className="hover:text-indigo-600 flex items-center gap-1">
+              <div className="flex items-center gap-3 text-gray-400 mb-2">
+                <Link href="/search" className="hover:text-indigo-400 flex items-center gap-1">
                   <ArrowLeft className="h-4 w-4" />
-                  Asset Inspector
+                  Market Intelligence
                 </Link>
                 <span>/</span>
                 <span className="uppercase tracking-wider font-semibold text-xs">{work.media_type || 'WORK'}</span>
@@ -117,17 +117,17 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
               </div>
 
               <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">{work.title}</h1>
-              <div className="flex items-center gap-4 text-gray-600">
+              <div className="flex items-center gap-4 text-gray-300">
                 <span className="font-medium">{work.author || 'Unknown Author'}</span>
                 {work.original_publication_year && (
                   <>
-                    <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                    <span className="w-1 h-1 bg-gray-600 rounded-full" />
                     <span>{work.original_publication_year}</span>
                   </>
                 )}
                 {work.language && (
                   <>
-                    <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                    <span className="w-1 h-1 bg-gray-600 rounded-full" />
                     <span className="uppercase">{work.language}</span>
                   </>
                 )}
@@ -155,7 +155,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
           </div>
 
           {/* Key Metrics Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-dark-700">
             <div>
               <div className="text-sm font-medium text-gray-500 mb-1">Trend Score</div>
               <div className="flex items-baseline gap-2">

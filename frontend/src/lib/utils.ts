@@ -25,6 +25,8 @@ export function sanitizeText(text: string | undefined | null): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'")
+    // Strip HTML tags
+    .replace(/<[^>]*>/g, '')
     // Remove excessive whitespace
     .replace(/\s+/g, ' ')
     // Remove common formatting artifacts

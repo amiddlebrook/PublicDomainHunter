@@ -23,7 +23,6 @@ const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Market Intelligence', href: '/search', icon: Search },
     { name: 'Viability Lab', href: '/viability', icon: Sparkles },
-    { name: 'Asset Inspector', href: '/works', icon: Database },
     { name: 'Portfolio', href: '/portfolio', icon: Briefcase },
     { name: 'AI Insights', href: '/ai-insights', icon: Sparkles },
     { name: 'Reports', href: '/reports', icon: FileBarChart },
@@ -62,12 +61,12 @@ export function Sidebar({ open, setOpen, collapsed, setCollapsed }: SidebarProps
             >
                 {/* Header */}
                 <div className={clsx("flex h-16 shrink-0 items-center px-6 bg-dark-950 border-b border-border", collapsed ? "justify-center" : "justify-between")}>
-                    <div className="flex items-center gap-2 font-semibold text-foreground">
+                    <Link href="/" className="flex items-center gap-2 font-semibold text-foreground hover:opacity-80 transition-opacity">
                         <div className="h-8 w-8 rounded bg-indigo-500 flex items-center justify-center shrink-0">
                             <Database className="h-5 w-5 text-white" />
                         </div>
                         {!collapsed && <span className="text-lg tracking-tight whitespace-nowrap opacity-100 transition-opacity duration-300">PD Hunter</span>}
-                    </div>
+                    </Link>
                     <button
                         type="button"
                         className="lg:hidden text-muted-foreground hover:text-foreground"
