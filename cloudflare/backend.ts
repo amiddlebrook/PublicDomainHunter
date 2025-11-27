@@ -810,20 +810,66 @@ app.get('/api/search', async (c) => {
  * Get Total Works Count
  */
 app.get('/api/stats/total', async (c) => {
-  // In a real app, this would query the DB. For now, we return the "15M+" equivalent or a real count if available.
-  // Since we are proxying external APIs, we don't have a single DB count.
-  // We'll return a static high number for now as requested, but structured as data.
-  return c.json({ count: 15400000, display: "15.4M+" });
+  try {
+    // Check cache first
+    const cached = await c.env.CACHE?.get('stats:total');
+    if (cached) {
+      const data = JSON.parse(cached);
+      // Cache for 1 hour
+      if (Date.now() - data.timestamp < 3600000) {
+        return c.json({ count: data.count, display: data.display });
+      }
+    }
+
+    // Query D1 database
+    const db = c.env.DB;
+    if (db) {
+      const result = await db.prepare('SELECT COUNT(*) as count FROM works').first();
+      const count: number = Number(result?.count) || 0;
+      const display = count >= 1000000
+        ? `${(count / 1000000).toFixed(1)}M+`
+        : count >= 1000
+          ? `${(count / 1000).toFixed(1)}K+`
+          : count.toString();
+
+      // Cache result
+      await c.env.CACHE?.put('stats:total', JSON.stringify({
+        count,
+        display,
+        timestamp: Date.now()
+      }), { expirationTtl: 3600 });
+
+      return c.json({ count, display });
+    }
+
+    // Fallback if no DB
+    return c.json({ count: 0, display: "N/A" });
+  } catch (error) {
+    console.error('Failed to get total works:', error);
+    return c.json({ count: 0, display: "N/A" }, 500);
+  }
 });
 
 /**
  * Get New Works Today Count
  */
 app.get('/api/stats/new-today', async (c) => {
-  // Mocking this for now as we don't have a live "ingestion" feed yet.
-  // In production, this would be `SELECT COUNT(*) FROM works WHERE created_at > TODAY`
-  const count = Math.floor(Math.random() * 50) + 10; // Random number between 10 and 60
-  return c.json({ count });
+  try {
+    const db = c.env.DB;
+    if (db) {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const result = await db.prepare(
+        'SELECT COUNT(*) as count FROM works WHERE created_at > ?'
+      ).bind(yesterday).first();
+
+      return c.json({ count: result?.count || 0 });
+    }
+
+    return c.json({ count: 0 });
+  } catch (error) {
+    console.error('Failed to get new works:', error);
+    return c.json({ count: 0 }, 500);
+  }
 });
 
 /**
@@ -846,6 +892,124 @@ app.get('/api/market/viability-search', async (c) => {
   } catch (error: any) {
     console.error('Viability search error:', error);
     return c.json({ error: error.message || 'Failed to perform viability search' }, 500);
+  }
+});
+
+/**
+ * AI-Powered Work Analysis
+ * Deep analysis using DeepSeek R1 + Claude for monetization and saturation
+ */
+app.get('/api/works/:id/analyze', async (c) => {
+  const workId = c.req.param('id');
+
+  try {
+    // Check cache first
+    const cacheKey = `analysis:${workId}`;
+    const cached = await c.env.CACHE?.get(cacheKey);
+    if (cached) {
+      return c.json(JSON.parse(cached));
+    }
+
+    // Fetch work from DB or external source
+    let work: any;
+    const numericId = parseInt(workId);
+
+    if (!isNaN(numericId)) {
+      // Try local DB first
+      const workService = new WorkService(c.env.DB);
+      work = await workService.findById(numericId);
+    }
+
+    if (!work) {
+      // Try external sources
+      const pdService = new PublicDomainService(c.env.CACHE);
+      work = await pdService.getById(workId);
+    }
+
+    if (!work) {
+      return c.json({ error: 'Work not found' }, 404);
+    }
+
+    // Run AI analysis
+    const { AIInsightsService } = await import('./services/ai-insights.service');
+    const aiService = new AIInsightsService(c.env, c.env.DB, c.env.CACHE);
+
+    const [monetization, saturation] = await Promise.all([
+      aiService.analyzeMonetization(work),
+      aiService.analyzeSaturation(work)
+    ]);
+
+    // Update database if numeric ID
+    if (!isNaN(numericId)) {
+      await c.env.DB?.prepare(`
+        UPDATE works 
+        SET monetization_score = ?, saturation_index = ?, analyzed_at = ?
+        WHERE id = ?
+      `).bind(
+        monetization.score,
+        saturation.index,
+        new Date().toISOString(),
+        numericId
+      ).run();
+    }
+
+    const result = {
+      work: {
+        id: work.id,
+        title: work.title,
+        author: work.author,
+        media_type: work.media_type,
+        public_domain_year: work.public_domain_year
+      },
+      monetization,
+      saturation,
+      analyzed_at: new Date().toISOString()
+    };
+
+    // Cache for 7 days
+    await c.env.CACHE?.put(cacheKey, JSON.stringify(result), {
+      expirationTtl: 604800
+    });
+
+    return c.json(result);
+  } catch (error: any) {
+    console.error('AI analysis error:', error);
+    return c.json({
+      error: 'Failed to analyze work',
+      details: error.message
+    }, 500);
+  }
+});
+
+/**
+ * Batch AI Optimization
+ * Rank search results by monetization potential
+ */
+app.post('/api/search/optimize', async (c) => {
+  try {
+    const { works } = await c.req.json();
+
+    if (!Array.isArray(works) || works.length === 0) {
+      return c.json({ error: 'works must be a non-empty array' }, 400);
+    }
+
+    if (works.length > 20) {
+      return c.json({ error: 'Maximum 20 works at a time' }, 400);
+    }
+
+    // Run AI ranking
+    const { AIInsightsService } = await import('./services/ai-insights.service');
+    const aiService = new AIInsightsService(c.env, c.env.DB, c.env.CACHE);
+
+    const ranked = await aiService.rankWorks(works);
+
+    return c.json({ ranked });
+  } catch (error: any) {
+    console.error('Batch optimization error:', error);
+    return c.json({
+      error: 'Failed to optimize results',
+      details: error.message
+    }, 500);
   }
 });
 
