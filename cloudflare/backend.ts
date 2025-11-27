@@ -544,18 +544,29 @@ app.get('/auth/session', async (c) => {
  * Logout (clear session)
  */
 app.post('/auth/logout', async (c) => {
-  const sessionId = c.req.cookie('session_id');
+  try {
+    const sessionId = c.req.cookie('session_id');
 
-  if (sessionId) {
-    await deleteSession(c.env.SESSIONS, sessionId);
+    if (sessionId && c.env.SESSIONS) {
+      await deleteSession(c.env.SESSIONS, sessionId);
+    }
+
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Set-Cookie': 'session_id=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+      },
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    // Still clear the cookie even if there's an error
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Set-Cookie': 'session_id=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+      },
+    });
   }
-
-  return new Response(null, {
-    status: 200,
-    headers: {
-      'Set-Cookie': 'session_id=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-    },
-  });
 });
 
 // ===== WORKS ENDPOINTS =====
