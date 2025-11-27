@@ -1,7 +1,7 @@
 // cloudflare/queue-consumer.ts
 // Queue Consumer for background job processing
 
-import { D1Database, KVNamespace, Queue } from '@cloudflare/workers-types';
+import { D1Database, KVNamespace, Queue, MessageBatch } from '@cloudflare/workers-types';
 import { AlertService } from './services/db/alert.service';
 import { MetricsService } from './services/db/metrics.service';
 import { WorkService } from './services/db/work.service';
@@ -87,7 +87,7 @@ import { MarketSignalService } from './services/market-signal.service';
 async function processMetricsUpdate(payload: any, env: Env): Promise<void> {
   const metricsService = new MetricsService(env.DB);
   const workService = new WorkService(env.DB);
-  const marketSignalService = new MarketSignalService();
+  const marketSignalService = new MarketSignalService(env, env.CACHE);
 
   const { workId } = payload;
 
@@ -99,7 +99,7 @@ async function processMetricsUpdate(payload: any, env: Env): Promise<void> {
   }
 
   // Calculate real metrics based on work data
-  const metrics = marketSignalService.calculateMetrics(work);
+  const metrics = await marketSignalService.calculateMetrics(work);
 
   // Update metrics in database
   await metricsService.create({

@@ -283,8 +283,17 @@ export class MonetizationEngineService {
      * Lower is better - indicates less competition
      */
     private async calculateMarketSaturation(work: Work): Promise<number> {
-        // TODO: Integrate with external APIs
-        // For now, use heuristic based on publication year and existing data
+        // Integrate with External APIs via ExternalAPIService
+        let realSaturationData = 0;
+        if (this.env) {
+            try {
+                const { ExternalAPIService } = await import('./external-apis.service');
+                const externalService = new ExternalAPIService(this.env, this.cache);
+                realSaturationData = await externalService.getWikipediaPageviews(work.title);
+            } catch (e) {
+                console.warn('Failed to load ExternalAPIService', e);
+            }
+        }
 
         const currentYear = new Date().getFullYear();
         const yearsSincePublication = work.original_publication_year
@@ -303,7 +312,15 @@ export class MonetizationEngineService {
         // Media type affects saturation
         const mediaBonus = work.media_type === 'book' ? 10 : 0;
 
-        const saturation = Math.min(ageScore + authorBonus + mediaBonus, 100);
+        let saturation = Math.min(ageScore + authorBonus + mediaBonus, 100);
+
+        // Adjust with Real Data (Wikipedia Views)
+        // High views = High saturation/competition
+        if (realSaturationData > 0) {
+            const wikiSaturation = Math.min(100, (realSaturationData / 5000) * 100); // 5k views = 100% saturation
+            // Weighted average: 60% Real Data, 40% Heuristic
+            saturation = (wikiSaturation * 0.6) + (saturation * 0.4);
+        }
 
         return saturation;
     }
@@ -402,9 +419,25 @@ export class MonetizationEngineService {
             }
         }
 
-        // TODO: Add trending analysis from Google Trends
-        // For now, add baseline
-        score += 20;
+        // Real Trending Data (Wikipedia)
+        if (this.env) {
+            try {
+                const { ExternalAPIService } = await import('./external-apis.service');
+                const externalService = new ExternalAPIService(this.env, this.cache);
+                const views = await externalService.getWikipediaPageviews(work.title);
+
+                if (views > 1000) {
+                    score += 30; // High trending interest
+                } else if (views > 100) {
+                    score += 15; // Moderate interest
+                }
+            } catch (e) {
+                // Ignore error
+            }
+        } else {
+            // Fallback baseline
+            score += 20;
+        }
 
         return Math.min(score, 100);
     }

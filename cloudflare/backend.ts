@@ -658,7 +658,7 @@ app.post('/api/works/:id/refresh-metrics', async (c) => {
 
   const workService = new WorkService(c.env.DB);
   const metricsService = new MetricsService(c.env.DB);
-  const marketSignalService = new MarketSignalService();
+  const marketSignalService = new MarketSignalService(c.env, c.env.CACHE);
 
   const work = await workService.findById(id);
   if (!work) {
@@ -666,7 +666,7 @@ app.post('/api/works/:id/refresh-metrics', async (c) => {
   }
 
   // Calculate new metrics
-  const metrics = marketSignalService.calculateMetrics(work);
+  const metrics = await marketSignalService.calculateMetrics(work);
 
   // Save to DB
   const savedMetric = await metricsService.create({
