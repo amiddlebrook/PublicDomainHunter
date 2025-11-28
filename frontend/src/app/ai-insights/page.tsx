@@ -212,7 +212,7 @@ export default function AIInsightsPage() {
             <Brain className="h-8 w-8 text-purple-600" />
             AI Insights
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-400">
             Machine learning-powered content analysis and recommendations
           </p>
         </div>
@@ -224,7 +224,7 @@ export default function AIInsightsPage() {
 
       {/* AI Status Overview */}
       {aiStatus && (
-        <Card>
+        <Card className="bg-dark-900 border-dark-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-500" />
@@ -292,7 +292,7 @@ export default function AIInsightsPage() {
 
         {/* Recommendations Tab */}
         <TabsContent value="recommendations" className="space-y-4">
-          <Card>
+          <Card className="bg-dark-900 border-dark-700">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-blue-600" />
@@ -307,7 +307,7 @@ export default function AIInsightsPage() {
                 <div className="text-center py-8">
                   <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">No recommendations yet</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-400 mb-4">
                     Start exploring content to get personalized recommendations
                   </p>
                   <Button onClick={loadRecommendations}>
@@ -516,7 +516,7 @@ export default function AIInsightsPage() {
                 <div className="text-center py-8">
                   <Lightbulb className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">Select Content to Analyze</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-400 mb-4">
                     Choose a work from recommendations or search to get AI insights
                   </p>
                   <Button onClick={() => loadRecommendations()}>
@@ -629,7 +629,7 @@ export default function AIInsightsPage() {
                 <div className="text-center py-8">
                   <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">Loading Trend Analysis</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-400 mb-4">
                     Analyzing content trends and patterns...
                   </p>
                   <Button onClick={loadTrendPredictions}>
