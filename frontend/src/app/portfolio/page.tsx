@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Briefcase,
     Plus,
@@ -12,7 +12,9 @@ import {
     List,
     Search,
     Filter,
-    MoreVertical
+    MoreVertical,
+    ExternalLink,
+    Trash2
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,13 +22,93 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
+import { API_BASE_URL } from '@/lib/utils'
+
+interface PortfolioWork {
+    id: number
+    work_id: number
+    title: string
+    author: string
+    media_type: string
+    notes?: string
+    priority?: string
+    created_at: string
+    monetization_score?: number
+}
 
 export default function PortfolioPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-    const [savedWorks, setSavedWorks] = useState<any[]>([])
+    const [savedWorks, setSavedWorks] = useState<PortfolioWork[]>([])
+    const [loading, setLoading] = useState(true)
+    const [searchQuery, setSearchQuery] = useState('')
 
-    // Empty state
+    useEffect(() => {
+        fetchPortfolio()
+    }, [])
+
+    const fetchPortfolio = async () => {
+        try {
+            const token = localStorage.getItem('token')
+            if (!token) {
+                setLoading(false)
+                return
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/portfolio/list`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                setSavedWorks(data.portfolio || [])
+            }
+        } catch (error) {
+            console.error('Failed to fetch portfolio:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const removeFromPortfolio = async (portfolioId: number) => {
+        try {
+            const token = localStorage.getItem('token')
+            const response = await fetch(`${API_BASE_URL}/api/portfolio/${portfolioId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+
+            if (response.ok) {
+                setSavedWorks(savedWorks.filter(w => w.id !== portfolioId))
+            }
+        } catch (error) {
+            console.error('Failed to remove from portfolio:', error)
+        }
+    }
+
+    const filteredWorks = savedWorks.filter(work =>
+        work.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (work.author && work.author.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+
+    const highPotentialWorks = filteredWorks.filter(w => (w.monetization_score || 0) >= 70)
+    const avgMonetization = filteredWorks.length > 0
+        ? Math.round(filteredWorks.reduce((sum, w) => sum + (w.monetization_score || 0), 0) / filteredWorks.length)
+        : 0
+    const topWork = filteredWorks.reduce((max, w) => (w.monetization_score || 0) > (max.monetization_score || 0) ? w : max, filteredWorks[0])
+
     const isEmpty = savedWorks.length === 0
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-96">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">
@@ -39,15 +121,17 @@ export default function PortfolioPage() {
                         </div>
                         <h1 className="text-3xl font-bold text-white">Portfolio</h1>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-gray-400">
                         Track and organize public domain works you&apos;re considering for development
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}>
-                        {viewMode === 'grid' ? <List className="h-4 w-4 mr-2" /> : <LayoutGrid className="h-4 w-4 mr-2" />}
-                        {viewMode === 'grid' ? 'List View' : 'Grid View'}
-                    </Button>
+                    {!isEmpty && (
+                        <Button variant="outline" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}>
+                            {viewMode === 'grid' ? <List className="h-4 w-4 mr-2" /> : <LayoutGrid className="h-4 w-4 mr-2" />}
+                            {viewMode === 'grid' ? 'List View' : 'Grid View'}
+                        </Button>
+                    )}
                     <Button asChild>
                         <Link href="/search">
                             <Plus className="h-4 w-4 mr-2" />
@@ -67,15 +151,15 @@ export default function PortfolioPage() {
 
                         <div className="space-y-2">
                             <h2 className="text-2xl font-bold text-white">Build Your Portfolio</h2>
-                            <p className="text-gray-600">
+                            <p className="text-gray-400">
                                 Save works you&apos;re interested in developing, organize them into collections, and track monetization opportunities.
                             </p>
                         </div>
 
-                        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-200">
+                        <Card className="bg-dark-800 border-dark-700">
                             <CardContent className="pt-6">
-                                <h3 className="font-semibold text-indigo-900 mb-3">Getting Started</h3>
-                                <ol className="text-sm text-indigo-800 space-y-2 text-left">
+                                <h3 className="font-semibold text-white mb-3">Getting Started</h3>
+                                <ol className="text-sm text-gray-300 space-y-2 text-left">
                                     <li className="flex gap-2">
                                         <span className="font-bold">1.</span>
                                         <span>Search for works in <strong>Market Intelligence</strong> or use the <strong>Viability Lab</strong></span>
@@ -86,11 +170,11 @@ export default function PortfolioPage() {
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="font-bold">3.</span>
-                                        <span>Organize saved works into collections and track progress</span>
+                                        <span>View all your saved works here in one place</span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="font-bold">4.</span>
-                                        <span>Add notes, set priorities, and monitor monetization scores</span>
+                                        <span>Track monetization scores and market signals</span>
                                     </li>
                                 </ol>
                             </CardContent>
@@ -117,43 +201,43 @@ export default function PortfolioPage() {
                 <>
                     {/* Stats Overview */}
                     <div className="grid gap-4 md:grid-cols-4">
-                        <Card>
+                        <Card className="bg-dark-900 border-dark-700">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Total Tracked</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-400">Total Tracked</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{savedWorks.length}</div>
+                                <div className="text-2xl font-bold text-white">{savedWorks.length}</div>
                                 <p className="text-xs text-gray-500">Works in portfolio</p>
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="bg-dark-900 border-dark-700">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Avg Monetization</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-400">Avg Monetization</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-emerald-600">--</div>
+                                <div className="text-2xl font-bold text-emerald-500">{avgMonetization}</div>
                                 <p className="text-xs text-gray-500">Average score</p>
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="bg-dark-900 border-dark-700">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Collections</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-400">High Potential</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">0</div>
-                                <p className="text-xs text-gray-500">Organized folders</p>
+                                <div className="text-2xl font-bold text-indigo-400">{highPotentialWorks.length}</div>
+                                <p className="text-xs text-gray-500">Score ≥ 70</p>
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="bg-dark-900 border-dark-700">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Top Opportunity</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-400">Top Work</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-indigo-600">--</div>
-                                <p className="text-xs text-gray-500">Highest potential</p>
+                                <div className="text-2xl font-bold text-yellow-500">{topWork?.monetization_score || '--'}</div>
+                                <p className="text-xs text-gray-500 truncate">{topWork?.title || 'None yet'}</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -162,36 +246,58 @@ export default function PortfolioPage() {
                     <div className="flex gap-4">
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input placeholder="Search your portfolio..." className="pl-10" />
+                            <Input
+                                placeholder="Search your portfolio..."
+                                className="pl-10 bg-dark-900 border-dark-700 text-white"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
-                        <Button variant="outline">
-                            <Filter className="h-4 w-4 mr-2" />
-                            Filter
-                        </Button>
                     </div>
 
-                    {/* Tabs */}
-                    <Tabs defaultValue="all" className="space-y-4">
-                        <TabsList>
-                            <TabsTrigger value="all">All Works</TabsTrigger>
-                            <TabsTrigger value="high-potential">High Potential</TabsTrigger>
-                            <TabsTrigger value="collections">Collections</TabsTrigger>
-                            <TabsTrigger value="notes">With Notes</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="all">
-                            <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
-                                {savedWorks.map((work) => (
-                                    <Card key={work.id} className="hover:shadow-lg transition-shadow">
-                                        <CardContent className="pt-6">
-                                            {/* Work card content would go here */}
-                                            <p className="text-gray-500">Work: {work.title}</p>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
-                    </Tabs>
+                    {/* Works Grid/List */}
+                    <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
+                        {filteredWorks.map((work) => (
+                            <Card key={work.id} className="bg-dark-900 border-dark-700 hover:border-indigo-500/50 transition-all">
+                                <CardHeader>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <Badge variant="outline" className="border-indigo-500/50 text-indigo-400">
+                                            {work.media_type}
+                                        </Badge>
+                                        {work.monetization_score && (
+                                            <Badge className={work.monetization_score >= 70 ? "bg-emerald-500" : "bg-yellow-500"}>
+                                                {work.monetization_score}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <CardTitle className="text-white line-clamp-1">
+                                        <Link href={`/works/${work.work_id}`} className="hover:text-indigo-400">
+                                            {work.title}
+                                        </Link>
+                                    </CardTitle>
+                                    <CardDescription className="text-gray-400">{work.author}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex gap-2">
+                                        <Button size="sm" variant="outline" asChild className="flex-1">
+                                            <Link href={`/works/${work.work_id}`}>
+                                                <ExternalLink className="h-3 w-3 mr-2" />
+                                                View
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => removeFromPortfolio(work.id)}
+                                            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </>
             )}
         </div>
