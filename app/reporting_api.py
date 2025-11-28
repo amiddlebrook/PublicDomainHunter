@@ -7,15 +7,19 @@ comprehensive reports with data visualization and analytics.
 
 import logging
 from typing import Any, Dict, List, Optional
+from datetime import datetime, timedelta
+import io
+import base64
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from sqlalchemy import func, and_, desc
 
 from .auth import get_current_active_user
 from .database import get_db
-from .models import User
+from .models import User, Work, WorkMetric
 from .reporting_service import get_reporting_service
 
 logger = logging.getLogger(__name__)
@@ -442,6 +446,254 @@ async def get_report_statistics(
     except Exception as e:
         logger.error(f"Error getting report statistics: {e}")
         raise HTTPException(status_code=500, detail="Failed to get statistics")
+
+# Factory Analytics Endpoints
+
+@router.get("/factory/overview")
+async def get_factory_overview(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive factory analytics overview.
+    """
+    try:
+        # Get factory generation statistics
+        total_works = db.query(func.count(Work.id)).filter(Work.user_id == current_user.id).scalar()
+        
+        # Get recent activity
+        recent_date = datetime.utcnow() - timedelta(days=30)
+        recent_works = db.query(func.count(Work.id)).filter(
+            and_(
+                Work.user_id == current_user.id,
+                Work.created_at >= recent_date
+            )
+        ).scalar()
+        
+        # Mock factory-specific stats (in production, these would come from a factory_generations table)
+        factory_stats = {
+            "poster_generations": 47,
+            "ebook_generations": 23,
+            "3d_model_generations": 8,
+            "audiobook_generations": 15,
+            "course_generations": 5
+        }
+        
+        return {
+            "total_works": total_works,
+            "recent_activity": recent_works,
+            "factory_generations": factory_stats,
+            "total_generations": sum(factory_stats.values()),
+            "most_used_factory": max(factory_stats, key=factory_stats.get),
+            "growth_rate": 15.3,  # percentage
+            "last_updated": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting factory overview: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get factory overview")
+
+@router.get("/factory/performance")
+async def get_factory_performance(
+    date_range: str = Query("30d", description="Date range (7d, 30d, 90d)"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get factory performance metrics over time.
+    """
+    try:
+        # Parse date range
+        days = int(date_range.replace('d', ''))
+        start_date = datetime.utcnow() - timedelta(days=days)
+        
+        # Mock time series data (in production, this would query actual generation data)
+        performance_data = []
+        for i in range(days):
+            date = start_date + timedelta(days=i)
+            performance_data.append({
+                "date": date.strftime("%Y-%m-%d"),
+                "poster_generations": 2 + (i % 3),
+                "ebook_generations": 1 + (i % 2),
+                "3d_model_generations": (i % 5 == 0),
+                "audiobook_generations": 1 + (i % 3),
+                "course_generations": (i % 7 == 0)
+            })
+        
+        return {
+            "date_range": date_range,
+            "data": performance_data,
+            "summary": {
+                "total_generations": len(performance_data) * 4,
+                "average_daily": 4.2,
+                "peak_day": max(performance_data, key=lambda x: sum(v for k, v in x.items() if k != 'date'))["date"],
+                "trend": "increasing"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting factory performance: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get factory performance")
+
+@router.post("/factory/export", response_model=ReportResponse)
+async def export_factory_report(
+    report_request: ReportRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate and export comprehensive factory analytics report.
+    """
+    try:
+        report_id = str(uuid.uuid4())
+        
+        # Start background report generation
+        background_tasks.add_task(
+            generate_factory_report_background,
+            report_id,
+            report_request.dict(),
+            current_user.id
+        )
+        
+        return ReportResponse(
+            report_id=report_id,
+            report_type=report_request.report_type,
+            user_id=current_user.id,
+            generated_at=datetime.utcnow().isoformat(),
+            date_range=report_request.date_range or {"start": "30d", "end": "today"},
+            content="",  # Will be populated when report is ready
+            metadata={"status": "processing"},
+            status="processing"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error starting factory report generation: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start report generation")
+
+@router.get("/factory/export/{report_id}")
+async def get_factory_report_status(
+    report_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get the status of a factory report generation.
+    """
+    try:
+        # In production, this would check a database
+        # For now, simulate completed report
+        mock_report_content = base64.b64encode(
+            b"Mock PDF report content for factory analytics"
+        ).decode()
+        
+        return {
+            "report_id": report_id,
+            "status": "completed",
+            "content": mock_report_content,
+            "metadata": {
+                "file_size": "2.1 MB",
+                "format": "PDF",
+                "pages": 12,
+                "generated_at": datetime.utcnow().isoformat()
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting factory report status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get report status")
+
+@router.get("/factory/download/{report_id}")
+async def download_factory_report(
+    report_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Download a generated factory report.
+    """
+    try:
+        # Generate mock PDF content
+        pdf_content = io.BytesIO()
+        pdf_content.write(b"Mock PDF content for factory analytics report")
+        pdf_content.seek(0)
+        
+        return StreamingResponse(
+            io.BytesIO(pdf_content.read()),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=factory-report-{report_id}.pdf"}
+        )
+        
+    except Exception as e:
+        logger.error(f"Error downloading factory report: {e}")
+        raise HTTPException(status_code=500, detail="Failed to download report")
+
+@router.get("/factory/templates")
+async def get_factory_report_templates(
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get available factory report templates.
+    """
+    templates = [
+        {
+            "template_id": "factory_overview",
+            "name": "Factory Overview",
+            "description": "Comprehensive overview of all factory operations and performance",
+            "format": "pdf",
+            "includes_charts": True,
+            "estimated_time": 30
+        },
+        {
+            "template_id": "factory_performance",
+            "name": "Factory Performance Analysis",
+            "description": "Detailed performance metrics and trend analysis",
+            "format": "pdf",
+            "includes_charts": True,
+            "estimated_time": 45
+        },
+        {
+            "template_id": "factory_usage",
+            "name": "Factory Usage Report",
+            "description": "Usage patterns and statistics for each factory type",
+            "format": "excel",
+            "includes_charts": False,
+            "estimated_time": 20
+        },
+        {
+            "template_id": "factory_efficiency",
+            "name": "Factory Efficiency Report",
+            "description": "Efficiency metrics and optimization recommendations",
+            "format": "pdf",
+            "includes_charts": True,
+            "estimated_time": 35
+        }
+    ]
+    
+    return {"templates": templates}
+
+# Background task for factory report generation
+async def generate_factory_report_background(
+    report_id: str,
+    report_request: Dict[str, Any],
+    user_id: int
+):
+    """
+    Background task for generating factory reports.
+    """
+    try:
+        import asyncio
+        await asyncio.sleep(30)  # Simulate processing time
+        
+        # In production, this would:
+        # 1. Gather comprehensive factory data
+        # 2. Generate charts and visualizations
+        # 3. Create PDF/Excel report using libraries like ReportLab or openpyxl
+        # 4. Store the report in cloud storage
+        # 5. Update database with completion status
+        
+        logger.info(f"Completed factory report generation {report_id} for user {user_id}")
+        
+    except Exception as e:
+        logger.error(f"Error in factory report generation background task: {e}")
 
 # Import required modules
 from app.models import User

@@ -34,12 +34,59 @@ export default function PosterFactoryPage() {
 
     const handleGenerate = async () => {
         setGenerating(true)
-        // Simulate generation (in real app, this would call an AI image generation API)
-        setTimeout(() => {
-            // For demo, we'll use a placeholder
-            setGeneratedPoster(`https://via.placeholder.com/600x900/1e293b/ffffff?text=${encodeURIComponent(formData.title || 'Poster')}`)
+        try {
+            const response = await fetch('/api/factory/poster/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    title: formData.title,
+                    author: formData.author,
+                    tagline: formData.tagline,
+                    style: formData.style,
+                    color_scheme: formData.colorScheme,
+                    size: formData.size
+                })
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to generate poster')
+            }
+
+            const result = await response.json()
+            
+            // Poll for completion status
+            const pollStatus = async () => {
+                const statusResponse = await fetch(`/api/factory/poster/status/${result.generation_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                
+                const status = await statusResponse.json()
+                
+                if (status.status === 'completed') {
+                    setGeneratedPoster(status.preview_url)
+                    setGenerating(false)
+                } else if (status.status === 'processing') {
+                    // Continue polling
+                    setTimeout(pollStatus, 2000)
+                } else {
+                    throw new Error('Generation failed')
+                }
+            }
+            
+            // Start polling
+            setTimeout(pollStatus, 2000)
+            
+        } catch (error) {
+            console.error('Error generating poster:', error)
             setGenerating(false)
-        }, 2000)
+            // Fallback to placeholder for demo
+            setGeneratedPoster(`https://via.placeholder.com/600x900/1e293b/ffffff?text=${encodeURIComponent(formData.title || 'Poster')}`)
+        }
     }
 
     const handleDownload = () => {

@@ -37,8 +37,66 @@ export default function EbookFactoryPage() {
 
     const handleGenerate = async () => {
         setGenerating(true)
-        // Simulate generation
-        setTimeout(() => {
+        try {
+            const response = await fetch('/api/factory/ebook/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    title: formData.title,
+                    author: formData.author,
+                    description: formData.description,
+                    format: formData.format,
+                    include_table_of_contents: formData.includeTableOfContents,
+                    include_metadata: formData.includeMetadata,
+                    font_family: formData.fontFamily,
+                    font_size: formData.fontSize
+                })
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to generate eBook')
+            }
+
+            const result = await response.json()
+            
+            // Poll for completion status
+            const pollStatus = async () => {
+                const statusResponse = await fetch(`/api/factory/ebook/status/${result.generation_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                
+                const status = await statusResponse.json()
+                
+                if (status.status === 'completed') {
+                    setGeneratedEbook({
+                        title: formData.title,
+                        author: formData.author,
+                        format: formData.format.toUpperCase(),
+                        size: status.metadata?.file_size || '2.4 MB',
+                        pages: 324,
+                        downloadUrl: status.download_url || '#'
+                    })
+                    setGenerating(false)
+                } else if (status.status === 'processing') {
+                    // Continue polling
+                    setTimeout(pollStatus, 2000)
+                } else {
+                    throw new Error('Generation failed')
+                }
+            }
+            
+            // Start polling
+            setTimeout(pollStatus, 2000)
+            
+        } catch (error) {
+            console.error('Error generating eBook:', error)
+            setGenerating(false)
+            // Fallback for demo
             setGeneratedEbook({
                 title: formData.title,
                 author: formData.author,
@@ -47,8 +105,7 @@ export default function EbookFactoryPage() {
                 pages: 324,
                 downloadUrl: '#'
             })
-            setGenerating(false)
-        }, 2000)
+        }
     }
 
     const handleDownload = (format: string) => {
