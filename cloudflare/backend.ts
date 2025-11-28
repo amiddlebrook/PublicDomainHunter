@@ -18,6 +18,7 @@ import { PublicDomainService } from './services/public-domain.service';
 import { StorageService } from './services/storage.service';
 import { AIPreferenceService } from './services/db/ai-preference.service';
 import { MarketSignalService } from './services/market-signal.service';
+import { AIInsightsService } from './services/ai-insights.service';
 import { PROVIDER_CONFIGS, AIProvider } from './services/llm.service';
 
 import Stripe from 'stripe';
@@ -39,6 +40,10 @@ export type Bindings = {
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   FRONTEND_URL?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -1396,6 +1401,103 @@ app.delete('/api/alerts/:id', async (c) => {
 });
 
 // ===== AI/LLM ENDPOINTS =====
+
+/**
+ * Get AI recommendations
+ */
+app.get('/api/ai/recommendations', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload || !payload.sub) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const limit = parseInt(c.req.query('limit') || '10');
+  const aiService = new AIInsightsService(c.env, c.env.DB, c.env.CACHE);
+
+  try {
+    const recommendations = await aiService.getRecommendations(parseInt(payload.sub), limit);
+    return c.json({ recommendations });
+  } catch (error: any) {
+    console.error('Failed to get recommendations:', error);
+    return c.json({ error: 'Failed to get recommendations' }, 500);
+  }
+});
+
+/**
+ * Get AI content insights
+ */
+app.get('/api/ai/insights/:id', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const id = parseInt(c.req.param('id'));
+  const aiService = new AIInsightsService(c.env, c.env.DB, c.env.CACHE);
+
+  try {
+    const insights = await aiService.getContentInsights(id);
+    if (insights.error) {
+      return c.json({ error: insights.error }, 404);
+    }
+    return c.json(insights);
+  } catch (error: any) {
+    console.error('Failed to get content insights:', error);
+    return c.json({ error: 'Failed to get content insights' }, 500);
+  }
+});
+
+/**
+ * Get trend predictions
+ */
+app.get('/api/ai/trends', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const aiService = new AIInsightsService(c.env, c.env.DB, c.env.CACHE);
+
+  try {
+    const trends = await aiService.getTrendPredictions();
+    return c.json(trends);
+  } catch (error: any) {
+    console.error('Failed to get trend predictions:', error);
+    return c.json({ error: 'Failed to get trend predictions' }, 500);
+  }
+});
+
+/**
+ * Get AI status
+ */
+app.get('/api/ai/status', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const aiService = new AIInsightsService(c.env, c.env.DB, c.env.CACHE);
+
+  try {
+    const status = await aiService.getAIStatus();
+    return c.json(status);
+  } catch (error: any) {
+    console.error('Failed to get AI status:', error);
+    return c.json({ error: 'Failed to get AI status' }, 500);
+  }
+});
 
 /**
  * Analyze a work with AI

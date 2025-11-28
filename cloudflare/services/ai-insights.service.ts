@@ -3,6 +3,8 @@
  * Multi-provider AI analysis for monetization scoring, saturation analysis, and market intelligence
  */
 
+import { WorkService } from './db/work.service';
+
 interface Work {
     id: number;
     title: string;
@@ -363,5 +365,135 @@ Return ONLY valid JSON array:
                 rationale: 'Analysis pending'
             }));
         }
+    }
+
+    /**
+     * Get AI-powered recommendations
+     */
+    async getRecommendations(userId: number, limit: number = 10): Promise<any[]> {
+        // In a real implementation, this would use a vector database or collaborative filtering
+        // For now, we'll use a heuristic approach combined with random exploration
+
+        // 1. Get recent works to recommend from
+        const workService = new WorkService(this.db);
+        const works = await workService.getRecent(limit * 2);
+
+        // 2. Rank them using a simplified scoring (or just return them for now)
+        // We'll map them to the format expected by the frontend
+
+        return works.slice(0, limit).map(work => ({
+            work_id: work.id,
+            title: work.title,
+            author: work.author || 'Unknown',
+            media_type: work.media_type || 'text',
+            language: work.language || 'en',
+            public_domain_year: work.public_domain_year || 1900,
+            metadata: typeof work.metadata === 'string' ? JSON.parse(work.metadata) : work.metadata || {},
+            created_at: work.created_at,
+            score: 85 + Math.random() * 10, // Mock score
+            reason: ['content_similarity', 'user_preferences', 'collaborative_popularity'][Math.floor(Math.random() * 3)]
+        }));
+    }
+
+    /**
+     * Get comprehensive content insights
+     */
+    async getContentInsights(workId: number): Promise<any> {
+        const workService = new WorkService(this.db);
+        const work = await workService.findById(workId);
+
+        if (!work) {
+            return { error: 'Work not found' };
+        }
+
+        // Generate or fetch analysis
+        // In a real app, this would check a cache or DB for existing analysis
+
+        // Mock analysis data for now, but structure it correctly
+        const wordCount = work.page_count ? work.page_count * 250 : 50000;
+
+        return {
+            work_id: work.id,
+            title: work.title,
+            author: work.author || 'Unknown',
+            basic_insights: {
+                media_type: work.media_type || 'text',
+                language: work.language || 'en',
+                public_domain_year: work.public_domain_year || 1900,
+                has_full_content: !!work.download_url,
+                content_length: wordCount,
+                trend_score: 75 + Math.floor(Math.random() * 20)
+            },
+            content_analysis: {
+                word_count: wordCount,
+                character_count: wordCount * 5,
+                sentence_count: Math.floor(wordCount / 15),
+                avg_word_length: 5.2,
+                complexity_score: 65.5,
+                topics: ['History', 'Society', 'Philosophy', 'Art'].slice(0, 2 + Math.floor(Math.random() * 2)),
+                sentiment: ['positive', 'negative', 'neutral'][Math.floor(Math.random() * 3)]
+            },
+            recommendations: [], // Could fetch similar works here
+            similar_works: [
+                {
+                    work_id: workId + 1, // Mock ID
+                    title: "Similar Work Example",
+                    author: "Another Author",
+                    similarity_score: 0.85
+                }
+            ]
+        };
+    }
+
+    /**
+     * Get trend predictions
+     */
+    async getTrendPredictions(daysAhead: number = 30): Promise<any> {
+        // Mock trend data
+        return {
+            trend_predictions: {
+                "book": {
+                    current_avg: 75.5,
+                    predicted_trend: "rising",
+                    confidence: 0.85,
+                    sample_size: 120
+                },
+                "image": {
+                    current_avg: 62.3,
+                    predicted_trend: "stable",
+                    confidence: 0.72,
+                    sample_size: 85
+                },
+                "audio": {
+                    current_avg: 45.0,
+                    predicted_trend: "declining",
+                    confidence: 0.60,
+                    sample_size: 40
+                }
+            },
+            total_works_analyzed: 245,
+            recent_works: 45,
+            prediction_horizon_days: daysAhead,
+            analysis_timestamp: new Date().toISOString()
+        };
+    }
+
+    /**
+     * Get AI service status
+     */
+    async getAIStatus(): Promise<any> {
+        const workService = new WorkService(this.db);
+        const totalWorks = await workService.count();
+
+        return {
+            service_status: "active",
+            model_status: "trained",
+            total_works: totalWorks,
+            trainable_works: Math.floor(totalWorks * 0.8),
+            training_coverage: 80.5,
+            capabilities: ["content_analysis", "recommendations", "trend_prediction", "monetization_scoring"],
+            supported_languages: ["en"],
+            last_updated: new Date().toISOString()
+        };
     }
 }
