@@ -208,7 +208,7 @@ export default function AnalyticsPage() {
     return (
       <div className="text-center py-12">
         <div className="text-red-500 mb-4">⚠️ Error loading analytics</div>
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-300 mb-4">{error}</p>
         <Button onClick={handleRefresh}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Try Again
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
   if (!analyticsData) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">No analytics data available</p>
+        <p className="text-gray-300">No analytics data available</p>
         <Button onClick={handleRefresh} className="mt-4">
           <RefreshCw className="mr-2 h-4 w-4" />
           Load Analytics
@@ -237,10 +237,10 @@ export default function AnalyticsPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-300">
             Comprehensive insights into public domain content and market trends.
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-300 mt-1">
             Last updated: {format(lastRefresh, 'MMM d, yyyy HH:mm')}
           </p>
         </div>
@@ -262,7 +262,7 @@ export default function AnalyticsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Works</p>
+                <p className="text-sm font-medium text-gray-300">Total Works</p>
                 <p className="text-2xl font-bold text-white">{overview.total_works.toLocaleString()}</p>
               </div>
               <BookOpen className="h-8 w-8 text-blue-500" />
@@ -278,7 +278,7 @@ export default function AnalyticsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Alerts</p>
+                <p className="text-sm font-medium text-gray-300">Active Alerts</p>
                 <p className="text-2xl font-bold text-white">{overview.active_alerts.toLocaleString()}</p>
               </div>
               <Bell className="h-8 w-8 text-yellow-500" />
@@ -294,7 +294,7 @@ export default function AnalyticsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Trend Score</p>
+                <p className="text-sm font-medium text-gray-300">Avg Trend Score</p>
                 <p className="text-2xl font-bold text-white">{overview.avg_trend_score}/100</p>
               </div>
               <Target className="h-8 w-8 text-green-500" />
@@ -310,7 +310,7 @@ export default function AnalyticsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Platform Users</p>
+                <p className="text-sm font-medium text-gray-300">Platform Users</p>
                 <p className="text-2xl font-bold text-white">{overview.total_users.toLocaleString()}</p>
               </div>
               <Users className="h-8 w-8 text-purple-500" />
@@ -464,13 +464,13 @@ export default function AnalyticsPage() {
                     <div key={work.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
                         <div className="font-medium text-white">{work.title}</div>
-                        <div className="text-sm text-gray-600">{work.author}</div>
+                        <div className="text-sm text-gray-300">{work.author}</div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={work.trend_score > 80 ? 'default' : 'secondary'}>
                           {work.trend_score}/100
                         </Badge>
-                        <span className="text-sm text-gray-500">#{index + 1}</span>
+                        <span className="text-sm text-gray-300">#{index + 1}</span>
                       </div>
                     </div>
                   ))}
@@ -517,7 +517,7 @@ export default function AnalyticsPage() {
                           {opportunity.opportunity_level}
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-600">{opportunity.author}</div>
+                      <div className="text-sm text-gray-300">{opportunity.author}</div>
                       <div className="flex items-center justify-between mt-2 text-sm">
                         <span>Trend: {opportunity.trend_score}/100</span>
                         <span>Competition: {opportunity.competition_score}/100</span>
@@ -538,11 +538,11 @@ export default function AnalyticsPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm text-gray-600">Market Size</div>
+                      <div className="text-sm text-gray-300">Market Size</div>
                       <div className="font-semibold text-lg">{market_insights.competition.total_market_size}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm text-gray-600">Competition Level</div>
+                      <div className="text-sm text-gray-300">Competition Level</div>
                       <div className="font-semibold text-lg">{market_insights.competition.competition_level}</div>
                     </div>
                   </div>
@@ -561,7 +561,7 @@ export default function AnalyticsPage() {
 
                   <div>
                     <h4 className="font-medium mb-2">Recommendations</h4>
-                    <ul className="space-y-1 text-sm text-gray-600">
+                    <ul className="space-y-1 text-sm text-gray-300">
                       {market_insights.competition.recommendations.map((rec, index) => (
                         <li key={index} className="flex items-start gap-2">
                           <span className="text-blue-500">•</span>

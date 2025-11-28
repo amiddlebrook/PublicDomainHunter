@@ -110,7 +110,7 @@ export default function RealTimeNotification({ className }: RealTimeNotification
       case 'system_alert':
         return <AlertCircle className="h-4 w-4 text-red-500" />
       default:
-        return <Info className="h-4 w-4 text-gray-500" />
+        return <Info className="h-4 w-4 text-gray-300" />
     }
   }
 
@@ -142,7 +142,7 @@ export default function RealTimeNotification({ className }: RealTimeNotification
       case 'error':
         return 'text-red-500'
       default:
-        return 'text-gray-500'
+        return 'text-gray-300'
     }
   }
 
@@ -205,7 +205,7 @@ export default function RealTimeNotification({ className }: RealTimeNotification
 
           <CardContent className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-300">
                 <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>No notifications yet</p>
               </div>
@@ -231,11 +231,11 @@ export default function RealTimeNotification({ className }: RealTimeNotification
                             <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                        <p className="text-sm text-gray-300 mb-2 line-clamp-2">
                           {notification.message}
                         </p>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-300">
                             {format(new Date(notification.timestamp), 'MMM d, HH:mm')}
                           </span>
                           <div className="flex gap-1">

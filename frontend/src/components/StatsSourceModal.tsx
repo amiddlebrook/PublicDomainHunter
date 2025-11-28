@@ -36,7 +36,7 @@ export function StatsSourceModal({ open, onOpenChange, sources, total }: StatsSo
                     <div className="flex items-center justify-between p-4 bg-dark-800 rounded-lg">
                         <div>
                             <p className="font-medium text-white">Internal Database</p>
-                            <p className="text-sm text-gray-400">Works in our catalog</p>
+                            <p className="text-sm text-gray-200">Works in our catalog</p>
                         </div>
                         <div className="text-right">
                             <p className="text-2xl font-bold text-indigo-400">{sources.database.toLocaleString()}</p>
@@ -46,7 +46,7 @@ export function StatsSourceModal({ open, onOpenChange, sources, total }: StatsSo
                     <div className="flex items-center justify-between p-4 bg-dark-800 rounded-lg">
                         <div>
                             <p className="font-medium text-white">Project Gutenberg</p>
-                            <p className="text-sm text-gray-400">Books via Gutendex API</p>
+                            <p className="text-sm text-gray-200">Books via Gutendex API</p>
                         </div>
                         <div className="text-right">
                             <p className="text-2xl font-bold text-emerald-400">{sources.gutenberg.toLocaleString()}</p>
@@ -64,7 +64,7 @@ export function StatsSourceModal({ open, onOpenChange, sources, total }: StatsSo
                     <div className="flex items-center justify-between p-4 bg-dark-800 rounded-lg">
                         <div>
                             <p className="font-medium text-white">Internet Archive</p>
-                            <p className="text-sm text-gray-400">Public domain texts</p>
+                            <p className="text-sm text-gray-200">Public domain texts</p>
                         </div>
                         <div className="text-right">
                             <p className="text-2xl font-bold text-pink-400">{sources.archive.toLocaleString()}</p>
@@ -80,7 +80,7 @@ export function StatsSourceModal({ open, onOpenChange, sources, total }: StatsSo
                     </div>
 
                     <div className="pt-4 border-t border-dark-700">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-300">
                             Data updated every 6 hours. Sources are queried in real-time via their public APIs.
                         </p>
                     </div>

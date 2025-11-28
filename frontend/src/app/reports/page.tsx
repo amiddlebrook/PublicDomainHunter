@@ -219,14 +219,14 @@ export default function ReportsPage() {
       case 'processing':
         return <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />
+        return <AlertCircle className="h-4 w-4 text-gray-300" />
     }
   }
 
   if (!user) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Please log in to access reporting features</p>
+        <p className="text-gray-300">Please log in to access reporting features</p>
       </div>
     )
   }
@@ -240,7 +240,7 @@ export default function ReportsPage() {
             <FileText className="h-8 w-8 text-green-600" />
             Advanced Reporting
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-300">
             Generate comprehensive PDF and Excel reports with data visualization
           </p>
         </div>
@@ -352,7 +352,7 @@ export default function ReportsPage() {
                 {selectedTemplate && (
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-medium text-white mb-2">{selectedTemplate.name}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{selectedTemplate.description}</p>
+                    <p className="text-sm text-gray-300 mb-3">{selectedTemplate.description}</p>
                     <div className="flex flex-wrap gap-2">
                       <Badge className={getTemplateColor(selectedTemplate.report_type)}>
                         {selectedTemplate.report_type}
@@ -400,7 +400,7 @@ export default function ReportsPage() {
                     <div className="aspect-[3/4] bg-gray-100 rounded-lg flex items-center justify-center">
                       <div className="text-center">
                         {getTemplateIcon(selectedTemplate.report_type)}
-                        <p className="mt-2 text-sm text-gray-600">
+                        <p className="mt-2 text-sm text-gray-300">
                           {selectedTemplate.name} Preview
                         </p>
                       </div>
@@ -416,8 +416,8 @@ export default function ReportsPage() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">Select a template to preview</p>
+                    <FileText className="h-12 w-12 text-gray-200 mx-auto mb-4" />
+                    <p className="text-gray-300">Select a template to preview</p>
                   </div>
                 )}
               </CardContent>
@@ -452,7 +452,7 @@ export default function ReportsPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-white">{template.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                          <p className="text-sm text-gray-300 mt-1">{template.description}</p>
                           <div className="flex flex-wrap gap-2 mt-2">
                             <Badge className={getTemplateColor(template.report_type)}>
                               {template.report_type}
@@ -485,9 +485,9 @@ export default function ReportsPage() {
             <CardContent>
               {reportHistory.length === 0 ? (
                 <div className="text-center py-8">
-                  <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Clock className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">No Reports Yet</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-300 mb-4">
                     Generate your first report to see it here
                   </p>
                   <Button onClick={() => loadReportHistory()}>
@@ -507,10 +507,10 @@ export default function ReportsPage() {
                               <h4 className="font-medium text-white capitalize">
                                 {report.report_type} Report
                               </h4>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-300">
                                 Generated {format(new Date(report.generated_at), 'MMM d, yyyy HH:mm')}
                               </p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-300">
                                 {report.date_range.start} to {report.date_range.end} • {report.format.toUpperCase()} • {report.file_size}
                               </p>
                             </div>

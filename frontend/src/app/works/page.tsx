@@ -141,10 +141,10 @@ export default function WorksPage() {
             <Database className="h-6 w-6 text-purple-600" />
             <h1 className="text-3xl font-bold text-white">Asset Inspector</h1>
           </div>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-300">
             Comprehensive catalog of all public domain works with detailed metadata, trend scores, and analysis tools.
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-300 mt-1">
             Click any work for in-depth analysis including monetization scores, similar works, and AI-powered insights.
           </p>
         </div>
@@ -231,10 +231,10 @@ export default function WorksPage() {
 
       {/* Results Summary */}
       < div className="flex items-center justify-between" >
-        <p className="text-gray-600">
+        <p className="text-gray-300">
           Showing {filteredWorks.length} of {works.length} works
         </p>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-gray-300">
           <TrendingUp className="h-4 w-4" />
           Sorted by {filters.sort_by} ({filters.sort_order})
         </div>
@@ -282,18 +282,18 @@ export default function WorksPage() {
                       <h3 className="text-lg font-semibold text-white mb-1">
                         {work.title}
                       </h3>
-                      <p className="text-gray-600">
+                      <p className="text-gray-300">
                         by {work.author || 'Unknown Author'}
                       </p>
                     </div>
 
                     {work.description && (
-                      <p className="text-gray-600 text-sm line-clamp-2">
+                      <p className="text-gray-300 text-sm line-clamp-2">
                         {work.description}
                       </p>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-gray-300">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         Public Domain: {work.public_domain_year}
@@ -316,9 +316,9 @@ export default function WorksPage() {
         ) : (
           <Card>
             <CardContent className="pt-6 text-center">
-              <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <BookOpen className="mx-auto h-12 w-12 text-gray-200 mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">No works found</h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-gray-300 mb-4">
                 Try adjusting your search terms or filters to find more results.
               </p>
               <Button variant="outline" onClick={clearFilters}>

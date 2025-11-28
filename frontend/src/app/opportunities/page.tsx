@@ -154,7 +154,7 @@ export default function OpportunitiesPage() {
     if (!user) {
         return (
             <div className="text-center py-12">
-                <p className="text-gray-600">Please log in to view monetization opportunities</p>
+                <p className="text-gray-300">Please log in to view monetization opportunities</p>
             </div>
         )
     }
@@ -164,7 +164,7 @@ export default function OpportunitiesPage() {
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold text-white">💰 Monetization Opportunities</h1>
-                <p className="mt-2 text-gray-600">
+                <p className="mt-2 text-gray-300">
                     Discover high-value public domain works with strong monetization potential
                 </p>
             </div>
@@ -284,8 +284,8 @@ export default function OpportunitiesPage() {
             {/* Loading State */}
             {loading && (
                 <div className="text-center py-12">
-                    <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400" />
-                    <p className="mt-4 text-gray-600">Finding opportunities...</p>
+                    <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-200" />
+                    <p className="mt-4 text-gray-300">Finding opportunities...</p>
                 </div>
             )}
 
@@ -293,7 +293,7 @@ export default function OpportunitiesPage() {
             {!loading && opportunities.length === 0 && (
                 <Card>
                     <CardContent className="py-12 text-center">
-                        <p className="text-gray-600">
+                        <p className="text-gray-300">
                             No opportunities found matching your criteria. Try adjusting your filters.
                         </p>
                     </CardContent>
@@ -302,7 +302,7 @@ export default function OpportunitiesPage() {
 
             {!loading && opportunities.length > 0 && (
                 <div>
-                    <div className="mb-4 text-sm text-gray-600">
+                    <div className="mb-4 text-sm text-gray-300">
                         Showing {opportunities.length} opportunities
                     </div>
 
@@ -337,7 +337,7 @@ export default function OpportunitiesPage() {
                                                 <Badge className={`${getGradeColor(opp.master_monetization_score)} text-2xl font-bold px-4 py-2 border-2`}>
                                                     {getGrade(opp.master_monetization_score)}
                                                 </Badge>
-                                                <p className="text-xs text-gray-500 mt-1">
+                                                <p className="text-xs text-gray-300 mt-1">
                                                     {opp.master_monetization_score.toFixed(1)}/100
                                                 </p>
                                             </div>
@@ -345,7 +345,7 @@ export default function OpportunitiesPage() {
 
                                         {/* Year Info */}
                                         {opp.public_domain_year && (
-                                            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                                            <div className="flex items-center gap-2 mt-2 text-sm text-gray-300">
                                                 <Clock className="h-4 w-4" />
                                                 <span>Public Domain since {opp.public_domain_year}</span>
                                             </div>
@@ -358,13 +358,13 @@ export default function OpportunitiesPage() {
                                             {/* Market Saturation */}
                                             <div className="bg-gray-50 rounded-lg p-3">
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-xs font-medium text-gray-600">Competition</span>
+                                                    <span className="text-xs font-medium text-gray-300">Competition</span>
                                                     <AlertTriangle className={`h-3 w-3 ${saturation.color}`} />
                                                 </div>
                                                 <div className={`text-sm font-bold ${saturation.color}`}>
                                                     {saturation.label}
                                                 </div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-gray-300">
                                                     {opp.market_saturation_index.toFixed(0)}/100
                                                 </div>
                                             </div>
@@ -372,7 +372,7 @@ export default function OpportunitiesPage() {
                                             {/* Timing Window */}
                                             <div className="bg-gray-50 rounded-lg p-3">
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-xs font-medium text-gray-600">Timing</span>
+                                                    <span className="text-xs font-medium text-gray-300">Timing</span>
                                                     <Clock className="h-3 w-3 text-blue-600" />
                                                 </div>
                                                 <div className="text-sm font-bold text-blue-600">
@@ -380,7 +380,7 @@ export default function OpportunitiesPage() {
                                                         opp.temporal_window_score >= 65 ? 'PLAN SOON' :
                                                             'MODERATE'}
                                                 </div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-gray-300">
                                                     {opp.temporal_window_score.toFixed(0)}/100
                                                 </div>
                                             </div>
@@ -389,9 +389,9 @@ export default function OpportunitiesPage() {
                                         {/* Top Platform */}
                                         <div className="border-t pt-3">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-gray-600">Best Platform:</span>
+                                                <span className="text-sm font-medium text-gray-300">Best Platform:</span>
                                                 <div className="flex items-center gap-2">
-                                                    <TopPlatformIcon className="h-4 w-4 text-gray-600" />
+                                                    <TopPlatformIcon className="h-4 w-4 text-gray-300" />
                                                     <span className="text-sm font-bold">{topPlatform.name}</span>
                                                     <Badge variant="outline" className="text-xs">
                                                         {topPlatform.score.toFixed(0)}/100
@@ -403,9 +403,9 @@ export default function OpportunitiesPage() {
                                         {/* Top Demographic */}
                                         <div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-gray-600">Target Audience:</span>
+                                                <span className="text-sm font-medium text-gray-300">Target Audience:</span>
                                                 <div className="flex items-center gap-2">
-                                                    <Users className="h-4 w-4 text-gray-600" />
+                                                    <Users className="h-4 w-4 text-gray-300" />
                                                     <span className="text-sm font-bold">{getTopDemographic(opp)}</span>
                                                 </div>
                                             </div>

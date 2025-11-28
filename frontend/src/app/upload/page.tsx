@@ -139,7 +139,7 @@ export default function UploadPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white">File Upload</h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-gray-300">
           Upload EPUB or PDF files to automatically extract metadata and create public domain works.
         </p>
       </div>
@@ -158,18 +158,18 @@ export default function UploadPage() {
               <BookOpen className="h-8 w-8 text-blue-500" />
               <div>
                 <div className="font-medium">EPUB Files</div>
-                <div className="text-sm text-gray-600">Electronic Publication books</div>
+                <div className="text-sm text-gray-300">Electronic Publication books</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 border rounded-lg">
               <FileText className="h-8 w-8 text-red-500" />
               <div>
                 <div className="font-medium">PDF Files</div>
-                <div className="text-sm text-gray-600">Portable Document Format</div>
+                <div className="text-sm text-gray-300">Portable Document Format</div>
               </div>
             </div>
           </div>
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="mt-4 text-sm text-gray-300">
             <p><strong>Maximum file size:</strong> 50MB</p>
             <p><strong>Processing:</strong> Files are automatically processed to extract metadata, content, and generate insights.</p>
           </div>
@@ -190,11 +190,11 @@ export default function UploadPage() {
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <Upload className="mx-auto h-12 w-12 text-gray-200 mb-4" />
               <div className="text-lg font-medium text-white mb-2">
                 Drop your file here, or click to browse
               </div>
-              <div className="text-gray-600 mb-4">
+              <div className="text-gray-300 mb-4">
                 Supports EPUB and PDF files up to 50MB
               </div>
               <Button
@@ -224,7 +224,7 @@ export default function UploadPage() {
                   )}
                   <div>
                     <div className="font-medium">{selectedFile.name}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       {formatFileSize(selectedFile.size)}
                     </div>
                   </div>
@@ -287,12 +287,12 @@ export default function UploadPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <h4 className="font-medium text-white">Work Created</h4>
-                  <p className="text-gray-600">{result.work_title}</p>
-                  <p className="text-sm text-gray-500">ID: {result.work_id}</p>
+                  <p className="text-gray-300">{result.work_title}</p>
+                  <p className="text-sm text-gray-300">ID: {result.work_id}</p>
                 </div>
                 <div>
                   <h4 className="font-medium text-white">Processing Results</h4>
-                  <div className="space-y-1 text-sm text-gray-600">
+                  <div className="space-y-1 text-sm text-gray-300">
                     <p>Words extracted: {result.metadata.content?.word_count || 'N/A'}</p>
                     <p>Language: {result.metadata.analysis?.detected_language || 'N/A'}</p>
                     <p>Content type: {result.metadata.analysis?.content_type || 'N/A'}</p>
@@ -329,7 +329,7 @@ export default function UploadPage() {
               </div>
               <div>
                 <h4 className="font-medium">Upload Your File</h4>
-                <p className="text-sm text-gray-600">Select an EPUB or PDF file from your computer</p>
+                <p className="text-sm text-gray-300">Select an EPUB or PDF file from your computer</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -338,7 +338,7 @@ export default function UploadPage() {
               </div>
               <div>
                 <h4 className="font-medium">Automatic Processing</h4>
-                <p className="text-sm text-gray-600">Our system extracts metadata, text content, and analyzes the file</p>
+                <p className="text-sm text-gray-300">Our system extracts metadata, text content, and analyzes the file</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -347,7 +347,7 @@ export default function UploadPage() {
               </div>
               <div>
                 <h4 className="font-medium">Work Creation</h4>
-                <p className="text-sm text-gray-600">A new work entry is created with all extracted information</p>
+                <p className="text-sm text-gray-300">A new work entry is created with all extracted information</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -356,7 +356,7 @@ export default function UploadPage() {
               </div>
               <div>
                 <h4 className="font-medium">Ready to Use</h4>
-                <p className="text-sm text-gray-600">Your work is now available with full analytics and insights</p>
+                <p className="text-sm text-gray-300">Your work is now available with full analytics and insights</p>
               </div>
             </div>
           </div>

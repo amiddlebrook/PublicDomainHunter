@@ -63,15 +63,15 @@ export function AIInsightsPanel({ workId }: AIInsightsPanelProps) {
         switch (demand) {
             case 'high': return 'text-emerald-500'
             case 'medium': return 'text-yellow-500'
-            case 'low': return 'text-gray-500'
-            default: return 'text-gray-500'
+            case 'low': return 'text-gray-300'
+            default: return 'text-gray-300'
         }
     }
 
     const getScoreColor = (score: number) => {
         if (score >= 75) return 'text-emerald-500'
         if (score >= 50) return 'text-yellow-500'
-        return 'text-gray-500'
+        return 'text-gray-300'
     }
 
     return (
@@ -95,7 +95,7 @@ export function AIInsightsPanel({ workId }: AIInsightsPanelProps) {
                 {!analysis && !loading && (
                     <div className="text-center py-8">
                         <Sparkles className="h-12 w-12 text-indigo-400 mx-auto mb-4 animate-pulse" />
-                        <p className="text-gray-400 mb-4">
+                        <p className="text-gray-200 mb-4">
                             Generate deep AI analysis for this work including monetization potential, market saturation, and product recommendations.
                         </p>
                         <Button
@@ -111,8 +111,8 @@ export function AIInsightsPanel({ workId }: AIInsightsPanelProps) {
                 {loading && (
                     <div className="text-center py-12">
                         <Loader2 className="h-12 w-12 text-indigo-400 mx-auto mb-4 animate-spin" />
-                        <p className="text-gray-400">Running AI analysis...</p>
-                        <p className="text-sm text-gray-500 mt-2">This may take 5-10 seconds</p>
+                        <p className="text-gray-200">Running AI analysis...</p>
+                        <p className="text-sm text-gray-300 mt-2">This may take 5-10 seconds</p>
                     </div>
                 )}
 
@@ -130,7 +130,7 @@ export function AIInsightsPanel({ workId }: AIInsightsPanelProps) {
                             <div className="p-4 bg-dark-900/50 rounded-lg border border-emerald-900/30">
                                 <div className="flex items-center gap-2 mb-2">
                                     <DollarSign className="h-4 w-4 text-emerald-500" />
-                                    <p className="text-sm text-gray-400">Monetization Score</p>
+                                    <p className="text-sm text-gray-200">Monetization Score</p>
                                 </div>
                                 <p className={`text-3xl font-bold ${getScoreColor(analysis.monetization.score)}`}>
                                     {analysis.monetization.score}/100
@@ -140,7 +140,7 @@ export function AIInsightsPanel({ workId }: AIInsightsPanelProps) {
                             <div className="p-4 bg-dark-900/50 rounded-lg border border-pink-900/30">
                                 <div className="flex items-center gap-2 mb-2">
                                     <TrendingUp className="h-4 w-4 text-pink-500" />
-                                    <p className="text-sm text-gray-400">Market Saturation</p>
+                                    <p className="text-sm text-gray-200">Market Saturation</p>
                                 </div>
                                 <p className={`text-3xl font-bold ${getScoreColor(100 - analysis.saturation.index)}`}>
                                     {analysis.saturation.index}/100
@@ -171,7 +171,7 @@ export function AIInsightsPanel({ workId }: AIInsightsPanelProps) {
                                                 {product.potential}%
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-400">{product.rationale}</p>
+                                        <p className="text-sm text-gray-200">{product.rationale}</p>
                                     </div>
                                 ))}
                             </div>

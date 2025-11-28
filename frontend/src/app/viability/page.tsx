@@ -137,7 +137,7 @@ export default function ViabilityLabPage() {
                             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
                                 How It Works
                             </h2>
-                            <p className="text-lg text-gray-600">
+                            <p className="text-lg text-gray-300">
                                 Three steps to discovering your next opportunity
                             </p>
                         </div>
@@ -174,7 +174,7 @@ export default function ViabilityLabPage() {
                                             {idx + 1}
                                         </div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                                        <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                                        <p className="text-gray-300 leading-relaxed">{step.description}</p>
                                     </div>
                                 </div>
                             ))}

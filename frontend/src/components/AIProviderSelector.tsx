@@ -253,8 +253,8 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
       <Card>
         <CardContent className="py-8">
           <div className="text-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Loading AI providers...</p>
+            <RefreshCw className="h-8 w-8 animate-spin text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-300">Loading AI providers...</p>
           </div>
         </CardContent>
       </Card>
@@ -348,8 +348,8 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-1">Model: {provider.model}</p>
-                <p className="text-xs text-gray-500">{provider.description}</p>
+                <p className="text-sm text-gray-300 mb-1">Model: {provider.model}</p>
+                <p className="text-xs text-gray-300">{provider.description}</p>
               </div>
               <div className="flex gap-2">
                 {preferences.enabled_providers.includes(provider.provider) && (
@@ -386,7 +386,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-gray-600" />
+            <Settings className="h-5 w-5 text-gray-300" />
             Generation Settings
           </CardTitle>
           <CardDescription>
@@ -398,7 +398,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div>
               <Label className="text-base font-medium">Mix Multiple Providers</Label>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-300 mt-1">
                 Get responses from all enabled providers and compare results
               </p>
             </div>
@@ -412,7 +412,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label>Temperature: {preferences.temperature.toFixed(1)}</Label>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-300">
                 {preferences.temperature < 0.3 ? 'Focused' : preferences.temperature > 1.0 ? 'Creative' : 'Balanced'}
               </span>
             </div>
@@ -424,7 +424,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
               step={0.1}
               className="w-full"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-300">
               Lower values make output more focused and deterministic, higher values make it more creative
             </p>
           </div>
@@ -433,7 +433,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label>Max Tokens: {preferences.max_tokens.toLocaleString()}</Label>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-300">
                 ~{Math.round(preferences.max_tokens * 0.75)} words
               </span>
             </div>
@@ -445,7 +445,7 @@ export default function AIProviderSelector({ onPreferencesChange, compact = fals
               step={100}
               className="w-full"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-300">
               Maximum length of generated responses
             </p>
           </div>

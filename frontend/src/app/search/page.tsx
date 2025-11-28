@@ -211,7 +211,7 @@ export default function SearchPage() {
     }
   }
 
-  if (!user) return <div className="p-8 text-center text-gray-500">Please log in to access Market Intelligence.</div>
+  if (!user) return <div className="p-8 text-center text-gray-300">Please log in to access Market Intelligence.</div>
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col gap-4">
@@ -222,8 +222,8 @@ export default function SearchPage() {
             <Search className="h-6 w-6 text-indigo-600" />
             <h1 className="text-2xl font-bold text-white tracking-tight">Market Intelligence</h1>
           </div>
-          <p className="text-sm text-gray-400">Search our catalog of public domain works with advanced filters and monetization metrics.</p>
-          <p className="text-xs text-gray-500 mt-1">Filter by media type, year range, and monetization potential to find the best opportunities.</p>
+          <p className="text-sm text-gray-200">Search our catalog of public domain works with advanced filters and monetization metrics.</p>
+          <p className="text-xs text-gray-300 mt-1">Filter by media type, year range, and monetization potential to find the best opportunities.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -264,7 +264,7 @@ export default function SearchPage() {
               variant="ghost"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={clsx("text-gray-400", showFilters && "bg-dark-800 text-white")}
+              className={clsx("text-gray-200", showFilters && "bg-dark-800 text-white")}
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters
@@ -273,14 +273,14 @@ export default function SearchPage() {
             <div className="flex items-center border border-dark-700 rounded-md bg-dark-900 shadow-sm">
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-2 ${viewMode === 'table' ? 'bg-dark-800 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`p-2 ${viewMode === 'table' ? 'bg-dark-800 text-white' : 'text-gray-200 hover:text-white'}`}
               >
                 <TableIcon className="h-4 w-4" />
               </button>
               <div className="w-px h-4 bg-gray-200" />
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-dark-800 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`p-2 ${viewMode === 'grid' ? 'bg-dark-800 text-white' : 'text-gray-200 hover:text-white'}`}
               >
                 <LayoutGrid className="h-4 w-4" />
               </button>
@@ -320,7 +320,7 @@ export default function SearchPage() {
                         />
                         <label
                           htmlFor={type}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-200"
                         >
                           {type}
                         </label>
@@ -335,7 +335,7 @@ export default function SearchPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium text-gray-300">PD Year Range</Label>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-300">
                       {filters.minYear} - {filters.maxYear}
                     </span>
                   </div>
@@ -350,7 +350,7 @@ export default function SearchPage() {
                     }}
                     className="py-4"
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-300">
                     Target works entering public domain in specific future years.
                   </p>
                 </div>
@@ -405,13 +405,13 @@ export default function SearchPage() {
               {/* Search Bar */}
               <div className="flex gap-2 mb-6 shrink-0">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-200" />
                   <Input
                     placeholder="Search for works (e.g., 'Frankenstein', 'Space', 'Botanical')..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="pl-10 bg-dark-800 border-dark-700 text-white placeholder:text-gray-500 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="pl-10 bg-dark-800 border-dark-700 text-white placeholder:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
                 <Button onClick={handleSearch} className="bg-indigo-600 hover:bg-indigo-700 shrink-0">
@@ -426,20 +426,20 @@ export default function SearchPage() {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                   </div>
                 ) : !results ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-center text-gray-500">
+                  <div className="flex flex-col items-center justify-center h-64 text-center text-gray-300">
                     <Search className="h-12 w-12 mb-4 opacity-20" />
                     <p className="text-lg font-medium">Ready to explore?</p>
                     <p className="text-sm">Enter a search term or apply filters to find opportunities.</p>
                   </div>
                 ) : results.results.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-center text-gray-500">
+                  <div className="flex flex-col items-center justify-center h-64 text-center text-gray-300">
                     <p className="text-lg font-medium">No results found.</p>
                     <p className="text-sm">Try adjusting your filters or search query.</p>
                   </div>
                 ) : (
                   <>
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-gray-200">
                         Found <span className="font-medium text-white">{results.total_results}</span> results
                         {results.search_time && <span className="text-xs ml-2 opacity-50">({results.search_time})</span>}
                       </p>
@@ -448,7 +448,7 @@ export default function SearchPage() {
                     {viewMode === 'table' ? (
                       <div className="border border-dark-700 rounded-md overflow-hidden bg-dark-900/50">
                         <table className="w-full text-sm text-left">
-                          <thead className="bg-dark-800 text-gray-400 font-medium">
+                          <thead className="bg-dark-800 text-gray-200 font-medium">
                             <tr>
                               <th className="px-4 py-3">Title / Author</th>
                               <th className="px-4 py-3">Type</th>
@@ -466,7 +466,7 @@ export default function SearchPage() {
                                   <div className="font-medium text-white truncate max-w-[200px]" title={work.title}>
                                     {work.title}
                                   </div>
-                                  <div className="text-xs text-gray-500 truncate max-w-[200px]">
+                                  <div className="text-xs text-gray-300 truncate max-w-[200px]">
                                     {work.author}
                                   </div>
                                 </td>
@@ -483,7 +483,7 @@ export default function SearchPage() {
                                     <span className={clsx(
                                       "font-bold",
                                       (work as any).quick_score >= 80 ? "text-emerald-400" :
-                                        (work as any).quick_score >= 50 ? "text-yellow-400" : "text-gray-500"
+                                        (work as any).quick_score >= 50 ? "text-yellow-400" : "text-gray-300"
                                     )}>
                                       {(work as any).quick_score || '-'}
                                     </span>
@@ -494,7 +494,7 @@ export default function SearchPage() {
                                     <span className={clsx(
                                       "font-bold",
                                       (work.monetization_score || 0) >= 80 ? "text-emerald-400" :
-                                        (work.monetization_score || 0) >= 50 ? "text-yellow-400" : "text-gray-500"
+                                        (work.monetization_score || 0) >= 50 ? "text-yellow-400" : "text-gray-300"
                                     )}>
                                       {work.monetization_score || '-'}
                                     </span>
@@ -513,13 +513,13 @@ export default function SearchPage() {
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => handleSaveToPortfolio(work.id)} title="Save to Portfolio">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-200 hover:text-white" onClick={() => handleSaveToPortfolio(work.id)} title="Save to Portfolio">
                                       <Star className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => handleTrack(work.id)} title="Track">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-200 hover:text-white" onClick={() => handleTrack(work.id)} title="Track">
                                       <Activity className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" asChild title="View Details">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-200 hover:text-white" asChild title="View Details">
                                       <Link href={`/works/${work.id}`}>
                                         <ChevronRight className="h-4 w-4" />
                                       </Link>
@@ -537,11 +537,11 @@ export default function SearchPage() {
                           <Card key={work.id} className="bg-dark-900 border-dark-700 hover:border-indigo-500/50 transition-all group">
                             <CardContent className="p-4 space-y-3">
                               <div className="flex justify-between items-start">
-                                <Badge variant="outline" className="bg-dark-800 text-gray-400 border-dark-600">
+                                <Badge variant="outline" className="bg-dark-800 text-gray-200 border-dark-600">
                                   {work.media_type}
                                 </Badge>
                                 <div className="flex gap-1">
-                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-500 hover:text-yellow-400" onClick={() => handleSaveToPortfolio(work.id)}>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-300 hover:text-yellow-400" onClick={() => handleSaveToPortfolio(work.id)}>
                                     <Star className="h-3 w-3" />
                                   </Button>
                                 </div>
@@ -549,16 +549,16 @@ export default function SearchPage() {
 
                               <div>
                                 <h3 className="font-semibold text-white truncate" title={work.title}>{work.title}</h3>
-                                <p className="text-sm text-gray-400 truncate">{work.author}</p>
+                                <p className="text-sm text-gray-200 truncate">{work.author}</p>
                               </div>
 
                               <div className="grid grid-cols-2 gap-2 text-xs">
                                 <div className="bg-dark-800 rounded p-2 text-center">
-                                  <div className="text-gray-500 mb-1">PD Year</div>
+                                  <div className="text-gray-300 mb-1">PD Year</div>
                                   <div className="font-medium text-white">{work.public_domain_year}</div>
                                 </div>
                                 <div className="bg-dark-800 rounded p-2 text-center">
-                                  <div className="text-gray-500 mb-1">Quick Score</div>
+                                  <div className="text-gray-300 mb-1">Quick Score</div>
                                   <div className={clsx("font-bold", (work as any).quick_score >= 70 ? "text-emerald-400" : "text-yellow-400")}>
                                     {(work as any).quick_score}
                                   </div>

@@ -105,7 +105,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 text-gray-400 mb-2">
+              <div className="flex items-center gap-3 text-gray-200 mb-2">
                 <Link href="/search" className="hover:text-indigo-400 flex items-center gap-1">
                   <ArrowLeft className="h-4 w-4" />
                   Market Intelligence
@@ -157,7 +157,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
           {/* Key Metrics Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-dark-700">
             <div>
-              <div className="text-sm font-medium text-gray-500 mb-1">Trend Score</div>
+              <div className="text-sm font-medium text-gray-300 mb-1">Trend Score</div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-white">
                   {work.metadata?.trend_score || '-'}
@@ -169,20 +169,20 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-gray-500 mb-1">Public Domain</div>
+              <div className="text-sm font-medium text-gray-300 mb-1">Public Domain</div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-white">{work.public_domain_year || 'Yes'}</span>
-                {work.public_domain_year && <span className="text-xs font-medium text-gray-500">Global</span>}
+                {work.public_domain_year && <span className="text-xs font-medium text-gray-300">Global</span>}
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-gray-500 mb-1">Content Status</div>
+              <div className="text-sm font-medium text-gray-300 mb-1">Content Status</div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-white capitalize">{work.status || 'active'}</span>
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-gray-500 mb-1">Data Quality</div>
+              <div className="text-sm font-medium text-gray-300 mb-1">Data Quality</div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-white">A+</span>
               </div>
@@ -201,7 +201,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-gray-500" />
+                <FileText className="h-5 w-5 text-gray-300" />
                 Asset Description
               </CardTitle>
             </CardHeader>
@@ -218,32 +218,32 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
           {/* Metadata Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+              <CardTitle className="text-sm font-medium text-gray-300 uppercase tracking-wider">
                 Technical Metadata
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {work.media_type && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-500">Media Type</span>
+                  <span className="text-sm text-gray-300">Media Type</span>
                   <span className="text-sm font-medium text-white capitalize">{work.media_type}</span>
                 </div>
               )}
               {work.language && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-500">Language</span>
+                  <span className="text-sm text-gray-300">Language</span>
                   <span className="text-sm font-medium text-white uppercase">{work.language}</span>
                 </div>
               )}
               {work.page_count && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-500">Page Count</span>
+                  <span className="text-sm text-gray-300">Page Count</span>
                   <span className="text-sm font-medium text-white">{work.page_count}</span>
                 </div>
               )}
               {work.created_at && (
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-500">Added to System</span>
+                  <span className="text-sm text-gray-300">Added to System</span>
                   <span className="text-sm font-medium text-white">
                     {new Date(work.created_at).toLocaleDateString()}
                   </span>
@@ -261,7 +261,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
           {/* Market Signals (Placeholder for future expansion) */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+              <CardTitle className="text-sm font-medium text-gray-300 uppercase tracking-wider">
                 Market Signals
               </CardTitle>
             </CardHeader>

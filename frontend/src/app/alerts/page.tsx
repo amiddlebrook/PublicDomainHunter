@@ -207,7 +207,7 @@ export default function AlertsPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Alert Management</h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-300">
             Create and manage alerts for public domain works and opportunities.
           </p>
         </div>
@@ -256,7 +256,7 @@ export default function AlertsPage() {
                           <BookOpen className="h-4 w-4" />
                           <div>
                             <div className="font-medium">{work.title}</div>
-                            <div className="text-sm text-gray-500">{work.author}</div>
+                            <div className="text-sm text-gray-300">{work.author}</div>
                           </div>
                         </div>
                       </SelectItem>
@@ -282,7 +282,7 @@ export default function AlertsPage() {
                             <Icon className="h-4 w-4" />
                             <div>
                               <div className="font-medium">{type.label}</div>
-                              <div className="text-sm text-gray-500">{type.description}</div>
+                              <div className="text-sm text-gray-300">{type.description}</div>
                             </div>
                           </div>
                         </SelectItem>
@@ -330,9 +330,9 @@ export default function AlertsPage() {
         {alerts.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
-              <Bell className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <Bell className="mx-auto h-12 w-12 text-gray-200 mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">No alerts yet</h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-gray-300 mb-4">
                 Create your first alert to get notified about public domain opportunities.
               </p>
               <Button onClick={() => setShowCreateForm(true)}>
@@ -360,10 +360,10 @@ export default function AlertsPage() {
                             <h3 className="font-semibold text-white">{typeInfo.label}</h3>
                             {getStatusBadge(alert.is_active)}
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{typeInfo.description}</p>
+                          <p className="text-sm text-gray-300 mb-2">{typeInfo.description}</p>
 
                           {alert.work && (
-                            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
                               <BookOpen className="h-4 w-4" />
                               <span>Monitoring: {alert.work.title}</span>
                               {alert.work.author && <span>by {alert.work.author}</span>}
@@ -371,14 +371,14 @@ export default function AlertsPage() {
                           )}
 
                           {alert.threshold_value && (
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-300">
                               Threshold: {alert.threshold_value}
                               {alert.alert_type === 'trend_change' && '/100'}
                               {alert.alert_type === 'monetization_opportunity' && '/100'}
                             </div>
                           )}
 
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-gray-200 mt-1">
                             Created: {new Date(alert.created_at).toLocaleDateString()}
                           </div>
                         </div>
@@ -421,7 +421,7 @@ export default function AlertsPage() {
                   </div>
                   <div>
                     <h4 className="font-medium text-white">{type.label}</h4>
-                    <p className="text-sm text-gray-600">{type.description}</p>
+                    <p className="text-sm text-gray-300">{type.description}</p>
                   </div>
                 </div>
               )

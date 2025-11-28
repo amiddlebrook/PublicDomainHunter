@@ -198,7 +198,7 @@ export default function AIInsightsPage() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Please log in to access AI insights</p>
+        <p className="text-gray-300">Please log in to access AI insights</p>
       </div>
     )
   }
@@ -212,7 +212,7 @@ export default function AIInsightsPage() {
             <Brain className="h-8 w-8 text-purple-600" />
             AI Insights
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-300">
             Machine learning-powered content analysis and recommendations
           </p>
         </div>
@@ -237,29 +237,29 @@ export default function AIInsightsPage() {
                 <div className="text-2xl font-bold text-green-600">
                   {aiStatus.model_status === 'trained' ? '✓' : '○'}
                 </div>
-                <p className="text-sm text-gray-600">Model Status</p>
-                <p className="text-xs text-gray-500 capitalize">{aiStatus.model_status.replace('_', ' ')}</p>
+                <p className="text-sm text-gray-300">Model Status</p>
+                <p className="text-xs text-gray-300 capitalize">{aiStatus.model_status.replace('_', ' ')}</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {aiStatus.total_works.toLocaleString()}
                 </div>
-                <p className="text-sm text-gray-600">Total Works</p>
-                <p className="text-xs text-gray-500">{aiStatus.trainable_works} trainable</p>
+                <p className="text-sm text-gray-300">Total Works</p>
+                <p className="text-xs text-gray-300">{aiStatus.trainable_works} trainable</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
                   {aiStatus.training_coverage.toFixed(0)}%
                 </div>
-                <p className="text-sm text-gray-600">Coverage</p>
-                <p className="text-xs text-gray-500">Training data</p>
+                <p className="text-sm text-gray-300">Coverage</p>
+                <p className="text-xs text-gray-300">Training data</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-orange-600">
                   {aiStatus.capabilities?.length || 0}
                 </div>
-                <p className="text-sm text-gray-600">Capabilities</p>
-                <p className="text-xs text-gray-500">AI features</p>
+                <p className="text-sm text-gray-300">Capabilities</p>
+                <p className="text-xs text-gray-300">AI features</p>
               </div>
             </div>
           </CardContent>
@@ -305,9 +305,9 @@ export default function AIInsightsPage() {
             <CardContent>
               {recommendations.length === 0 ? (
                 <div className="text-center py-8">
-                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Target className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">No recommendations yet</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-300 mb-4">
                     Start exploring content to get personalized recommendations
                   </p>
                   <Button onClick={loadRecommendations}>
@@ -323,10 +323,10 @@ export default function AIInsightsPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <BookOpen className="h-4 w-4 text-gray-500" />
+                              <BookOpen className="h-4 w-4 text-gray-300" />
                               <h3 className="font-semibold text-white">{rec.title}</h3>
                               {rec.author && (
-                                <span className="text-gray-600">by {rec.author}</span>
+                                <span className="text-gray-300">by {rec.author}</span>
                               )}
                             </div>
 
@@ -351,7 +351,7 @@ export default function AIInsightsPage() {
                             {rec.metadata?.trend_score && (
                               <div className="flex items-center gap-2 mb-2">
                                 <TrendingUp className="h-4 w-4 text-green-500" />
-                                <span className="text-sm text-gray-600">
+                                <span className="text-sm text-gray-300">
                                   Trend Score: {rec.metadata.trend_score}/100
                                 </span>
                               </div>
@@ -393,8 +393,8 @@ export default function AIInsightsPage() {
             <CardContent>
               {loading ? (
                 <div className="text-center py-8">
-                  <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Analyzing content...</p>
+                  <RefreshCw className="h-8 w-8 animate-spin text-gray-200 mx-auto mb-4" />
+                  <p className="text-gray-300">Analyzing content...</p>
                 </div>
               ) : contentInsights ? (
                 <div className="space-y-6">
@@ -406,27 +406,27 @@ export default function AIInsightsPage() {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Title:</span>
+                          <span className="text-gray-300">Title:</span>
                           <span className="font-medium">{contentInsights.title}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Author:</span>
+                          <span className="text-gray-300">Author:</span>
                           <span className="font-medium">{contentInsights.author || 'Unknown'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Media Type:</span>
+                          <span className="text-gray-300">Media Type:</span>
                           <Badge variant="outline">{contentInsights.basic_insights.media_type}</Badge>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Language:</span>
+                          <span className="text-gray-300">Language:</span>
                           <Badge variant="outline">{contentInsights.basic_insights.language}</Badge>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Publication Year:</span>
+                          <span className="text-gray-300">Publication Year:</span>
                           <span className="font-medium">{contentInsights.basic_insights.public_domain_year}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Trend Score:</span>
+                          <span className="text-gray-300">Trend Score:</span>
                           <div className="flex items-center gap-2">
                             <Progress
                               value={contentInsights.basic_insights.trend_score}
@@ -444,17 +444,17 @@ export default function AIInsightsPage() {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Word Count:</span>
+                          <span className="text-gray-300">Word Count:</span>
                           <span className="font-medium">{contentInsights.content_analysis.word_count?.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Sentiment:</span>
+                          <span className="text-gray-300">Sentiment:</span>
                           <Badge className={getSentimentColor(contentInsights.content_analysis.sentiment)}>
                             {contentInsights.content_analysis.sentiment}
                           </Badge>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Complexity:</span>
+                          <span className="text-gray-300">Complexity:</span>
                           <div className="flex items-center gap-2">
                             <Progress
                               value={contentInsights.content_analysis.complexity_score}
@@ -465,7 +465,7 @@ export default function AIInsightsPage() {
                         </div>
                         {contentInsights.content_analysis.topics && contentInsights.content_analysis.topics.length > 0 && (
                           <div>
-                            <span className="text-gray-600">Topics:</span>
+                            <span className="text-gray-300">Topics:</span>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {contentInsights.content_analysis.topics.map((topic, index) => (
                                 <Badge key={index} variant="secondary" className="text-xs">
@@ -494,7 +494,7 @@ export default function AIInsightsPage() {
                             <div key={work.work_id} className="flex items-center justify-between p-3 border rounded-lg">
                               <div>
                                 <h4 className="font-medium">{work.title}</h4>
-                                <p className="text-sm text-gray-600">by {work.author || 'Unknown'}</p>
+                                <p className="text-sm text-gray-300">by {work.author || 'Unknown'}</p>
                               </div>
                               <div className="text-right">
                                 <div className="flex items-center gap-1">
@@ -503,7 +503,7 @@ export default function AIInsightsPage() {
                                     {(work.similarity_score * 100).toFixed(1)}%
                                   </span>
                                 </div>
-                                <p className="text-xs text-gray-500">similarity</p>
+                                <p className="text-xs text-gray-300">similarity</p>
                               </div>
                             </div>
                           ))}
@@ -514,9 +514,9 @@ export default function AIInsightsPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Lightbulb className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Lightbulb className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">Select Content to Analyze</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-300 mb-4">
                     Choose a work from recommendations or search to get AI insights
                   </p>
                   <Button onClick={() => loadRecommendations()}>
@@ -552,15 +552,15 @@ export default function AIInsightsPage() {
                       <CardContent>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Total Works:</span>
+                            <span className="text-gray-300">Total Works:</span>
                             <span className="font-medium">{trendPredictions.total_works_analyzed.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Recent Works:</span>
+                            <span className="text-gray-300">Recent Works:</span>
                             <span className="font-medium">{trendPredictions.recent_works.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Prediction Horizon:</span>
+                            <span className="text-gray-300">Prediction Horizon:</span>
                             <span className="font-medium">{trendPredictions.prediction_horizon_days} days</span>
                           </div>
                         </div>
@@ -583,11 +583,11 @@ export default function AIInsightsPage() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <Progress value={prediction.current_avg} className="flex-1" />
-                                <span className="text-xs text-gray-500 w-12">
+                                <span className="text-xs text-gray-300 w-12">
                                   {prediction.current_avg.toFixed(1)}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-300">
                                 {prediction.sample_size} samples, {(prediction.confidence * 100).toFixed(0)}% confidence
                               </p>
                             </div>
@@ -627,9 +627,9 @@ export default function AIInsightsPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <TrendingUp className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">Loading Trend Analysis</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-300 mb-4">
                     Analyzing content trends and patterns...
                   </p>
                   <Button onClick={loadTrendPredictions}>
@@ -658,7 +658,7 @@ export default function AIInsightsPage() {
               <div className="text-center py-12">
                 <Sparkles className="h-16 w-16 text-purple-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-white mb-2">LLM Analysis Ready</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <p className="text-gray-300 mb-6 max-w-md mx-auto">
                   Use powerful language models from OpenAI, Claude, Gemini, and others to analyze
                   content, generate insights, and provide intelligent recommendations.
                 </p>
@@ -708,15 +708,15 @@ export default function AIInsightsPage() {
                       <CardContent>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Total Works:</span>
+                            <span className="text-gray-300">Total Works:</span>
                             <span className="font-medium">{trendPredictions.total_works_analyzed.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Recent Works:</span>
+                            <span className="text-gray-300">Recent Works:</span>
                             <span className="font-medium">{trendPredictions.recent_works.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Prediction Horizon:</span>
+                            <span className="text-gray-300">Prediction Horizon:</span>
                             <span className="font-medium">{trendPredictions.prediction_horizon_days} days</span>
                           </div>
                         </div>
@@ -726,9 +726,9 @@ export default function AIInsightsPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <TrendingUp className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Trend Analysis</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-300 mb-4">
                     Analyzing content trends and patterns...
                   </p>
                   <Button onClick={loadTrendPredictions}>

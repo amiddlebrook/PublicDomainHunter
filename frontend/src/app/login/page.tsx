@@ -41,7 +41,7 @@ export default function LoginPage() {
           <h2 className="mt-6 text-3xl font-extrabold text-white">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-300">
             Access your Public Domain Hunter dashboard
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function LoginPage() {
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-2 bg-white text-gray-300">Or continue with</span>
                 </div>
               </div>
 
@@ -150,7 +150,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-300">
                 Don&apos;t have an account?{' '}
                 <Link
                   href="/register"
@@ -164,7 +164,7 @@ export default function LoginPage() {
             <div className="mt-4 text-center">
               <Link
                 href="/forgot-password"
-                className="text-sm text-gray-600 hover:text-gray-500"
+                className="text-sm text-gray-300 hover:text-gray-300"
               >
                 Forgot your password?
               </Link>

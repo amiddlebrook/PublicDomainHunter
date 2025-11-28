@@ -13,7 +13,7 @@ export default function FactoryPage() {
 
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold text-white">The Factory is Under Construction</h1>
-                <p className="text-gray-400 max-w-md mx-auto">
+                <p className="text-gray-200 max-w-md mx-auto">
                     We're building the ultimate product creation engine. Soon you'll be able to turn public domain assets into sellable products instantly.
                 </p>
             </div>

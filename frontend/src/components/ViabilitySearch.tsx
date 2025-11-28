@@ -184,7 +184,7 @@ export function ViabilitySearch({
                     </div>
                     <div className="text-center space-y-2">
                         <h3 className="text-xl font-semibold text-gray-900">Analyzing Market Data</h3>
-                        <p className="text-gray-500 max-w-md">
+                        <p className="text-gray-300 max-w-md">
                             Our AI is scanning thousands of records, calculating saturation indices, and projecting monetization potential...
                         </p>
                     </div>
@@ -197,7 +197,7 @@ export function ViabilitySearch({
                         <AlertCircle className="h-12 w-12 text-violet-600" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900">Nothing yet - but your perfect match is out there 🚀</h3>
-                    <p className="text-gray-600 max-w-md">Try broadening your search or exploring a different creative direction.</p>
+                    <p className="text-gray-300 max-w-md">Try broadening your search or exploring a different creative direction.</p>
                     <div className="flex gap-3 mt-4">
                         {['horror classics', 'sci-fi adventure', 'vintage art'].map((suggestion) => (
                             <Button key={suggestion} variant="outline" size="sm" onClick={() => {

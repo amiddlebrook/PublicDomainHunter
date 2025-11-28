@@ -39,7 +39,7 @@ export default function PortfolioPage() {
                         </div>
                         <h1 className="text-3xl font-bold text-white">Portfolio</h1>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                         Track and organize public domain works you&apos;re considering for development
                     </p>
                 </div>
@@ -67,7 +67,7 @@ export default function PortfolioPage() {
 
                         <div className="space-y-2">
                             <h2 className="text-2xl font-bold text-white">Build Your Portfolio</h2>
-                            <p className="text-gray-600">
+                            <p className="text-gray-300">
                                 Save works you&apos;re interested in developing, organize them into collections, and track monetization opportunities.
                             </p>
                         </div>
@@ -119,41 +119,41 @@ export default function PortfolioPage() {
                     <div className="grid gap-4 md:grid-cols-4">
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Total Tracked</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-300">Total Tracked</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">{savedWorks.length}</div>
-                                <p className="text-xs text-gray-500">Works in portfolio</p>
+                                <p className="text-xs text-gray-300">Works in portfolio</p>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Avg Monetization</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-300">Avg Monetization</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-emerald-600">--</div>
-                                <p className="text-xs text-gray-500">Average score</p>
+                                <p className="text-xs text-gray-300">Average score</p>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Collections</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-300">Collections</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">0</div>
-                                <p className="text-xs text-gray-500">Organized folders</p>
+                                <p className="text-xs text-gray-300">Organized folders</p>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Top Opportunity</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-300">Top Opportunity</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-indigo-600">--</div>
-                                <p className="text-xs text-gray-500">Highest potential</p>
+                                <p className="text-xs text-gray-300">Highest potential</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -161,7 +161,7 @@ export default function PortfolioPage() {
                     {/* Search and Filter */}
                     <div className="flex gap-4">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-200" />
                             <Input placeholder="Search your portfolio..." className="pl-10" />
                         </div>
                         <Button variant="outline">
@@ -185,7 +185,7 @@ export default function PortfolioPage() {
                                     <Card key={work.id} className="hover:shadow-lg transition-shadow">
                                         <CardContent className="pt-6">
                                             {/* Work card content would go here */}
-                                            <p className="text-gray-500">Work: {work.title}</p>
+                                            <p className="text-gray-300">Work: {work.title}</p>
                                         </CardContent>
                                     </Card>
                                 ))}

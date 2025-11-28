@@ -69,7 +69,7 @@ export function Sidebar({ open, setOpen, collapsed, setCollapsed }: SidebarProps
                     </Link>
                     <button
                         type="button"
-                        className="lg:hidden text-muted-foreground hover:text-foreground"
+                        className="lg:hidden text-foreground hover:text-indigo-400"
                         onClick={() => setOpen(false)}
                     >
                         <X className="h-6 w-6" />
@@ -97,11 +97,11 @@ export function Sidebar({ open, setOpen, collapsed, setCollapsed }: SidebarProps
                                                 'group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                                                 isActive
                                                     ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500'
-                                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent',
+                                                    : 'text-foreground hover:bg-muted hover:text-indigo-300 border-l-2 border-transparent',
                                                 collapsed && 'justify-center px-2'
                                             )}
                                         >
-                                            <item.icon className={clsx('h-5 w-5 shrink-0', isActive ? 'text-indigo-400' : 'text-muted-foreground group-hover:text-foreground')} />
+                                            <item.icon className={clsx('h-5 w-5 shrink-0', isActive ? 'text-indigo-400' : 'text-foreground group-hover:text-indigo-300')} />
                                             {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
                                         </Link>
                                     </li>
@@ -122,11 +122,11 @@ export function Sidebar({ open, setOpen, collapsed, setCollapsed }: SidebarProps
                                     href="/settings"
                                     title={collapsed ? "Settings" : undefined}
                                     className={clsx(
-                                        "group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors border-l-2 border-transparent",
+                                        "group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted hover:text-indigo-300 transition-colors border-l-2 border-transparent",
                                         collapsed && 'justify-center px-2'
                                     )}
                                 >
-                                    <Settings className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+                                    <Settings className="h-5 w-5 shrink-0 text-foreground group-hover:text-indigo-300" />
                                     {!collapsed && <span className="whitespace-nowrap">Settings</span>}
                                 </Link>
                             </li>
@@ -135,11 +135,11 @@ export function Sidebar({ open, setOpen, collapsed, setCollapsed }: SidebarProps
                                     onClick={() => logout()}
                                     title={collapsed ? "Sign out" : undefined}
                                     className={clsx(
-                                        "w-full group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors border-l-2 border-transparent text-left",
+                                        "w-full group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted hover:text-indigo-300 transition-colors border-l-2 border-transparent text-left",
                                         collapsed && 'justify-center px-2'
                                     )}
                                 >
-                                    <LogOut className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+                                    <LogOut className="h-5 w-5 shrink-0 text-foreground group-hover:text-indigo-300" />
                                     {!collapsed && <span className="whitespace-nowrap">Sign out</span>}
                                 </button>
                             </li>
@@ -151,7 +151,7 @@ export function Sidebar({ open, setOpen, collapsed, setCollapsed }: SidebarProps
                 <div className="hidden lg:flex p-4 border-t border-border justify-end">
                     <button
                         onClick={() => setCollapsed && setCollapsed(!collapsed)}
-                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                        className="p-2 text-foreground hover:text-indigo-400 hover:bg-muted rounded-md transition-colors"
                     >
                         {collapsed ? (
                             <ChevronRight className="h-5 w-5" />

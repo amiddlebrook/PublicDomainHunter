@@ -105,7 +105,7 @@ export default function RegisterPage() {
           <h2 className="mt-6 text-3xl font-extrabold text-white">
             Create your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-300">
             Join Public Domain Hunter to discover and analyze public domain works
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function RegisterPage() {
                   placeholder="Create a password"
                   disabled={loading}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-300">
                   Password must be at least 8 characters and contain uppercase, lowercase, digit, and special character
                 </p>
               </div>
@@ -224,7 +224,7 @@ export default function RegisterPage() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-300">
                 Already have an account?{' '}
                 <Link
                   href="/login"

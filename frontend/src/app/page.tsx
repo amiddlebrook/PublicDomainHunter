@@ -124,7 +124,7 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-gray-200">
             Welcome to your Opportunity Engine.
           </p>
         </div>
@@ -286,7 +286,7 @@ export default function Dashboard() {
                   <p className="text-sm font-medium text-white truncate">
                     {work.title}
                   </p>
-                  <p className="text-sm text-gray-400 truncate">
+                  <p className="text-sm text-gray-200 truncate">
                     {work.author} • {work.public_domain_year}
                   </p>
                 </div>
@@ -298,7 +298,7 @@ export default function Dashboard() {
               </div>
             ))}
             {recentWorks.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-300">
                 No recent works found.
               </div>
             )}
