@@ -117,7 +117,7 @@ export default function ViabilityLabPage() {
 
             {/* Results Section - Only shows after search */}
             {hasSearched && (
-                <div className="bg-gray-50 px-6 py-12">
+                <div className="bg-dark-950 px-6 py-12">
                     <div className="max-w-6xl mx-auto">
                         <ViabilitySearch
                             key={searchQuery} // Force remount on new search
@@ -131,13 +131,13 @@ export default function ViabilityLabPage() {
 
             {/* Info Section - Only shows before search */}
             {!hasSearched && (
-                <div className="bg-gray-50 px-6 py-20">
+                <div className="bg-dark-950 px-6 py-20">
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
                                 How It Works
                             </h2>
-                            <p className="text-lg text-gray-600">
+                            <p className="text-lg text-gray-300">
                                 Three steps to discovering your next opportunity
                             </p>
                         </div>
@@ -166,15 +166,15 @@ export default function ViabilityLabPage() {
                                 <div key={idx} className="relative group">
                                     <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur-xl -z-10"
                                         style={{ backgroundImage: `linear-gradient(to bottom right, ${step.color.split(' ')[1]}, ${step.color.split(' ')[3]})` }}></div>
-                                    <div className="bg-white p-8 rounded-2xl border-2 border-gray-100 group-hover:border-transparent group-hover:shadow-2xl transition-all duration-300 h-full">
+                                    <div className="bg-dark-900 p-8 rounded-2xl border-2 border-dark-700 group-hover:border-transparent group-hover:shadow-2xl transition-all duration-300 h-full">
                                         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
                                             <step.icon className="h-8 w-8 text-white" />
                                         </div>
-                                        <div className="absolute top-4 right-4 text-6xl font-black text-gray-100 group-hover:text-gray-200 transition-colors">
+                                        <div className="absolute top-4 right-4 text-6xl font-black text-dark-800 group-hover:text-dark-700 transition-colors">
                                             {idx + 1}
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                                        <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                                        <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                                        <p className="text-gray-400 leading-relaxed">{step.description}</p>
                                     </div>
                                 </div>
                             ))}
@@ -183,8 +183,8 @@ export default function ViabilityLabPage() {
                         {/* CTA */}
                         <div className="mt-16 text-center">
                             <div className="inline-block bg-gradient-to-r from-violet-600 to-pink-600 p-1 rounded-2xl">
-                                <div className="bg-gray-50 px-8 py-6 rounded-xl">
-                                    <p className="text-2xl font-black text-gray-900 mb-4">
+                                <div className="bg-dark-900 px-8 py-6 rounded-xl">
+                                    <p className="text-2xl font-black text-white mb-4">
                                         Ready to change the world? 🚀
                                     </p>
                                     <Button

@@ -7,11 +7,12 @@ import { PublicDomainService } from './public-domain.service';
 
 export interface SearchFilters {
   author?: string;
-  media_type?: string;
+  media_type?: string | string[];
   language?: string;
   min_year?: number;
   max_year?: number;
   min_score?: number;
+  max_saturation?: number;
   source?: 'gutenberg' | 'archive' | 'all';
 }
 
@@ -72,8 +73,16 @@ export class SearchService {
     }
 
     if (filters?.media_type) {
-      sql += ' AND w.media_type = ?';
-      params.push(filters.media_type);
+      if (Array.isArray(filters.media_type)) {
+        if (filters.media_type.length > 0) {
+          const placeholders = filters.media_type.map(() => '?').join(',');
+          sql += ` AND w.media_type IN (${placeholders})`;
+          params.push(...filters.media_type);
+        }
+      } else {
+        sql += ' AND w.media_type = ?';
+        params.push(filters.media_type);
+      }
     }
 
     if (filters?.language) {
@@ -94,6 +103,11 @@ export class SearchService {
     if (filters?.min_score) {
       sql += ' AND wm.master_monetization_score >= ?';
       params.push(filters.min_score);
+    }
+
+    if (filters?.max_saturation) {
+      sql += ' AND wm.market_saturation_index <= ?';
+      params.push(filters.max_saturation);
     }
 
     // Count total

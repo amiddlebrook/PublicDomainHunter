@@ -21,8 +21,8 @@ import { useAuth } from '@/contexts/AuthContext'
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Market Intelligence', href: '/search', icon: Search },
     { name: 'Viability Lab', href: '/viability', icon: Sparkles },
+    { name: 'Market Intelligence', href: '/search', icon: Search },
     { name: 'Portfolio', href: '/portfolio', icon: Briefcase },
     { name: 'AI Insights', href: '/ai-insights', icon: Sparkles },
     { name: 'Reports', href: '/reports', icon: FileBarChart },

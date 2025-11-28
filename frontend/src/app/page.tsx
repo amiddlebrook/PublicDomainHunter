@@ -156,7 +156,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Link href="/search?sort=created_at&order=desc">
+        <Link href="/new-arrivals">
           <Card className="hover:bg-dark-800 transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
@@ -171,31 +171,35 @@ export default function Dashboard() {
           </Card>
         </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Opportunities</CardTitle>
-            <Star className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">{portfolioCount}</div>
-            <p className="text-xs text-muted-foreground">
-              High-potential works saved
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/portfolio">
+          <Card className="hover:bg-dark-800 transition-colors cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">My Opportunities</CardTitle>
+              <Star className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-500">{portfolioCount}</div>
+              <p className="text-xs text-muted-foreground">
+                High-potential works saved
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Searches</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-500">{recentSearches.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Active research sessions
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/search">
+          <Card className="hover:bg-dark-800 transition-colors cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Recent Searches</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-500">{recentSearches.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Active research sessions
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* The Factory - Quick Start */}
@@ -269,42 +273,6 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
-
-      {/* Recent Works */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Additions</CardTitle>
-          <CardDescription>
-            Latest public domain works added to the catalog
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {Array.isArray(recentWorks) && recentWorks.slice(0, 5).map((work) => (
-              <div key={work.id} className="flex items-center justify-between py-2 border-b border-dark-800 last:border-0">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
-                    {work.title}
-                  </p>
-                  <p className="text-sm text-gray-400 truncate">
-                    {work.author} • {work.public_domain_year}
-                  </p>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/works/${work.id}`}>
-                    View Asset
-                  </Link>
-                </Button>
-              </div>
-            ))}
-            {recentWorks.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No recent works found.
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Stats Source Modal */}
       <StatsSourceModal

@@ -10,15 +10,46 @@ export class ExternalAPIService {
     ) { }
 
     /**
+     * Search Wikipedia for the best matching title
+     */
+    async searchWikipediaTitle(query: string): Promise<string | null> {
+        const cacheKey = `wiki:search:${query}`;
+        if (this.cache) {
+            const cached = await this.cache.get(cacheKey);
+            if (cached) return cached;
+        }
+
+        try {
+            const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+            const response = await fetch(url);
+            const data: any = await response.json();
+
+            if (data.query && data.query.search && data.query.search.length > 0) {
+                const bestMatch = data.query.search[0].title;
+                // Cache for 7 days
+                if (this.cache) {
+                    await this.cache.put(cacheKey, bestMatch, { expirationTtl: 604800 });
+                }
+                return bestMatch;
+            }
+            return null;
+        } catch (error) {
+            console.error('Wikipedia search error:', error);
+            return null;
+        }
+    }
+
+    /**
      * Get Wikipedia pageviews for the last 30 days
      * Acts as a proxy for "Trend Score"
      */
     async getWikipediaPageviews(title: string): Promise<number> {
         if (!title) return 0;
 
-        // Normalize title for Wikipedia (spaces to underscores, etc.)
-        // This is a naive implementation; a real one might search Wikipedia API first to get the exact slug.
-        const slug = title.replace(/\s+/g, '_');
+        // Try to find the correct Wikipedia title first
+        const wikiTitle = await this.searchWikipediaTitle(title) || title;
+        const slug = wikiTitle.replace(/\s+/g, '_');
+
         const cacheKey = `wiki:views:${slug}`;
 
         if (this.cache) {
@@ -44,7 +75,6 @@ export class ExternalAPIService {
             });
 
             if (!response.ok) {
-                // If 404, maybe the title doesn't match exactly. Return 0 for now.
                 return 0;
             }
 

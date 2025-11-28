@@ -219,31 +219,31 @@ export function ViabilitySearch({
                     ]
 
                     return (
-                        <Card key={idx} className="overflow-hidden border-2 border-transparent hover:border-violet-300 hover:shadow-2xl transition-all duration-300 flex flex-col group">
-                            <CardHeader className="pb-2 bg-gradient-to-br from-violet-50 to-purple-50">
+                        <Card key={idx} className="overflow-hidden border-dark-700 bg-dark-900 hover:border-violet-500/50 hover:shadow-2xl transition-all duration-300 flex flex-col group">
+                            <CardHeader className="pb-2 bg-dark-800 border-b border-dark-700">
                                 <div className="flex justify-between items-start">
-                                    <Badge variant="outline" className="mb-2 border-violet-300 text-violet-700">{result.work.media_type}</Badge>
+                                    <Badge variant="outline" className="mb-2 border-violet-500/50 text-violet-400">{result.work.media_type}</Badge>
                                     <Badge className={result.score.master_monetization_score > 75 ? "bg-emerald-500 text-white border-emerald-600" : "bg-yellow-500 text-white border-yellow-600"}>
                                         {result.score.master_monetization_score.toFixed(0)}
                                     </Badge>
                                 </div>
-                                <CardTitle className="line-clamp-1 text-lg group-hover:text-violet-600 transition-colors">
+                                <CardTitle className="line-clamp-1 text-lg text-white group-hover:text-violet-400 transition-colors">
                                     <Link href={`/works/${result.work.id}`}>
                                         {result.work.title}
                                     </Link>
                                 </CardTitle>
-                                <CardDescription>{result.work.author}</CardDescription>
+                                <CardDescription className="text-gray-400">{result.work.author}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-1 flex flex-col gap-4 pt-4">
                                 <div className="h-40 w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#374151" />
                                             <XAxis type="number" domain={[0, 100]} hide />
-                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
+                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12, fill: '#9ca3af' }} />
                                             <Tooltip
                                                 cursor={{ fill: 'transparent' }}
-                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: '1px solid #374151', color: '#fff' }}
                                             />
                                             <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                                                 {chartData.map((entry, index) => (
@@ -254,21 +254,21 @@ export function ViabilitySearch({
                                     </ResponsiveContainer>
                                 </div>
 
-                                <div className="bg-gradient-to-br from-slate-50 to-gray-100 p-4 rounded-lg border border-slate-200 flex-1">
-                                    <h4 className="font-semibold text-slate-900 flex items-center gap-2 mb-2 text-sm">
-                                        <TrendingUp className="h-4 w-4 text-violet-600" />
+                                <div className="bg-dark-800 p-4 rounded-lg border border-dark-700 flex-1">
+                                    <h4 className="font-semibold text-white flex items-center gap-2 mb-2 text-sm">
+                                        <TrendingUp className="h-4 w-4 text-violet-400" />
                                         AI Analysis
                                     </h4>
-                                    <p className="text-slate-600 text-sm leading-relaxed mb-3">
+                                    <p className="text-gray-300 text-sm leading-relaxed mb-3">
                                         {result.viability_reasoning}
                                     </p>
-                                    <div className="pt-3 border-t border-slate-200">
-                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recommended Path</span>
-                                        <p className="text-violet-700 font-medium text-sm mt-1">{result.recommended_path}</p>
+                                    <div className="pt-3 border-t border-dark-700">
+                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Recommended Path</span>
+                                        <p className="text-violet-400 font-medium text-sm mt-1">{result.recommended_path}</p>
                                     </div>
                                 </div>
 
-                                <Button className="w-full mt-auto bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 group/btn" asChild>
+                                <Button className="w-full mt-auto bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 group/btn text-white" asChild>
                                     <Link href={`/works/${result.work.id}`}>
                                         SEE THE MAGIC
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />

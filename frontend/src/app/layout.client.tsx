@@ -133,11 +133,11 @@ function ClientLayoutContent({ children, sidebarOpen, setSidebarOpen, sidebarCol
                           <div className="text-muted-foreground">{user.email}</div>
                         </div>
                         <Link
-                          href="/profile"
+                          href="/settings"
                           className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
                           onClick={() => setUserMenuOpen(false)}
                         >
-                          Profile Settings
+                          Settings
                         </Link>
                         <button
                           onClick={handleLogout}

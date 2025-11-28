@@ -65,6 +65,7 @@ export interface SaturationData {
     app_store_apps: number;
     total_existing_works: number;
     saturation_level: 'low' | 'moderate' | 'high' | 'extreme';
+    wikipedia_views?: number;
 }
 
 export interface AIAnalysis {
@@ -168,7 +169,7 @@ export class MonetizationEngineService {
 
         // Calculate all metrics in parallel
         const [
-            msi,
+            msiResult,
             cpps,
             adm,
             tmw,
@@ -190,6 +191,8 @@ export class MonetizationEngineService {
             this.calculatePlatformScores(work),
             this.calculateDemographicScores(work)
         ]);
+
+        const msi = msiResult.score;
 
         // Calculate weighted master score
         const rawMMS = this.computeMasterScore({
@@ -230,6 +233,7 @@ export class MonetizationEngineService {
             competitive_moat_score: Math.round(cma * 100) / 100,
             ai_prediction_score: Math.round(aips * 100) / 100,
             patent_invention_score: Math.round(pims * 100) / 100,
+            saturation_data: msiResult.data,
             ...platformScores,
             ...demographicScores
         };
@@ -282,7 +286,7 @@ export class MonetizationEngineService {
      * Calculate Market Saturation Index
      * Lower is better - indicates less competition
      */
-    private async calculateMarketSaturation(work: Work): Promise<number> {
+    private async calculateMarketSaturation(work: Work): Promise<{ score: number, data: SaturationData }> {
         // Integrate with External APIs via ExternalAPIService
         let realSaturationData = 0;
         if (this.env) {
@@ -322,7 +326,21 @@ export class MonetizationEngineService {
             saturation = (wikiSaturation * 0.6) + (saturation * 0.4);
         }
 
-        return saturation;
+        const saturationLevel = saturation < 30 ? 'low' : saturation < 60 ? 'moderate' : saturation < 85 ? 'high' : 'extreme';
+
+        return {
+            score: saturation,
+            data: {
+                amazon_listings: 0, // Placeholder
+                youtube_videos: 0, // Placeholder
+                tmdb_adaptations: 0, // Placeholder
+                active_trademarks: 0, // Placeholder
+                app_store_apps: 0, // Placeholder
+                total_existing_works: 0, // Placeholder
+                saturation_level: saturationLevel,
+                wikipedia_views: realSaturationData
+            }
+        };
     }
 
     /**
@@ -494,7 +512,9 @@ export class MonetizationEngineService {
         }
 
         // First-mover opportunity (if low saturation)
-        const saturation = await this.calculateMarketSaturation(work);
+        const saturationResult = await this.calculateMarketSaturation(work);
+        const saturation = saturationResult.score;
+
         if (saturation < 40) {
             score += 35; // Strong first-mover advantage
         } else if (saturation < 70) {

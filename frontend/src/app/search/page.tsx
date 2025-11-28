@@ -72,8 +72,8 @@ export default function SearchPage() {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
   const [showFilters, setShowFilters] = useState(true)
   const [filters, setFilters] = useState<any>({
-    minYear: 1800,
-    maxYear: 2030,
+    minYear: new Date().getFullYear(),
+    maxYear: 2095,
     mediaTypes: [] as string[],
     minScore: 0,
     maxSaturation: 100
@@ -100,6 +100,7 @@ export default function SearchPage() {
       if (filters.minYear) params.append('min_year', filters.minYear.toString())
       if (filters.maxYear) params.append('max_year', filters.maxYear.toString())
       if (filters.minScore > 0) params.append('min_score', filters.minScore.toString())
+      if (filters.maxSaturation < 100) params.append('max_saturation', filters.maxSaturation.toString())
 
       const response = await fetch(`${API_BASE_URL}/api/search?${params}`)
       if (response.ok) {
@@ -340,7 +341,7 @@ export default function SearchPage() {
                     </span>
                   </div>
                   <Slider
-                    defaultValue={[1800, 2030]}
+                    defaultValue={[new Date().getFullYear(), 2095]}
                     min={1800}
                     max={2095}
                     step={1}

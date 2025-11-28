@@ -76,6 +76,44 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
     fetchWork()
   }, [workId])
 
+  const handleTrack = async () => {
+    if (!work) return
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_BASE_URL}/api/tracking/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ work_id: work.id })
+      })
+      if (response.ok) {
+        alert('Added to tracking list!')
+      }
+    } catch (error) {
+      console.error('Failed to track work', error)
+    }
+  }
+
+  const handleShare = () => {
+    const url = window.location.href
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link copied to clipboard!')
+    })
+  }
+
+  const handleExport = () => {
+    if (!work) return
+    const dataStr = JSON.stringify(work, null, 2)
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr)
+    const exportFileDefaultName = `work-${work.id}.json`
+    const linkElement = document.createElement('a')
+    linkElement.setAttribute('href', dataUri)
+    linkElement.setAttribute('download', exportFileDefaultName)
+    linkElement.click()
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -135,11 +173,11 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleTrack}>
                 <Bookmark className="h-4 w-4 mr-2" />
                 Track
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleShare}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
@@ -250,7 +288,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
                 </div>
               )}
               <div className="pt-4">
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={handleExport}>
                   <Download className="h-4 w-4 mr-2" />
                   Export Metadata
                 </Button>
@@ -258,7 +296,7 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
             </CardContent>
           </Card>
 
-          {/* Market Signals (Placeholder for future expansion) */}
+          {/* Market Signals */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">
@@ -270,19 +308,23 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
                 <div className="bg-gray-50 p-3 rounded-md">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-gray-700">Search Volume</span>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">High</Badge>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      {work.metadata?.search_volume ? (work.metadata.search_volume > 70 ? 'High' : 'Med') : 'High'}
+                    </Badge>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '85%' }}></div>
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${work.metadata?.search_volume || 85}%` }}></div>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-md">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-gray-700">Competition</span>
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Med</Badge>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                      {work.metadata?.competition_score ? (work.metadata.competition_score > 70 ? 'High' : 'Med') : 'Med'}
+                    </Badge>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
+                    <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: `${work.metadata?.competition_score || 45}%` }}></div>
                   </div>
                 </div>
               </div>

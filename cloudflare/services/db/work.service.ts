@@ -16,7 +16,7 @@ export interface Work {
   language: string;
   page_count?: number;
   file_size?: number;
-  metadata?: string; // JSON string
+  metadata?: any; // Changed from string to any to support parsed JSON
   status: string;
   created_at: string;
   updated_at: string;
@@ -57,7 +57,7 @@ export interface WorkSearchFilters {
 }
 
 export class WorkService {
-  constructor(private db: D1Database) {}
+  constructor(private db: D1Database) { }
 
   /**
    * Create a new work
@@ -92,12 +92,51 @@ export class WorkService {
   }
 
   /**
-   * Find work by ID
+   * Find work by ID with metrics merged into metadata
    */
   async findById(id: number): Promise<Work | null> {
-    return await this.db.prepare('SELECT * FROM Work WHERE id = ?')
+    const work = await this.db.prepare('SELECT * FROM Work WHERE id = ?')
       .bind(id)
       .first<Work>();
+
+    if (!work) return null;
+
+    // Parse metadata if it's a string
+    if (typeof work.metadata === 'string') {
+      try {
+        work.metadata = JSON.parse(work.metadata);
+      } catch (e) {
+        work.metadata = {};
+      }
+    } else if (!work.metadata) {
+      work.metadata = {};
+    }
+
+    // Fetch latest metrics
+    try {
+      const metrics = await this.db.prepare(`
+        SELECT * FROM WorkMetric 
+        WHERE work_id = ? 
+        ORDER BY metric_date DESC 
+        LIMIT 1
+      `).bind(id).first<any>();
+
+      if (metrics) {
+        work.metadata = {
+          ...work.metadata,
+          monetization_score: metrics.master_monetization_score,
+          saturation_index: metrics.market_saturation_index,
+          competition_score: metrics.market_saturation_index, // Map saturation to competition
+          search_volume: metrics.temporal_window_score, // Proxy search volume with temporal score for now
+          // Add other metrics as needed
+          metrics: metrics // Include full metrics object
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to fetch metrics for work', id, e);
+    }
+
+    return work;
   }
 
   /**

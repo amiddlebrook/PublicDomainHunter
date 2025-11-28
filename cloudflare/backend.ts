@@ -723,10 +723,14 @@ app.get('/api/search', async (c) => {
   const source = c.req.query('source') as 'gutenberg' | 'archive' | 'all' | undefined;
 
   // Parse filters
-  const media_type = c.req.query('media_type');
+  // Hono's c.req.queries returns string[] for multiple values
+  const media_types = c.req.queries('media_type');
+  const media_type = media_types && media_types.length > 0 ? media_types : c.req.query('media_type');
+
   const min_year = c.req.query('min_year') ? parseInt(c.req.query('min_year')!) : undefined;
   const max_year = c.req.query('max_year') ? parseInt(c.req.query('max_year')!) : undefined;
   const min_score = c.req.query('min_score') ? parseInt(c.req.query('min_score')!) : undefined;
+  const max_saturation = c.req.query('max_saturation') ? parseInt(c.req.query('max_saturation')!) : undefined;
 
   const searchService = new SearchService(c.env.DB, c.env.CACHE);
   const searchResults = await searchService.searchCombined(query, page, page_size, {
@@ -734,7 +738,8 @@ app.get('/api/search', async (c) => {
     media_type,
     min_year,
     max_year,
-    min_score
+    min_score,
+    max_saturation
   });
 
   // Track search
