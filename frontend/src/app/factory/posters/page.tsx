@@ -35,11 +35,19 @@ export default function PosterFactoryPage() {
     const handleGenerate = async () => {
         setGenerating(true)
         try {
+            // Get token safely (client-side only)
+            const getToken = () => {
+                if (typeof window !== 'undefined') {
+                    return localStorage.getItem('token')
+                }
+                return null
+            }
+
             const response = await fetch('/api/factory/poster/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${getToken()}`
                 },
                 body: JSON.stringify({
                     title: formData.title,
@@ -61,7 +69,7 @@ export default function PosterFactoryPage() {
             const pollStatus = async () => {
                 const statusResponse = await fetch(`/api/factory/poster/status/${result.generation_id}`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${getToken()}`
                     }
                 })
                 
