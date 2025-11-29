@@ -723,8 +723,8 @@ app.post('/api/works/:id/refresh-metrics', async (c) => {
     competition_score: metrics.competition_score,
     demand_score: metrics.demand_score,
     monetization_potential: metrics.monetization_potential,
-    google_trends_interest: metrics.google_trends_interest,
-    amazon_sales_rank: Math.floor(Math.random() * 100000) + 1000
+    google_trends_interest: metrics.google_trends_interest
+    // amazon_sales_rank removed - no real data source connected
   });
 
   return c.json({ success: true, metrics: savedMetric });
