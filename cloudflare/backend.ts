@@ -657,7 +657,28 @@ app.get('/api/works/:id', async (c) => {
         return c.json({ error: 'Work not found' }, 404);
       }
 
-      return c.json(work);
+      // Calculate market signals for external works too
+      const marketSignalService = new MarketSignalService(c.env, c.env.CACHE);
+      console.log('Calculating market signals for external work:', work.id, work.title);
+      const metrics = await marketSignalService.calculateMetrics(work);
+      console.log('Calculated external metrics:', metrics);
+
+      // Add market signals to external work response
+      const workWithSignals = {
+        ...work,
+        metadata: {
+          ...work.metadata,
+          search_volume: metrics.search_volume,
+          competition_score: metrics.competition_score,
+          trend_score: metrics.trend_score,
+          demand_score: metrics.demand_score,
+          monetization_potential: metrics.monetization_potential
+        }
+      };
+      
+      console.log('External work with signals:', workWithSignals.metadata);
+
+      return c.json(workWithSignals);
     } catch (error) {
       console.error(`Error fetching external work ${idParam}:`, error);
       return c.json({ error: 'Failed to fetch work details' }, 500);

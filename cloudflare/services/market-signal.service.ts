@@ -25,11 +25,11 @@ export class MarketSignalService {
     /**
      * Calculate market metrics for a work based on available data
      */
-    async calculateMetrics(work: Work): Promise<MarketMetrics> {
+    async calculateMetrics(work: Work | any): Promise<MarketMetrics> {
         const currentYear = new Date().getFullYear();
         
-        // Better public domain year calculation
-        let pdYear = work.public_domain_year || work.original_publication_year;
+        // Better public domain year calculation - handle both Work and PublicDomainWork interfaces
+        let pdYear = work.public_domain_year || work.original_publication_year || work.publication_year;
         if (!pdYear && work.author_death_year) {
             pdYear = work.author_death_year + 70;
         }
@@ -39,8 +39,9 @@ export class MarketSignalService {
             title: work.title,
             pdYear: pdYear,
             mediaType: work.media_type,
-            publicationYear: work.original_publication_year,
-            authorDeathYear: work.author_death_year
+            publicationYear: work.original_publication_year || work.publication_year,
+            authorDeathYear: work.author_death_year,
+            source: work.source
         });
 
         // Initialize External API Service
