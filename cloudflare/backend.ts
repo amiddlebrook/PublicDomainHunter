@@ -519,7 +519,7 @@ app.get('/auth/github/callback', async (c) => {
  */
 app.get('/auth/session', async (c) => {
   try {
-    const sessionId = c.req.cookie('session_id');
+    const sessionId = c.req.cookie('session');
 
     if (!sessionId) {
       return c.json({ authenticated: false });
@@ -550,7 +550,7 @@ app.get('/auth/session', async (c) => {
  */
 app.post('/auth/logout', async (c) => {
   try {
-    const sessionId = c.req.cookie('session_id');
+    const sessionId = c.req.cookie('session');
 
     if (sessionId && c.env.SESSIONS) {
       await deleteSession(c.env.SESSIONS, sessionId);
