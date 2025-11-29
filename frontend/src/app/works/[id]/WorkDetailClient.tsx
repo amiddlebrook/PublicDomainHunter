@@ -309,22 +309,22 @@ export default function WorkDetailClient({ workId }: WorkDetailClientProps) {
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-gray-700">Search Volume</span>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {work.metadata?.search_volume ? (work.metadata.search_volume > 70 ? 'High' : 'Med') : 'High'}
+                      {work.metadata?.search_volume ? (work.metadata.search_volume > 70 ? 'High' : 'Med') : 'Low'}
                     </Badge>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${work.metadata?.search_volume || 85}%` }}></div>
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${work.metadata?.search_volume || 0}%` }}></div>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-md">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-gray-700">Competition</span>
                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      {work.metadata?.competition_score ? (work.metadata.competition_score > 70 ? 'High' : 'Med') : 'Med'}
+                      {work.metadata?.competition_score ? (work.metadata.competition_score > 70 ? 'High' : 'Med') : 'Low'}
                     </Badge>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: `${work.metadata?.competition_score || 45}%` }}></div>
+                    <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: `${work.metadata?.competition_score || 0}%` }}></div>
                   </div>
                 </div>
               </div>
