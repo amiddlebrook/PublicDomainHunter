@@ -59,46 +59,57 @@ class MarketInsight(BaseModel):
     opportunity_score: float
     insights: List[str]
 
-@router.get("/market/overview")
+class MarketOverview(BaseModel):
+    market_size: int
+    categories: List[Dict[str, Any]]
+    trends: List[Dict[str, Any]]
+
+@router.get("/market/overview", response_model=MarketOverview)
 async def get_market_overview(
-    category: Optional[str] = Query(None, description="Filter by category"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get comprehensive market overview for public domain content.
+    Get real market overview based on actual database data.
     """
     try:
-        # Get market size and trends
-        total_works = db.query(func.count(Work.id)).filter(Work.status == "active").scalar()
+        # Get real data from database
+        total_works = db.query(Work).count()
         
-        # Category distribution
+        # Get real category distribution
         category_query = db.query(
-            Work.media_type,
-            func.count(Work.id).label('count')
-        ).filter(Work.status == "active").group_by(Work.media_type)
+            Work.category,
+            func.count(Work.id).label('count'),
+            func.avg(Work.monetization_score).label('avg_score')
+        ).group_by(Work.category).all()
         
-        categories = [{"type": cat[0], "count": cat[1]} for cat in category_query.all()]
+        categories = []
+        for cat in category_query:
+            if cat.category:
+                categories.append({
+                    "name": cat.category,
+                    "count": cat.count or 0,
+                    "avg_score": float(cat.avg_score or 0),
+                    "growth_rate": 0.0  # Will calculate from historical data
+                })
         
-        # Recent trends (mock data - in production would use real analytics)
-        market_trends = {
-            "overall_growth": 15.3,
-            "top_categories": [
-                {"category": "books", "growth": 18.2, "market_share": 45.1},
-                {"category": "audio", "growth": 22.7, "market_share": 23.8},
-                {"category": "visual", "growth": 12.4, "market_share": 31.1}
-            ],
-            "emerging_trends": [
-                "Audiobook demand increasing",
-                "Educational content growth",
-                "Visual content monetization"
-            ],
-            "market_insights": [
-                "Classic literature showing renewed interest",
-                "Educational institutions adopting public domain content",
-                "Independent publishers driving market growth"
-            ]
-        }
+        # Get real market trends from actual work metrics
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        
+        # Get trending works based on recent metrics
+        trending_works = db.query(Work).join(WorkMetric).filter(
+            WorkMetric.created_at >= thirty_days_ago
+        ).order_by(desc(WorkMetric.views)).limit(10).all()
+        
+        market_trends = [
+            {
+                "keyword": work.title[:50] if work.title else "Unknown",
+                "growth": 100.0,  # Calculate from historical data
+                "volume": work.metrics[-1].views if work.metrics else 0,
+                "category": work.category or "General"
+            }
+            for work in trending_works
+        ]
         
         return {
             "market_size": total_works,
@@ -118,56 +129,75 @@ async def analyze_market(
     db: Session = Depends(get_db)
 ):
     """
-    Perform detailed market analysis for specific categories.
+    Perform detailed market analysis using real database data.
     """
     try:
         insights = []
         
-        # Mock market analysis based on category
-        if not request.category or request.category == "books":
-            insights.append(MarketInsight(
-                category="Literature",
-                trend_direction="increasing",
-                market_size=1250000,
-                growth_rate=18.2,
-                top_keywords=["classic literature", "public domain books", "vintage novels"],
-                opportunity_score=0.85,
-                insights=[
-                    "Strong demand for classic literature adaptations",
-                    "Educational sector driving growth",
-                    "International markets expanding"
-                ]
-            ))
+        # Get real category data from database
+        base_query = db.query(Work).filter(Work.status == "active")
         
-        if not request.category or request.category == "audio":
-            insights.append(MarketInsight(
-                category="Audio Content",
-                trend_direction="strongly_increasing",
-                market_size=450000,
-                growth_rate=32.7,
-                top_keywords=["audiobooks", "audio classics", "narrated books"],
-                opportunity_score=0.92,
-                insights=[
-                    "Audiobook market experiencing rapid growth",
-                    "Mobile listening driving adoption",
-                    "AI narration reducing production costs"
-                ]
-            ))
+        if request.category:
+            base_query = base_query.filter(Work.category == request.category)
         
-        if not request.category or request.category == "visual":
-            insights.append(MarketInsight(
-                category="Visual Content",
-                trend_direction="stable",
-                market_size=890000,
-                growth_rate=8.4,
-                top_keywords=["vintage posters", "classic art", "public domain images"],
-                opportunity_score=0.73,
-                insights=[
-                    "Steady demand for visual adaptations",
-                    "Social media driving visual content needs",
-                    "Print-on-demand reducing barriers"
-                ]
-            ))
+        # Calculate real market size and growth
+        total_works = base_query.count()
+        
+        # Get growth data from last 30 days vs previous 30 days
+        now = datetime.utcnow()
+        thirty_days_ago = now - timedelta(days=30)
+        sixty_days_ago = now - timedelta(days=60)
+        
+        recent_works = base_query.filter(Work.created_at >= thirty_days_ago).count()
+        previous_works = base_query.filter(Work.created_at >= sixty_days_ago, Work.created_at < thirty_days_ago).count()
+        
+        growth_rate = ((recent_works - previous_works) / max(previous_works, 1)) * 100 if previous_works > 0 else 0
+        
+        # Get top performing keywords from actual work titles
+        works = base_query.order_by(desc(Work.monetization_score)).limit(50).all()
+        keyword_counts = {}
+        
+        for work in works:
+            if work.title:
+                # Extract simple keywords from title
+                words = work.title.lower().split()
+                for word in words:
+                    if len(word) > 3:  # Only meaningful words
+                        keyword_counts[word] = keyword_counts.get(word, 0) + 1
+        
+        top_keywords = sorted(keyword_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_keywords_list = [kw[0] for kw in top_keywords]
+        
+        # Calculate opportunity score based on real metrics
+        avg_monetization_score = db.query(func.avg(Work.monetization_score)).filter(
+            Work.status == "active"
+        ).scalar() or 0
+        
+        opportunity_score = min(avg_monetization_score / 100, 1.0)
+        
+        # Generate real insights based on data
+        insights_list = []
+        if growth_rate > 10:
+            insights_list.append(f"Strong growth trend with {growth_rate:.1f}% increase in new works")
+        if avg_monetization_score > 70:
+            insights_list.append("High monetization potential across analyzed works")
+        if len(top_keywords_list) > 0:
+            insights_list.append(f"Top performing keywords: {', '.join(top_keywords_list[:3])}")
+        
+        if not insights_list:
+            insights_list.append("Market data available for deeper analysis")
+        
+        # Create market insight for the category
+        category_name = request.category or "All Categories"
+        insights.append(MarketInsight(
+            category=category_name.title(),
+            trend_direction="increasing" if growth_rate > 5 else "stable" if growth_rate > -5 else "decreasing",
+            market_size=total_works,
+            growth_rate=growth_rate,
+            top_keywords=top_keywords_list,
+            opportunity_score=opportunity_score,
+            insights=insights_list
+        ))
         
         return insights
         
@@ -178,35 +208,102 @@ async def analyze_market(
 @router.post("/trends/predict", response_model=Dict[str, Any])
 async def predict_trends(
     request: TrendPredictionRequest,
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
 ):
     """
-    Predict future trends for given keywords using AI analysis.
+    Predict future trends using real historical data from database.
     """
     try:
         predictions = {}
         
         for keyword in request.keywords:
-            # Mock prediction data (in production would use ML models)
-            base_score = trends_service.get_trend_score(keyword, "")
+            # Get real works matching this keyword
+            matching_works = db.query(Work).filter(
+                Work.title.ilike(f"%{keyword}%"),
+                Work.status == "active"
+            ).all()
             
-            # Simulate prediction based on historical patterns
-            prediction = {
+            if not matching_works:
+                # No data found for this keyword
+                predictions[keyword] = {
+                    "keyword": keyword,
+                    "current_score": 0,
+                    "predicted_score": 0,
+                    "confidence": 0.0,
+                    "trend_direction": "unknown",
+                    "seasonal_factor": 1.0,
+                    "market_potential": "low",
+                    "recommendations": ["Insufficient data for prediction"],
+                    "data_points": 0
+                }
+                continue
+            
+            # Calculate current score based on real metrics
+            total_views = sum(w.metrics[-1].views if w.metrics else 0 for w in matching_works)
+            avg_monetization = sum(w.monetization_score or 0 for w in matching_works) / len(matching_works)
+            current_score = min((total_views / 1000 + avg_monetization) / 2, 100)
+            
+            # Analyze historical growth pattern
+            now = datetime.utcnow()
+            thirty_days_ago = now - timedelta(days=30)
+            sixty_days_ago = now - timedelta(days=60)
+            
+            recent_works = len([w for w in matching_works if w.created_at >= thirty_days_ago])
+            previous_works = len([w for w in matching_works if w.created_at >= sixty_days_ago and w.created_at < thirty_days_ago])
+            
+            # Calculate growth rate
+            growth_rate = ((recent_works - previous_works) / max(previous_works, 1)) * 100 if previous_works > 0 else 0
+            
+            # Predict future score based on growth pattern
+            if growth_rate > 20:
+                predicted_score = min(current_score * 1.2, 100)
+                trend_direction = "strongly_increasing"
+            elif growth_rate > 5:
+                predicted_score = min(current_score * 1.1, 100)
+                trend_direction = "increasing"
+            elif growth_rate > -5:
+                predicted_score = current_score
+                trend_direction = "stable"
+            else:
+                predicted_score = max(current_score * 0.9, 0)
+                trend_direction = "decreasing"
+            
+            # Calculate confidence based on data volume
+            confidence = min(len(matching_works) / 10, 0.95) if len(matching_works) > 0 else 0
+            
+            # Determine market potential
+            if current_score > 70 and growth_rate > 10:
+                market_potential = "high"
+            elif current_score > 40:
+                market_potential = "medium"
+            else:
+                market_potential = "low"
+            
+            # Generate real recommendations
+            recommendations = []
+            if trend_direction == "strongly_increasing":
+                recommendations.append(f"Rapid growth in {keyword} - prioritize content creation")
+            if market_potential == "high":
+                recommendations.append("Strong monetization potential - consider premium formats")
+            if len(matching_works) < 5:
+                recommendations.append("Limited competition - good entry opportunity")
+            
+            if not recommendations:
+                recommendations.append("Monitor for further data points")
+            
+            predictions[keyword] = {
                 "keyword": keyword,
-                "current_score": base_score,
-                "predicted_score": base_score * (1 + (hash(keyword) % 20) / 100),
-                "confidence": 0.75 + (hash(keyword) % 15) / 100,
-                "trend_direction": "increasing" if hash(keyword) % 2 else "stable",
-                "seasonal_factor": 1.1 + (hash(keyword) % 5) / 100,
-                "market_potential": "high" if base_score > 70 else "medium" if base_score > 40 else "low",
-                "recommendations": [
-                    f"Focus on {keyword} content in Q2",
-                    "Consider multimedia adaptations",
-                    "Target educational markets"
-                ]
+                "current_score": round(current_score, 2),
+                "predicted_score": round(predicted_score, 2),
+                "confidence": round(confidence, 2),
+                "trend_direction": trend_direction,
+                "seasonal_factor": 1.0,  # Would need more historical data for seasonal analysis
+                "market_potential": market_potential,
+                "recommendations": recommendations,
+                "data_points": len(matching_works),
+                "growth_rate": round(growth_rate, 2)
             }
-            
-            predictions[keyword] = prediction
         
         return {
             "predictions": predictions,
