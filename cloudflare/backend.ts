@@ -615,6 +615,23 @@ app.get('/api/works/:id', async (c) => {
       return c.json({ error: 'Work not found' }, 404);
     }
 
+    // Calculate market signals for this work
+    const marketSignalService = new MarketSignalService(c.env, c.env.CACHE);
+    const metrics = await marketSignalService.calculateMetrics(work);
+
+    // Add market signals to work response
+    const workWithSignals = {
+      ...work,
+      metadata: {
+        ...work.metadata,
+        search_volume: metrics.search_volume,
+        competition_score: metrics.competition_score,
+        trend_score: metrics.trend_score,
+        demand_score: metrics.demand_score,
+        monetization_potential: metrics.monetization_potential
+      }
+    };
+
     // Track view
     const authHeader = c.req.header('Authorization');
     const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
@@ -625,7 +642,7 @@ app.get('/api/works/:id', async (c) => {
       await analyticsService.trackWorkView(parseInt(payload.sub), id);
     }
 
-    return c.json(work);
+    return c.json(workWithSignals);
   } else {
     // Handle external works (e.g., from Gutenberg, Internet Archive)
     try {

@@ -37,7 +37,7 @@ export class MarketSignalService {
                 const externalService = new ExternalAPIService(this.env, this.cache);
                 realTrendData = await externalService.getWikipediaPageviews(work.title);
             } catch (e) {
-                console.warn('Failed to load ExternalAPIService', e);
+                console.warn('Failed to load ExternalAPIService, using fallback calculations', e);
             }
         }
 
@@ -45,7 +45,7 @@ export class MarketSignalService {
         // Combine heuristic (PD status) with REAL Wikipedia data
         let trendScore = 50;
 
-        // Base heuristic
+        // Base heuristic calculation
         if (pdYear > currentYear) {
             const yearsUntil = pdYear - currentYear;
             trendScore = Math.max(0, 100 - (yearsUntil * 10));
@@ -55,12 +55,30 @@ export class MarketSignalService {
         }
 
         // Boost with Real Data (Wikipedia Views)
-        // Assume > 10,000 monthly views is "Viral" (100)
-        // < 100 views is "Obscure" (0 boost)
         if (realTrendData > 0) {
             const wikiScore = Math.min(100, (realTrendData / 10000) * 100);
             // Weighted average: 70% Real Data, 30% Heuristic
             trendScore = (wikiScore * 0.7) + (trendScore * 0.3);
+        } else {
+            // Fallback: Use title-based scoring if no Wikipedia data
+            const title = work.title || '';
+            const titleLower = title.toLowerCase();
+            
+            // Boost for famous works/authors
+            const famousKeywords = ['pride', 'prejudice', 'adventure', 'treasure', 'odyssey', 'divine', 'comedy', 'inferno'];
+            const famousAuthors = ['shakespeare', 'dickens', 'austen', 'twain', 'homer', 'dante', 'milton'];
+            
+            if (famousKeywords.some(keyword => titleLower.includes(keyword))) {
+                trendScore += 20;
+            }
+            if (famousAuthors.some(author => titleLower.includes(author))) {
+                trendScore += 25;
+            }
+            
+            // Boost for classic indicators
+            if (titleLower.includes('classic') || titleLower.includes('great')) {
+                trendScore += 15;
+            }
         }
 
         trendScore = Math.min(100, Math.max(0, trendScore));
@@ -98,6 +116,15 @@ export class MarketSignalService {
         if (pdYear < currentYear - 20) {
             competitionScore += 20;
         }
+        
+        // Adjust based on title specificity
+        const titleWords = (work.title || '').split(' ').length;
+        if (titleWords <= 2) {
+            competitionScore += 15; // Short titles = more competition
+        } else if (titleWords >= 5) {
+            competitionScore -= 10; // Long titles = less competition
+        }
+        
         competitionScore = Math.min(100, Math.max(0, competitionScore));
 
         // 4. Monetization Potential (0-100)
@@ -107,13 +134,19 @@ export class MarketSignalService {
 
         // 5. Search Volume (Estimated monthly searches)
         // Use real Wikipedia views as a baseline if available
-        let searchVolume = 1000;
+        let searchVolume;
         if (realTrendData > 0) {
             // Wikipedia views are a good proxy for search volume
             searchVolume = realTrendData;
         } else {
+            // Fallback: Estimate based on trend score
             const baseVolume = 1000;
             searchVolume = Math.floor(baseVolume * (demandScore / 10));
+            
+            // Boost for famous works
+            if (trendScore > 70) {
+                searchVolume *= 2;
+            }
         }
 
         // 6. Google Trends Interest (0-100)
