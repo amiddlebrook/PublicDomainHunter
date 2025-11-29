@@ -51,7 +51,7 @@ export default function Models3DFactoryPage() {
     }
 
     const handleDownload = (format: string) => {
-        alert(`Downloading 3D model in ${format.toUpperCase()} format`)
+        alert(`Downloading 3D model in ${format?.toUpperCase() || 'GLB'} format`)
     }
 
     return (
@@ -290,11 +290,15 @@ export default function Models3DFactoryPage() {
                                     <div className="grid grid-cols-2 gap-3 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-gray-400">Polygons:</span>
-                                            <span className="text-orange-400 font-mono">{formData.polygonCount[0].toLocaleString()}</span>
+                                            <span className="text-orange-400 font-mono">
+                                                {formData.polygonCount?.[0]?.toLocaleString() || '50,000'}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-400">Textures:</span>
-                                            <span className="text-orange-400">{formData.textureResolution.toUpperCase()}</span>
+                                            <span className="text-orange-400">
+                                                {formData.textureResolution?.toUpperCase() || '2K'}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-400">Style:</span>
