@@ -90,8 +90,8 @@ export default function PortfolioPage() {
     }
 
     const filteredWorks = savedWorks.filter(work =>
-        work.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (work.author && work.author.toLowerCase().includes(searchQuery.toLowerCase()))
+        (work.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (work.author?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     )
 
     const highPotentialWorks = filteredWorks.filter(w => (w.monetization_score || 0) >= 70)
