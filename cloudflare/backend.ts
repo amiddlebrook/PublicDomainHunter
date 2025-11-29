@@ -297,222 +297,102 @@ app.get('/auth/google/callback', async (c) => {
 
     if (!clientId || !clientSecret) {
       return c.redirect('/login?error=oauth_not_configured');
-    }
+      const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`;
 
-    const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`;
-
-    // Exchange code for token
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-      }),
-    });
-
-    if (!tokenResponse.ok) {
-      return c.redirect('/login?error=token_exchange_failed');
-    }
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
-
-    // Get user info
-    const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-
-    if (!userResponse.ok) {
-      return c.redirect('/login?error=user_info_failed');
-    }
-
-    const userData = await userResponse.json();
-    const userService = new UserService(c.env.DB);
-
-    // Find or create user
-    let user = await userService.findByEmail(userData.email);
-
-    if (!user) {
-      // Create new user
-      const username = userData.email.split('@')[0] + '_' + Math.random().toString(36).substring(7);
-      user = await userService.create({
-        email: userData.email,
-        username,
-        hashed_password: '', // OAuth users don't have passwords
-        full_name: userData.name,
+      console.log('Google OAuth callback received');
+      // Exchange code for token
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        }),
       });
-    }
 
-    if (!user) {
-      return c.redirect('/login?error=user_creation_failed');
-    }
+      const tokenData = await tokenResponse.json();
+      console.log('Google token response status:', tokenResponse.status);
 
-    // Create session
-    const sessionId = await createSession(
-      c.env.SESSIONS,
-      user.id.toString(),
-      user.email,
-      user.username,
-      'google'
-    );
+      if (tokenData.error) {
+        console.error('Google token error:', tokenData.error);
+        return c.redirect('/login?error=token_exchange_failed');
+      }
 
-    // Set session cookie and redirect
-    return new Response(null, {
-      status: 302,
-      headers: {
-        'Location': '/',
-        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
-      },
-    });
-  } catch (error) {
-    console.error('Google OAuth error:', error);
-    return c.redirect('/login?error=oauth_error');
-  }
-});
+      const accessToken = tokenData.access_token;
 
-/**
- * Initiate GitHub OAuth flow
- */
-app.get('/auth/github', async (c) => {
-  const clientId = c.env.GITHUB_CLIENT_ID;
-  if (!clientId) {
-    return c.json({ error: 'GitHub OAuth not configured' }, 500);
-  }
+      // Get user info
+      const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
-  const redirectUri = `${new URL(c.req.url).origin}/auth/github/callback`;
-  const scope = 'read:user user:email';
-  const state = crypto.randomUUID();
+      if (!userResponse.ok) {
+        console.error('Failed to fetch Google user info:', userResponse.status);
+        return c.redirect('/login?error=user_info_failed');
+      }
 
-  const authUrl = `https://github.com/login/oauth/authorize?` +
-    `client_id=${encodeURIComponent(clientId)}&` +
-    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-    `scope=${encodeURIComponent(scope)}&` +
-    `state=${encodeURIComponent(state)}`;
+      const userData = await userResponse.json();
+      console.log('Google user info received:', { email: userData.email, name: userData.name });
 
-  return c.redirect(authUrl);
-});
+      const userService = new UserService(c.env.DB);
 
-/**
- * GitHub OAuth callback
- */
-app.get('/auth/github/callback', async (c) => {
-  const code = c.req.query('code');
-  const error = c.req.query('error');
+      // Find or create user
+      let user = await userService.findByEmail(userData.email);
+      console.log('User found in DB:', user ? 'Yes' : 'No');
 
-  if (error || !code) {
-    return c.redirect('/login?error=oauth_failed');
-  }
+      if (!user) {
+        console.log('Creating new user for:', userData.email);
+        // Create new user
+        const username = userData.email.split('@')[0] + '_' + Math.random().toString(36).substring(7);
+        try {
+          user = await userService.create({
+            email: userData.email,
+            username,
+            hashed_password: '', // OAuth users don't have passwords
+            full_name: userData.name,
+          });
+          console.log('User created successfully:', user?.id);
+        } catch (createError) {
+          console.error('User creation failed:', createError);
+          return c.redirect('/login?error=user_creation_failed_db');
+        }
+      }
 
-  try {
-    const clientId = c.env.GITHUB_CLIENT_ID;
-    const clientSecret = c.env.GITHUB_CLIENT_SECRET;
+      if (!user) {
+        console.error('User is null after creation attempt');
+        return c.redirect('/login?error=user_creation_failed');
+      }
 
-    if (!clientId || !clientSecret) {
-      return c.redirect('/login?error=oauth_not_configured');
-    }
+      // Create session
+      console.log('Creating session for user:', user.id);
+      if (!c.env.SESSIONS) {
+        console.error('KV SESSIONS binding is missing!');
+      }
 
-    // Exchange code for token
-    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        code,
-      }),
-    });
+      const sessionId = await createSession(
+        c.env.SESSIONS,
+        user.id.toString(),
+        user.email,
+        user.username,
+        'google'
+      );
+      console.log('Session created:', sessionId);
 
-    if (!tokenResponse.ok) {
-      return c.redirect('/login?error=token_exchange_failed');
-    }
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
-
-    // Get user info
-    const userResponse = await fetch('https://api.github.com/user', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json',
-      },
-    });
-
-    if (!userResponse.ok) {
-      return c.redirect('/login?error=user_info_failed');
-    }
-
-    const userData = await userResponse.json();
-
-    // Get user email (might be in a separate endpoint)
-    let email = userData.email;
-    if (!email) {
-      const emailResponse = await fetch('https://api.github.com/user/emails', {
+      // Set session cookie and redirect
+      return new Response(null, {
+        status: 302,
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: 'application/json',
+          'Location': '/',
+          'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
         },
       });
-
-      if (emailResponse.ok) {
-        const emails = await emailResponse.json();
-        const primaryEmail = emails.find((e: any) => e.primary);
-        email = primaryEmail?.email || emails[0]?.email;
-      }
+    } catch (error) {
+      console.error('Google OAuth error:', error);
+      return c.redirect('/login?error=oauth_error');
     }
-
-    if (!email) {
-      return c.redirect('/login?error=no_email');
-    }
-
-    const userService = new UserService(c.env.DB);
-
-    // Find or create user
-    let user = await userService.findByEmail(email);
-
-    if (!user) {
-      // Create new user
-      const username = userData.login || email.split('@')[0];
-      user = await userService.create({
-        email,
-        username,
-        hashed_password: '', // OAuth users don't have passwords
-        full_name: userData.name || username,
-      });
-    }
-
-    if (!user) {
-      return c.redirect('/login?error=user_creation_failed');
-    }
-
-    // Create session
-    const sessionId = await createSession(
-      c.env.SESSIONS,
-      user.id.toString(),
-      user.email,
-      user.username,
-      'github'
-    );
-
-    // Set session cookie and redirect
-    return new Response(null, {
-      status: 302,
-      headers: {
-        'Location': '/',
-        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
-      },
-    });
-  } catch (error) {
-    console.error('GitHub OAuth error:', error);
-    return c.redirect('/login?error=oauth_error');
-  }
-});
+  });
 
 /**
  * Check session status
@@ -559,7 +439,7 @@ app.post('/auth/logout', async (c) => {
     return new Response(null, {
       status: 200,
       headers: {
-        'Set-Cookie': 'session_id=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
       },
     });
   } catch (error) {
@@ -568,7 +448,7 @@ app.post('/auth/logout', async (c) => {
     return new Response(null, {
       status: 200,
       headers: {
-        'Set-Cookie': 'session_id=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
       },
     });
   }
