@@ -58,15 +58,21 @@ export class MarketSignalService {
 
         // 1. Trend Score (0-100)
         // Combine heuristic (PD status) with REAL Wikipedia data
-        let trendScore = 50;
+        let trendScore = 50; // Start with neutral baseline
 
-        // Base heuristic calculation
+        // Base heuristic calculation - more aggressive scoring
         if (pdYear > currentYear) {
             const yearsUntil = pdYear - currentYear;
-            trendScore = Math.max(0, 100 - (yearsUntil * 10));
+            trendScore = Math.max(10, 100 - (yearsUntil * 8)); // Less aggressive penalty
         } else {
             const yearsSince = currentYear - pdYear;
-            trendScore = Math.max(20, 90 - (yearsSince * 2));
+            if (yearsSince <= 5) {
+                trendScore = 85; // Recently entered PD - very high trend
+            } else if (yearsSince <= 20) {
+                trendScore = Math.max(60, 90 - (yearsSince * 1.5)); // Established classics
+            } else {
+                trendScore = Math.max(30, 80 - (yearsSince * 0.5)); // Timeless works
+            }
         }
 
         // Boost with Real Data (Wikipedia Views)
@@ -80,23 +86,28 @@ export class MarketSignalService {
             const titleLower = title.toLowerCase();
             
             // Boost for famous works/authors
-            const famousKeywords = ['pride', 'prejudice', 'adventure', 'treasure', 'odyssey', 'divine', 'comedy', 'inferno'];
-            const famousAuthors = ['shakespeare', 'dickens', 'austen', 'twain', 'homer', 'dante', 'milton'];
+            const famousKeywords = ['pride', 'prejudice', 'adventure', 'treasure', 'odyssey', 'divine', 'comedy', 'inferno', 'sherlock', 'holmes', 'alice', 'wonderland'];
+            const famousAuthors = ['shakespeare', 'dickens', 'austen', 'twain', 'homer', 'dante', 'milton', 'tolkien', 'lovecraft', 'poe'];
             
             if (famousKeywords.some(keyword => titleLower.includes(keyword))) {
-                trendScore += 20;
+                trendScore += 25;
             }
             if (famousAuthors.some(author => titleLower.includes(author))) {
-                trendScore += 25;
+                trendScore += 30;
             }
             
             // Boost for classic indicators
-            if (titleLower.includes('classic') || titleLower.includes('great')) {
+            if (titleLower.includes('classic') || titleLower.includes('great') || titleLower.includes('complete')) {
+                trendScore += 20;
+            }
+            
+            // Boost for series indicators
+            if (titleLower.includes('volume') || titleLower.includes('book') || titleLower.includes('chapter')) {
                 trendScore += 15;
             }
         }
 
-        trendScore = Math.min(100, Math.max(0, trendScore));
+        trendScore = Math.min(100, Math.max(10, trendScore)); // Ensure minimum 10%
 
         // 2. Demand Score (0-100)
         // Correlated with trend, but influenced by media type
@@ -125,22 +136,34 @@ export class MarketSignalService {
         demandScore = Math.min(100, Math.max(0, demandScore));
 
         // 3. Competition Score (0-100)
-        // Popular items have high competition.
-        let competitionScore = demandScore * 0.8;
-        // Older PD works have more established competition
-        if (pdYear < currentYear - 20) {
-            competitionScore += 20;
+        // Popular items have high competition, but make it more realistic
+        let competitionScore = demandScore * 0.6; // Base correlation with demand
+        
+        // Adjust based on public domain status
+        if (pdYear < currentYear - 50) {
+            competitionScore += 25; // Very old works = established competition
+        } else if (pdYear < currentYear - 20) {
+            competitionScore += 15; // Older works = moderate competition
+        } else if (pdYear > currentYear) {
+            competitionScore -= 20; // Future works = low competition
         }
         
         // Adjust based on title specificity
         const titleWords = (work.title || '').split(' ').length;
         if (titleWords <= 2) {
-            competitionScore += 15; // Short titles = more competition
+            competitionScore += 20; // Short titles = high competition
         } else if (titleWords >= 5) {
-            competitionScore -= 10; // Long titles = less competition
+            competitionScore -= 15; // Long titles = lower competition
         }
         
-        competitionScore = Math.min(100, Math.max(0, competitionScore));
+        // Adjust based on author fame
+        const titleLower = (work.title || '').toLowerCase();
+        const famousAuthors = ['shakespeare', 'dickens', 'austen', 'twain', 'homer', 'dante', 'milton', 'tolkien'];
+        if (famousAuthors.some(author => titleLower.includes(author))) {
+            competitionScore += 30; // Famous authors = high competition
+        }
+        
+        competitionScore = Math.min(95, Math.max(15, competitionScore)); // Realistic range
 
         // 4. Monetization Potential (0-100)
         // (Demand - Competition) + Intrinsic Value
