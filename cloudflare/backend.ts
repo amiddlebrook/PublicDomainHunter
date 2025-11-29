@@ -365,7 +365,7 @@ app.get('/auth/google/callback', async (c) => {
       status: 302,
       headers: {
         'Location': '/',
-        'Set-Cookie': `session_id=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
+        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
       },
     });
   } catch (error) {
@@ -505,7 +505,7 @@ app.get('/auth/github/callback', async (c) => {
       status: 302,
       headers: {
         'Location': '/',
-        'Set-Cookie': `session_id=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
+        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
       },
     });
   } catch (error) {
@@ -633,7 +633,7 @@ app.get('/api/works/:id', async (c) => {
         monetization_potential: metrics.monetization_potential
       }
     };
-    
+
     console.log('Work with signals:', workWithSignals.metadata);
 
     // Track view
@@ -675,7 +675,7 @@ app.get('/api/works/:id', async (c) => {
           monetization_potential: metrics.monetization_potential
         }
       };
-      
+
       console.log('External work with signals:', workWithSignals.metadata);
 
       return c.json(workWithSignals);
