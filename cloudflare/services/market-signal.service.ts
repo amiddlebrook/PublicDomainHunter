@@ -27,7 +27,21 @@ export class MarketSignalService {
      */
     async calculateMetrics(work: Work): Promise<MarketMetrics> {
         const currentYear = new Date().getFullYear();
-        const pdYear = work.public_domain_year || 1900;
+        
+        // Better public domain year calculation
+        let pdYear = work.public_domain_year || work.original_publication_year;
+        if (!pdYear && work.author_death_year) {
+            pdYear = work.author_death_year + 70;
+        }
+        pdYear = pdYear || currentYear; // Default to current year if nothing available
+        
+        console.log('Work data:', {
+            title: work.title,
+            pdYear: pdYear,
+            mediaType: work.media_type,
+            publicationYear: work.original_publication_year,
+            authorDeathYear: work.author_death_year
+        });
 
         // Initialize External API Service
         let realTrendData = 0;
@@ -132,21 +146,14 @@ export class MarketSignalService {
         let monetizationPotential = (demandScore * 1.5) - (competitionScore * 0.5);
         monetizationPotential = Math.min(100, Math.max(0, monetizationPotential));
 
-        // 5. Search Volume (Estimated monthly searches)
-        // Use real Wikipedia views as a baseline if available
-        let searchVolume;
+        // 5. Search Volume (Estimated monthly searches) - Return as percentage (0-100)
+        let searchVolumePercentage;
         if (realTrendData > 0) {
-            // Wikipedia views are a good proxy for search volume
-            searchVolume = realTrendData;
+            // Convert Wikipedia views to percentage (max 100% for >10,000 views)
+            searchVolumePercentage = Math.min(100, (realTrendData / 10000) * 100);
         } else {
-            // Fallback: Estimate based on trend score
-            const baseVolume = 1000;
-            searchVolume = Math.floor(baseVolume * (demandScore / 10));
-            
-            // Boost for famous works
-            if (trendScore > 70) {
-                searchVolume *= 2;
-            }
+            // Fallback: Use trend score as percentage
+            searchVolumePercentage = Math.min(100, trendScore);
         }
 
         // 6. Google Trends Interest (0-100)
@@ -157,7 +164,7 @@ export class MarketSignalService {
             competition_score: parseFloat(competitionScore.toFixed(1)),
             demand_score: parseFloat(demandScore.toFixed(1)),
             monetization_potential: parseFloat(monetizationPotential.toFixed(1)),
-            search_volume: searchVolume,
+            search_volume: searchVolumePercentage,
             google_trends_interest: googleTrendsInterest
         };
     }

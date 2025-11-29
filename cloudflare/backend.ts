@@ -617,7 +617,9 @@ app.get('/api/works/:id', async (c) => {
 
     // Calculate market signals for this work
     const marketSignalService = new MarketSignalService(c.env, c.env.CACHE);
+    console.log('Calculating market signals for work:', work.id, work.title);
     const metrics = await marketSignalService.calculateMetrics(work);
+    console.log('Calculated metrics:', metrics);
 
     // Add market signals to work response
     const workWithSignals = {
@@ -631,6 +633,8 @@ app.get('/api/works/:id', async (c) => {
         monetization_potential: metrics.monetization_potential
       }
     };
+    
+    console.log('Work with signals:', workWithSignals.metadata);
 
     // Track view
     const authHeader = c.req.header('Authorization');
