@@ -119,14 +119,40 @@ export class SearchService {
     sql += ' ORDER BY w.created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 
-    const { results } = await this.db.prepare(sql).bind(...params).all<Work>();
+    const results = await this.db.prepare(sql).bind(...params).all();
+    const works = results.results as any[];
+
+    // Calculate market signals for each work if not already present
+    const { MarketSignalService } = await import('./market-signal.service');
+    const marketSignalService = new MarketSignalService(undefined, this.cache);
+    
+    const worksWithSignals = await Promise.all(
+      works.map(async (work) => {
+        // Only calculate if market signals are missing
+        if (!work.metadata?.search_volume || !work.metadata?.competition_score) {
+          const metrics = await marketSignalService.calculateMetrics(work);
+          return {
+            ...work,
+            metadata: {
+              ...work.metadata,
+              search_volume: metrics.search_volume,
+              competition_score: metrics.competition_score,
+              trend_score: metrics.trend_score,
+              demand_score: metrics.demand_score,
+              monetization_potential: metrics.monetization_potential
+            }
+          };
+        }
+        return work;
+      })
+    );
 
     return {
-      works: results || [],
+      works: worksWithSignals,
       total,
       page,
       limit,
-      hasMore: offset + (results?.length || 0) < total,
+      hasMore: offset + limit < total
     };
   }
 

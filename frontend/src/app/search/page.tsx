@@ -342,7 +342,7 @@ export default function SearchPage() {
                   </div>
                   <Slider
                     defaultValue={[new Date().getFullYear(), 2095]}
-                    min={1800}
+                    min={new Date().getFullYear()}
                     max={2095}
                     step={1}
                     value={[filters.minYear, filters.maxYear]}
