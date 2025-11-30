@@ -387,7 +387,7 @@ app.get('/auth/google/callback', async (c) => {
       status: 302,
       headers: {
         'Location': '/',
-        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
+        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${86400 * 7}`,
       },
     });
   } catch (error) {
@@ -402,6 +402,7 @@ app.get('/auth/google/callback', async (c) => {
 app.get('/auth/session', async (c) => {
   try {
     const sessionId = c.req.cookie('session');
+    console.log('Checking session. Cookie present:', !!sessionId, 'Session ID:', sessionId ? sessionId.substring(0, 10) + '...' : 'none');
 
     if (!sessionId) {
       return c.json({ authenticated: false });
@@ -453,6 +454,106 @@ app.post('/auth/logout', async (c) => {
         'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
       },
     });
+  }
+});
+
+/**
+ * GitHub OAuth callback
+ */
+app.get('/auth/github/callback', async (c) => {
+  const code = c.req.query('code');
+  const error = c.req.query('error');
+
+  if (error || !code) {
+    return c.redirect('/login?error=oauth_failed');
+  }
+
+  try {
+    const clientId = c.env.GITHUB_CLIENT_ID;
+    const clientSecret = c.env.GITHUB_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      return c.redirect('/login?error=oauth_not_configured');
+    }
+
+    // Exchange code for token
+    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'PublicDomainHunter'
+      },
+      body: JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json() as any;
+
+    if (tokenData.error) {
+      console.error('GitHub token error:', tokenData.error);
+      return c.redirect('/login?error=oauth_token_failed');
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // Get user info
+    const userResponse = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'User-Agent': 'PublicDomainHunter'
+      },
+    });
+
+    const userData = await userResponse.json() as any;
+    const email = userData.email || `${userData.login}@github.com`; // Fallback if email is private
+
+    // Find or create user
+    const userService = new UserService(c.env.DB);
+    let user = await userService.findByEmail(email);
+
+    if (!user) {
+      // Create new user
+      const username = userData.login || email.split('@')[0];
+      user = await userService.create({
+        email,
+        username,
+        hashed_password: '', // OAuth users don't have passwords
+        full_name: userData.name || username,
+      });
+    }
+
+    if (!user) {
+      return c.redirect('/login?error=user_creation_failed');
+    }
+
+    // Create session
+    if (!c.env.SESSIONS) {
+      console.error('KV SESSIONS binding is missing!');
+    }
+
+    const sessionId = await createSession(
+      c.env.SESSIONS,
+      user.id.toString(),
+      user.email,
+      user.username,
+      'github'
+    );
+
+    // Set session cookie and redirect
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': '/',
+        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${86400 * 7}`,
+      },
+    });
+  } catch (error) {
+    console.error('GitHub OAuth error:', error);
+    return c.redirect('/login?error=oauth_error');
   }
 });
 
