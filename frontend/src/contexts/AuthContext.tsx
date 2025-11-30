@@ -99,12 +99,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Try session-based auth first (for OAuth users)
       try {
+        console.log('Checking session auth...');
         const sessionResponse = await fetch(`${API_BASE_URL}/auth/session`, {
           credentials: 'include',
         })
+        console.log('Session check response status:', sessionResponse.status);
 
         if (sessionResponse.ok) {
           const sessionData = await sessionResponse.json()
+          console.log('Session data:', sessionData);
           if (sessionData.authenticated && sessionData.user) {
             // Fetch full user data from backend
             try {
