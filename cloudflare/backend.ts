@@ -265,7 +265,7 @@ app.get('/auth/google', async (c) => {
     return c.json({ error: 'Google OAuth not configured' }, 500);
   }
 
-  const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`;
+  const redirectUri = 'https://publicdomainhunter.com/auth/google/callback';
   const scope = 'openid email profile';
   const state = crypto.randomUUID();
 
@@ -299,7 +299,7 @@ app.get('/auth/google/callback', async (c) => {
       return c.redirect('/login?error=oauth_not_configured');
     }
 
-    const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`;
+    const redirectUri = 'https://publicdomainhunter.com/auth/google/callback';
 
     console.log('Google OAuth callback received');
     // Exchange code for token
@@ -455,6 +455,28 @@ app.post('/auth/logout', async (c) => {
       },
     });
   }
+});
+
+/**
+ * Initiate GitHub OAuth flow
+ */
+app.get('/auth/github', async (c) => {
+  const clientId = c.env.GITHUB_CLIENT_ID;
+  if (!clientId) {
+    return c.json({ error: 'GitHub OAuth not configured' }, 500);
+  }
+
+  const redirectUri = 'https://publicdomainhunter.com/auth/github/callback';
+  const scope = 'user:email';
+  const state = crypto.randomUUID();
+
+  const authUrl = `https://github.com/login/oauth/authorize?` +
+    `client_id=${encodeURIComponent(clientId)}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `scope=${encodeURIComponent(scope)}&` +
+    `state=${encodeURIComponent(state)}`;
+
+  return c.redirect(authUrl);
 });
 
 /**
