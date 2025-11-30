@@ -387,7 +387,7 @@ app.get('/auth/google/callback', async (c) => {
       status: 302,
       headers: {
         'Location': '/',
-        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${86400 * 7}`,
+        'Set-Cookie': `session=${sessionId}; Domain=.publicdomainhunter.com; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
       },
     });
   } catch (error) {
@@ -548,7 +548,7 @@ app.get('/auth/github/callback', async (c) => {
       status: 302,
       headers: {
         'Location': '/',
-        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${86400 * 7}`,
+        'Set-Cookie': `session=${sessionId}; Domain=.publicdomainhunter.com; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
       },
     });
   } catch (error) {
