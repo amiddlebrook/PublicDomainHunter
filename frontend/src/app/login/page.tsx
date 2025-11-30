@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import { API_BASE_URL } from '@/lib/utils'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -122,7 +123,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => window.location.href = '/auth/google'}
+                  onClick={() => window.location.href = `${API_BASE_URL}/auth/google`}
                   disabled={loading}
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -138,7 +139,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => window.location.href = '/auth/github'}
+                  onClick={() => window.location.href = `${API_BASE_URL}/auth/github`}
                   disabled={loading}
                 >
                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
