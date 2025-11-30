@@ -103,3 +103,7 @@ not_found_handling = "single-page-application"
 
 [build]
 command = "npm install && npm --prefix frontend install && npm --prefix frontend run cf:build"
+
+[observability.logs]
+enabled = true
+invocation_logs = true
