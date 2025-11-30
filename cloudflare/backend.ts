@@ -297,102 +297,104 @@ app.get('/auth/google/callback', async (c) => {
 
     if (!clientId || !clientSecret) {
       return c.redirect('/login?error=oauth_not_configured');
-      const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`;
-
-      console.log('Google OAuth callback received');
-      // Exchange code for token
-      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          code,
-          client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uri: redirectUri,
-          grant_type: 'authorization_code',
-        }),
-      });
-
-      const tokenData = await tokenResponse.json();
-      console.log('Google token response status:', tokenResponse.status);
-
-      if (tokenData.error) {
-        console.error('Google token error:', tokenData.error);
-        return c.redirect('/login?error=token_exchange_failed');
-      }
-
-      const accessToken = tokenData.access_token;
-
-      // Get user info
-      const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (!userResponse.ok) {
-        console.error('Failed to fetch Google user info:', userResponse.status);
-        return c.redirect('/login?error=user_info_failed');
-      }
-
-      const userData = await userResponse.json();
-      console.log('Google user info received:', { email: userData.email, name: userData.name });
-
-      const userService = new UserService(c.env.DB);
-
-      // Find or create user
-      let user = await userService.findByEmail(userData.email);
-      console.log('User found in DB:', user ? 'Yes' : 'No');
-
-      if (!user) {
-        console.log('Creating new user for:', userData.email);
-        // Create new user
-        const username = userData.email.split('@')[0] + '_' + Math.random().toString(36).substring(7);
-        try {
-          user = await userService.create({
-            email: userData.email,
-            username,
-            hashed_password: '', // OAuth users don't have passwords
-            full_name: userData.name,
-          });
-          console.log('User created successfully:', user?.id);
-        } catch (createError) {
-          console.error('User creation failed:', createError);
-          return c.redirect('/login?error=user_creation_failed_db');
-        }
-      }
-
-      if (!user) {
-        console.error('User is null after creation attempt');
-        return c.redirect('/login?error=user_creation_failed');
-      }
-
-      // Create session
-      console.log('Creating session for user:', user.id);
-      if (!c.env.SESSIONS) {
-        console.error('KV SESSIONS binding is missing!');
-      }
-
-      const sessionId = await createSession(
-        c.env.SESSIONS,
-        user.id.toString(),
-        user.email,
-        user.username,
-        'google'
-      );
-      console.log('Session created:', sessionId);
-
-      // Set session cookie and redirect
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': '/',
-          'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
-        },
-      });
-    } catch (error) {
-      console.error('Google OAuth error:', error);
-      return c.redirect('/login?error=oauth_error');
     }
-  });
+
+    const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`;
+
+    console.log('Google OAuth callback received');
+    // Exchange code for token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+    console.log('Google token response status:', tokenResponse.status);
+
+    if (tokenData.error) {
+      console.error('Google token error:', tokenData.error);
+      return c.redirect('/login?error=token_exchange_failed');
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // Get user info
+    const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!userResponse.ok) {
+      console.error('Failed to fetch Google user info:', userResponse.status);
+      return c.redirect('/login?error=user_info_failed');
+    }
+
+    const userData = await userResponse.json();
+    console.log('Google user info received:', { email: userData.email, name: userData.name });
+
+    const userService = new UserService(c.env.DB);
+
+    // Find or create user
+    let user = await userService.findByEmail(userData.email);
+    console.log('User found in DB:', user ? 'Yes' : 'No');
+
+    if (!user) {
+      console.log('Creating new user for:', userData.email);
+      // Create new user
+      const username = userData.email.split('@')[0] + '_' + Math.random().toString(36).substring(7);
+      try {
+        user = await userService.create({
+          email: userData.email,
+          username,
+          hashed_password: '', // OAuth users don't have passwords
+          full_name: userData.name,
+        });
+        console.log('User created successfully:', user?.id);
+      } catch (createError) {
+        console.error('User creation failed:', createError);
+        return c.redirect('/login?error=user_creation_failed_db');
+      }
+    }
+
+    if (!user) {
+      console.error('User is null after creation attempt');
+      return c.redirect('/login?error=user_creation_failed');
+    }
+
+    // Create session
+    console.log('Creating session for user:', user.id);
+    if (!c.env.SESSIONS) {
+      console.error('KV SESSIONS binding is missing!');
+    }
+
+    const sessionId = await createSession(
+      c.env.SESSIONS,
+      user.id.toString(),
+      user.email,
+      user.username,
+      'google'
+    );
+    console.log('Session created:', sessionId);
+
+    // Set session cookie and redirect
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': '/',
+        'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
+      },
+    });
+  } catch (error) {
+    console.error('Google OAuth error:', error);
+    return c.redirect('/login?error=oauth_error');
+  }
+});
 
 /**
  * Check session status
