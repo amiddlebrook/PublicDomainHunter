@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 // API Base URL - uses deployed worker in production, env var for local dev
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||
   (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? 'https://publicdomainhunter.averymiddlebrook2014.workers.dev'
+    ? 'https://publicdomainhunter.com'
     : '');
 
 /**
