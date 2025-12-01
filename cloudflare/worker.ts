@@ -34,7 +34,9 @@ export default {
 
     // API routes are handled by the backend
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
-      return backend.fetch(request, env, ctx);
+      const response = await backend.fetch(request, env, ctx);
+      response.headers.set('X-Debug-Version', 'v1');
+      return response;
     }
 
     // All other requests are static assets
