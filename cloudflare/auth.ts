@@ -151,6 +151,7 @@ export function createSessionCookie(
     'HttpOnly',
     'SameSite=Lax',
     secure ? 'Secure' : '',
+    // Domain removed for debugging/compatibility
   ]
     .filter(Boolean)
     .join('; ');

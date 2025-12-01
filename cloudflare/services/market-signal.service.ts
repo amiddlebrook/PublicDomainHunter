@@ -77,10 +77,12 @@ export class MarketSignalService {
 
         // Boost with Real Data (Wikipedia Views)
         if (realTrendData > 0) {
+            console.log(`Using REAL Wikipedia data for trend: ${realTrendData} views`);
             const wikiScore = Math.min(100, (realTrendData / 10000) * 100);
             // Weighted average: 70% Real Data, 30% Heuristic
             trendScore = (wikiScore * 0.7) + (trendScore * 0.3);
         } else {
+            console.log('No real trend data available, using heuristics');
             // Fallback: Use title-based scoring if no Wikipedia data
             const title = work.title || '';
             const titleLower = title.toLowerCase();

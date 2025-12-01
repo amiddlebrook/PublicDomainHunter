@@ -380,14 +380,17 @@ app.get('/auth/google/callback', async (c) => {
       user.username,
       'google'
     );
-    console.log('Session created:', sessionId);
+    console.log('Session created successfully. ID:', sessionId);
 
     // Set session cookie and redirect
+    const cookieHeader = `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`;
+    console.log('Setting cookie header:', cookieHeader);
+
     return new Response(null, {
       status: 302,
       headers: {
         'Location': '/',
-        'Set-Cookie': `session=${sessionId}; Domain=.publicdomainhunter.com; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
+        'Set-Cookie': cookieHeader,
       },
     });
   } catch (error) {
@@ -402,18 +405,23 @@ app.get('/auth/google/callback', async (c) => {
 app.get('/auth/session', async (c) => {
   try {
     const sessionId = c.req.cookie('session');
-    console.log('Checking session. Cookie present:', !!sessionId, 'Session ID:', sessionId ? sessionId.substring(0, 10) + '...' : 'none');
+    console.log('Checking session. Cookie present:', !!sessionId);
+    console.log('Session ID from cookie:', sessionId ? sessionId.substring(0, 10) + '...' : 'none');
 
     if (!sessionId) {
+      console.log('No session cookie found');
       return c.json({ authenticated: false });
     }
 
     const session = await getSession(c.env.SESSIONS, sessionId);
+    console.log('Session lookup result:', session ? 'Found' : 'Not Found');
 
     if (!session) {
+      console.log('Session not found in KV');
       return c.json({ authenticated: false });
     }
 
+    console.log('Session valid for user:', session.email);
     return c.json({
       authenticated: true,
       user: {
