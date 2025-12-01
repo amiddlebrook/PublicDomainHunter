@@ -16,12 +16,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  // Fix hydration issue
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Handle OAuth callback errors
   useEffect(() => {
+    if (!mounted) return
+    
     const oauthError = searchParams.get('error')
     if (oauthError) {
       switch (oauthError) {
@@ -52,7 +60,7 @@ export default function LoginPage() {
           setError('Authentication failed. Please try again.')
       }
     }
-  }, [searchParams])
+  }, [searchParams, mounted])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,20 +90,27 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+        {!mounted ? (
+          <Card>
+            <CardContent className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Login</CardTitle>
+              <CardDescription>
+                Enter your credentials to access your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700">
@@ -207,6 +222,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   )
