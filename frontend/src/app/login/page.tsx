@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,41 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Handle OAuth callback errors
+  useEffect(() => {
+    const oauthError = searchParams.get('error')
+    if (oauthError) {
+      switch (oauthError) {
+        case 'oauth_failed':
+          setError('OAuth authentication failed. Please try again.')
+          break
+        case 'oauth_not_configured':
+          setError('OAuth is not properly configured. Please contact support.')
+          break
+        case 'oauth_token_failed':
+        case 'token_exchange_failed':
+          setError('Failed to exchange OAuth token. Please try again.')
+          break
+        case 'user_info_failed':
+          setError('Failed to retrieve user information. Please try again.')
+          break
+        case 'user_creation_failed':
+        case 'user_creation_failed_db':
+          setError('Failed to create user account. Please contact support.')
+          break
+        case 'oauth_error':
+          setError('An OAuth error occurred. Please try again.')
+          break
+        case 'access_denied':
+          setError('Access denied. You must grant permission to continue.')
+          break
+        default:
+          setError('Authentication failed. Please try again.')
+      }
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
