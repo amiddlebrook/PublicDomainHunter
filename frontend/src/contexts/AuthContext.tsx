@@ -95,59 +95,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     const checkAuth = async () => {
-      const token = localStorage.getItem('token')
-
-      // Try session-based auth first (for OAuth users)
       try {
-        console.log('Checking session auth...');
-        const sessionResponse = await fetch(`${API_BASE_URL}/auth/session`, {
-          credentials: 'include',
-        })
-        console.log('Session check response status:', sessionResponse.status);
+        const token = localStorage.getItem('token')
 
-        if (sessionResponse.ok) {
-          const sessionData = await sessionResponse.json()
-          console.log('Session data:', sessionData);
-          if (sessionData.authenticated && sessionData.user) {
-            // Fetch full user data from backend
-            try {
-              const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
-                credentials: 'include',
-              })
-              if (userResponse.ok) {
-                const userData = await userResponse.json()
-                setUser(userData)
-                setLoading(false)
-                return
+        // Try session-based auth first (for OAuth users)
+        try {
+          console.log('Checking session auth...');
+          const sessionResponse = await fetch(`${API_BASE_URL}/auth/session`, {
+            credentials: 'include',
+          })
+          console.log('Session check response status:', sessionResponse.status);
+
+          if (sessionResponse.ok) {
+            const sessionData = await sessionResponse.json()
+            console.log('Session data:', sessionData);
+            if (sessionData.authenticated && sessionData.user) {
+              // Fetch full user data from backend
+              try {
+                const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
+                  credentials: 'include',
+                })
+                if (userResponse.ok) {
+                  const userData = await userResponse.json()
+                  setUser(userData)
+                  setLoading(false)
+                  return
+                }
+              } catch (err) {
+                // Session exists but couldn't get user data, continue to token check
+                console.error('Failed to get user data from session:', err)
               }
-            } catch (err) {
-              // Session exists but couldn't get user data, continue to token check
-              console.error('Failed to get user data from session:', err)
             }
+          }
+        } catch (error) {
+          // Session check failed, try token-based auth
+          console.debug('Session check failed, trying token auth:', error)
+        }
+
+        // Fall back to token-based auth (for username/password users)
+        if (token) {
+          try {
+            const response = await fetchWithAuth('/api/auth/me')
+            const data = await response.json()
+            setUser(data)
+          } catch (error) {
+            localStorage.removeItem('token')
+            setUser(null)
           }
         }
       } catch (error) {
-        // Session check failed, try token-based auth
-        console.debug('Session check failed, trying token auth:', error)
+        console.error('Auth check failed:', error)
+        setUser(null)
+      } finally {
+        // Always set loading to false
+        setLoading(false)
       }
-
-      // Fall back to token-based auth (for username/password users)
-      if (token) {
-        try {
-          const response = await fetchWithAuth('/api/auth/me')
-          const data = await response.json()
-          setUser(data)
-        } catch (error) {
-          localStorage.removeItem('token')
-          setUser(null)
-        }
-      }
-
-      setLoading(false)
     }
 
     checkAuth()
-  }, [isClient])
+  }, [isClient, fetchWithAuth])
 
   const login = async (username: string, password: string) => {
     try {
