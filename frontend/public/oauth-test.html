@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Test - Public Domain Hunter</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #111827;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #1f2937;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .error {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .success {
+            background-color: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #059669;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .button-google {
+            background-color: #4285f4;
+            color: white;
+        }
+        .button-github {
+            background-color: #333;
+            color: white;
+        }
+        .debug {
+            background-color: #374151;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 20px 0;
+        }
+        .links a {
+            color: #60a5fa;
+            text-decoration: none;
+            display: block;
+            margin: 5px 0;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 OAuth Authentication Test</h1>
+        <p>This page tests OAuth without Next.js/React complications.</p>
+        
+        <div id="error-message" class="error" style="display: none;"></div>
+        <div id="success-message" class="success" style="display: none;"></div>
+
+        <div class="oauth-buttons">
+            <h2>Test OAuth Login:</h2>
+            <button class="button button-google" onclick="testOAuth('google')">
+                🔐 Login with Google
+            </button>
+            <button class="button button-github" onclick="testOAuth('github')">
+                🔐 Login with GitHub
+            </button>
+        </div>
+
+        <div class="debug">
+            <h3>Debug Information:</h3>
+            <div id="debug-info">
+                <p><strong>API Base URL:</strong> <span id="api-base-url">https://publicdomainhunter.com</span></p>
+                <p><strong>Current URL:</strong> <span id="current-url">Loading...</span></p>
+                <p><strong>Error Param:</strong> <span id="error-param">none</span></p>
+                <p><strong>Success Param:</strong> <span id="success-param">none</span></p>
+                <p><strong>All Params:</strong> <span id="all-params">Loading...</span></p>
+            </div>
+        </div>
+
+        <div class="links">
+            <h3>Test Links:</h3>
+            <a href="?error=oauth_failed">Test Error Display</a>
+            <a href="?success=login_complete">Test Success Display</a>
+            <a href="/login">← Main Login Page</a>
+            <a href="/">← Back to Main Site</a>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const result = {};
+            for (const [key, value] of params.entries()) {
+                result[key] = value;
+            }
+            return result;
+        }
+
+        // Update debug information
+        function updateDebugInfo() {
+            const params = getUrlParams();
+            document.getElementById('current-url').textContent = window.location.href;
+            document.getElementById('error-param').textContent = params.error || 'none';
+            document.getElementById('success-param').textContent = params.success || 'none';
+            document.getElementById('all-params').textContent = JSON.stringify(params);
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = '❌ Error: ' + message;
+            errorDiv.style.display = 'block';
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = '✅ Success: ' + message;
+            successDiv.style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        // Test OAuth
+        function testOAuth(provider) {
+            const apiUrl = document.getElementById('api-base-url').textContent;
+            window.location.href = `${apiUrl}/auth/${provider}`;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDebugInfo();
+            
+            const params = getUrlParams();
+            if (params.error) {
+                showError(params.error);
+            } else if (params.success) {
+                showSuccess(params.success);
+            }
+        });
+    </script>
+</body>
+</html>
