@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { hashPassword, verifyPassword, validatePasswordStrength } from './utils/crypto';
 import { generateJWT, verifyJWT, authMiddleware } from './utils/jwt';
-import { createSession, getSession, deleteSession } from './auth';
+import { createSession, createSessionCookie, getSession, deleteSession } from './auth';
 import { UserService } from './services/db/user.service';
 import { WorkService } from './services/db/work.service';
 import { MetricsService } from './services/db/metrics.service';
@@ -265,7 +265,9 @@ app.get('/auth/google', async (c) => {
     return c.json({ error: 'Google OAuth not configured' }, 500);
   }
 
-  const redirectUri = 'https://publicdomainhunter.com/auth/google/callback';
+  const requestUrl = new URL(c.req.url);
+  const frontendUrl = c.env.FRONTEND_URL || `${requestUrl.protocol}//${requestUrl.host}`;
+  const redirectUri = `${frontendUrl}/auth/google/callback`;
   const scope = 'openid email profile';
   const state = crypto.randomUUID();
 
@@ -299,7 +301,9 @@ app.get('/auth/google/callback', async (c) => {
       return c.redirect('/login?error=oauth_not_configured');
     }
 
-    const redirectUri = 'https://publicdomainhunter.com/auth/google/callback';
+    const requestUrl = new URL(c.req.url);
+    const frontendUrl = c.env.FRONTEND_URL || `${requestUrl.protocol}//${requestUrl.host}`;
+    const redirectUri = `${frontendUrl}/auth/google/callback`;
 
     console.log('Google OAuth callback received');
     // Exchange code for token
@@ -383,14 +387,16 @@ app.get('/auth/google/callback', async (c) => {
     console.log('Session created successfully. ID:', sessionId);
 
     // Set session cookie and redirect
-    const cookieHeader = `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`;
-    console.log('Setting cookie header:', cookieHeader);
+    // Set session cookie and redirect
+    const cookieDomain = new URL(frontendUrl).hostname;
+    const cookie = createSessionCookie(sessionId, cookieDomain, requestUrl.protocol === 'https:');
+    console.log('Setting cookie header:', cookie);
 
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': '/',
-        'Set-Cookie': cookieHeader,
+        'Location': frontendUrl,
+        'Set-Cookie': cookie,
       },
     });
   } catch (error) {
@@ -474,7 +480,9 @@ app.get('/auth/github', async (c) => {
     return c.json({ error: 'GitHub OAuth not configured' }, 500);
   }
 
-  const redirectUri = 'https://publicdomainhunter.com/auth/github/callback';
+  const requestUrl = new URL(c.req.url);
+  const frontendUrl = c.env.FRONTEND_URL || `${requestUrl.protocol}//${requestUrl.host}`;
+  const redirectUri = `${frontendUrl}/auth/github/callback`;
   const scope = 'user:email';
   const state = crypto.randomUUID();
 
@@ -506,6 +514,9 @@ app.get('/auth/github/callback', async (c) => {
       return c.redirect('/login?error=oauth_not_configured');
     }
 
+    const requestUrl = new URL(c.req.url);
+    const frontendUrl = c.env.FRONTEND_URL || `${requestUrl.protocol}//${requestUrl.host}`;
+
     // Exchange code for token
     const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
@@ -518,6 +529,7 @@ app.get('/auth/github/callback', async (c) => {
         client_id: clientId,
         client_secret: clientSecret,
         code,
+        redirect_uri: `${frontendUrl}/auth/github/callback`,
       }),
     });
 
@@ -574,11 +586,14 @@ app.get('/auth/github/callback', async (c) => {
     );
 
     // Set session cookie and redirect
+    const cookieDomain = new URL(frontendUrl).hostname;
+    const cookie = createSessionCookie(sessionId, cookieDomain, requestUrl.protocol === 'https:');
+
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': '/',
-        'Set-Cookie': `session=${sessionId}; Domain=.publicdomainhunter.com; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${86400 * 7}`,
+        'Location': frontendUrl,
+        'Set-Cookie': cookie,
       },
     });
   } catch (error) {
