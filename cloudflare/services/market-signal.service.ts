@@ -11,6 +11,7 @@ export interface MarketMetrics {
     monetization_potential: number;
     search_volume: number;
     google_trends_interest: number;
+    data_source?: string;
 }
 
 export class MarketSignalService {
@@ -223,7 +224,8 @@ export class MarketSignalService {
                         demand_score: Math.round(llmScores.scores.demand),
                         monetization_potential: Math.round(llmScores.scores.monetization),
                         search_volume: Math.round(llmScores.scores.search_volume),
-                        google_trends_interest: Math.round(llmTrend)
+                        google_trends_interest: Math.round(llmTrend),
+                        data_source: 'llm_enhanced'
                     };
                 }
             } catch (e) {
@@ -231,6 +233,6 @@ export class MarketSignalService {
             }
         }
 
-        return finalScores;
+        return { ...finalScores, data_source: finalScores.data_source || (realTrendData > 0 ? 'wikipedia' : 'heuristic') };
     }
 }
