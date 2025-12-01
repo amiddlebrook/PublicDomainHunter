@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build:worker": "node build-worker.js",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev"
   },
@@ -12,6 +13,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241106.0",
+    "esbuild": "^0.19.0",
     "wrangler": "^3.78.12"
   }
 }

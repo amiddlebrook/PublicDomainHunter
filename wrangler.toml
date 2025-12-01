@@ -102,7 +102,7 @@ html_handling = "drop-trailing-slash"
 not_found_handling = "single-page-application"
 
 [build]
-command = "npm install && npm --prefix frontend install && npm --prefix frontend run cf:build"
+command = "npm install && npm run build:worker && npm --prefix frontend install && npm --prefix frontend run cf:build"
 
 [observability.logs]
 enabled = true
