@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,22 +17,34 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [oauthErrorParam, setOauthErrorParam] = useState<string | null>(null)
   const { login } = useAuth()
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   // Fix hydration issue
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Capture OAuth error parameter from URL once mounted to avoid SSR access
+  useEffect(() => {
+    if (!mounted) return
+
+    try {
+      const params = new URLSearchParams(window.location.search)
+      setOauthErrorParam(params.get('error'))
+    } catch (err) {
+      console.error('Failed to read OAuth error params:', err)
+      setOauthErrorParam(null)
+    }
+  }, [mounted])
+
   // Handle OAuth callback errors
   useEffect(() => {
     if (!mounted) return
     
-    const oauthError = searchParams.get('error')
-    if (oauthError) {
-      switch (oauthError) {
+    if (oauthErrorParam) {
+      switch (oauthErrorParam) {
         case 'oauth_failed':
           setError('OAuth authentication failed. Please try again.')
           break
@@ -60,7 +72,7 @@ export default function LoginPage() {
           setError('Authentication failed. Please try again.')
       }
     }
-  }, [searchParams, mounted])
+  }, [oauthErrorParam, mounted])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
