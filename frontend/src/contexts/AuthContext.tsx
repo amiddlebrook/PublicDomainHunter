@@ -49,6 +49,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [isClient, setIsClient] = useState(false)
 
+  const mapSessionUserToUser = (sessionUser: any): User => ({
+    id: Number(sessionUser.id) || 0,
+    email: sessionUser.email || '',
+    username: sessionUser.username || '',
+    full_name: sessionUser.full_name || sessionUser.username || '',
+    is_active: true,
+    is_superuser: false,
+    created_at: new Date().toISOString(),
+    updated_at: undefined,
+  })
+
   // Detect client-side environment
   useEffect(() => {
     setIsClient(true)
@@ -110,21 +121,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const sessionData = await sessionResponse.json()
             console.log('Session data:', sessionData);
             if (sessionData.authenticated && sessionData.user) {
-              // Fetch full user data from backend
-              try {
-                const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
-                  credentials: 'include',
-                })
-                if (userResponse.ok) {
-                  const userData = await userResponse.json()
-                  setUser(userData)
-                  setLoading(false)
-                  return
-                }
-              } catch (err) {
-                // Session exists but couldn't get user data, continue to token check
-                console.error('Failed to get user data from session:', err)
-              }
+              setUser(mapSessionUserToUser(sessionData.user))
+              setLoading(false)
+              return
             }
           }
         } catch (error) {
