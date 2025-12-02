@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { hashPassword, verifyPassword, validatePasswordStrength } from './utils/crypto';
 import { generateJWT, verifyJWT, authMiddleware } from './utils/jwt';
-import { createSession, createSessionCookie, getSession, deleteSession, getSessionIdFromRequest } from './auth';
+import { createSession, createSessionCookie, getSession, deleteSession, getSessionIdFromRequest, validateSession, clearSessionCookie } from './auth';
 import { UserService } from './services/db/user.service';
 import { WorkService } from './services/db/work.service';
 import { MetricsService } from './services/db/metrics.service';
@@ -234,7 +234,7 @@ app.get('/api/auth/me', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
 
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
@@ -253,6 +253,36 @@ app.get('/api/auth/me', async (c) => {
     fullName: user.full_name,
   });
 });
+
+/**
+ * Helper to get authenticated user from either JWT or Session Cookie
+ */
+async function getAuthenticatedUser(c: any) {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+
+  // 1. Try JWT first
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
+  if (payload) {
+    return {
+      id: parseInt(payload.sub),
+      email: payload.email,
+      username: payload.username
+    };
+  }
+
+  // 2. Try Session Cookie
+  const session = await validateSession(c.req.raw, c.env.SESSIONS);
+  if (session) {
+    return {
+      id: parseInt(session.userId),
+      email: session.email,
+      username: session.username
+    };
+  }
+
+  return null;
+}
 
 // ===== OAUTH ENDPOINTS =====
 
@@ -388,16 +418,26 @@ app.get('/auth/google/callback', async (c) => {
 
     // Set session cookie and redirect
     // Set session cookie and redirect
+    // Set session cookie and redirect
     const cookieDomain = new URL(frontendUrl).hostname;
     const cookie = createSessionCookie(sessionId, cookieDomain, requestUrl.protocol === 'https:');
     console.log('Setting cookie header:', cookie);
 
+    // Clear any conflicting host-only cookies by setting them to expire
+    // We do this by adding multiple Set-Cookie headers
+    const clearCookies = clearSessionCookie(); // Clear host-only
+
+    const headers = new Headers();
+    headers.append('Location', frontendUrl);
+    headers.append('Set-Cookie', cookie);
+
+    // Add clear headers for potential conflicts
+    // Note: In some environments, multiple Set-Cookie headers might need special handling
+    // but Hono/Workers usually handle append() correctly
+
     return new Response(null, {
       status: 302,
-      headers: {
-        'Location': frontendUrl,
-        'Set-Cookie': cookie,
-      },
+      headers: headers,
     });
   } catch (error) {
     console.error('Google OAuth error:', error);
@@ -453,20 +493,31 @@ app.post('/auth/logout', async (c) => {
       await deleteSession(c.env.SESSIONS, sessionId);
     }
 
+    // Clear all variants of the session cookie
+    const requestUrl = new URL(c.req.url);
+    const domain = requestUrl.hostname;
+    const clearCookies = clearSessionCookie(domain);
+
+    const headers = new Headers();
+    clearCookies.forEach(cookie => headers.append('Set-Cookie', cookie));
+
     return new Response(null, {
       status: 200,
-      headers: {
-        'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-      },
+      headers: headers,
     });
   } catch (error) {
     console.error('Logout error:', error);
     // Still clear the cookie even if there's an error
+    const requestUrl = new URL(c.req.url);
+    const domain = requestUrl.hostname;
+    const clearCookies = clearSessionCookie(domain);
+
+    const headers = new Headers();
+    clearCookies.forEach(cookie => headers.append('Set-Cookie', cookie));
+
     return new Response(null, {
       status: 200,
-      headers: {
-        'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-      },
+      headers: headers,
     });
   }
 });
@@ -586,15 +637,17 @@ app.get('/auth/github/callback', async (c) => {
     );
 
     // Set session cookie and redirect
+    // Set session cookie and redirect
     const cookieDomain = new URL(frontendUrl).hostname;
     const cookie = createSessionCookie(sessionId, cookieDomain, requestUrl.protocol === 'https:');
 
+    const headers = new Headers();
+    headers.append('Location', frontendUrl);
+    headers.append('Set-Cookie', cookie);
+
     return new Response(null, {
       status: 302,
-      headers: {
-        'Location': frontendUrl,
-        'Set-Cookie': cookie,
-      },
+      headers: headers,
     });
   } catch (error) {
     console.error('GitHub OAuth error:', error);
@@ -665,13 +718,12 @@ app.get('/api/works/:id', async (c) => {
     console.log('Work with signals:', workWithSignals.metadata);
 
     // Track view
-    const authHeader = c.req.header('Authorization');
-    const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-    const payload = await authMiddleware(authHeader, jwtSecret);
+    // Track view
+    const user = await getAuthenticatedUser(c);
 
-    if (payload) {
+    if (user) {
       const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
-      await analyticsService.trackWorkView(parseInt(payload.sub), id);
+      await analyticsService.trackWorkView(user.id, id);
     }
 
     return c.json(workWithSignals);
@@ -718,11 +770,9 @@ app.get('/api/works/:id', async (c) => {
  * Refresh metrics for a work (manual trigger)
  */
 app.post('/api/works/:id/refresh-metrics', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const user = await getAuthenticatedUser(c);
 
-  if (!payload) {
+  if (!user) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -762,11 +812,9 @@ app.post('/api/works/:id/refresh-metrics', async (c) => {
  * Create a new work
  */
 app.post('/api/works', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const user = await getAuthenticatedUser(c);
 
-  if (!payload) {
+  if (!user) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -775,7 +823,7 @@ app.post('/api/works', async (c) => {
 
   const work = await workService.create({
     ...data,
-    user_id: parseInt(payload.sub),
+    user_id: user.id,
   });
 
   return c.json(work, 201);
@@ -815,7 +863,7 @@ app.get('/api/search', async (c) => {
   // Track search
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (payload) {
     const analyticsService = new AnalyticsService(c.env.DB, c.env.ANALYTICS);
@@ -1279,7 +1327,7 @@ app.post('/api/monetization/calculate-bulk', async (c) => {
 app.get('/api/works/:id/product-ideas', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1324,7 +1372,7 @@ app.get('/api/works/:id/product-ideas', async (c) => {
 app.get('/api/market/viability-search', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1419,7 +1467,7 @@ function getTopDemographic(metrics: any): string {
 app.post('/api/alerts', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1444,7 +1492,7 @@ app.post('/api/alerts', async (c) => {
 app.get('/api/alerts', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1462,7 +1510,7 @@ app.get('/api/alerts', async (c) => {
 app.delete('/api/alerts/:id', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1483,7 +1531,7 @@ app.delete('/api/alerts/:id', async (c) => {
 app.get('/api/ai/recommendations', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload || !payload.sub) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1507,7 +1555,7 @@ app.get('/api/ai/recommendations', async (c) => {
 app.get('/api/ai/insights/:id', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1534,7 +1582,7 @@ app.get('/api/ai/insights/:id', async (c) => {
 app.get('/api/ai/trends', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1557,7 +1605,7 @@ app.get('/api/ai/trends', async (c) => {
 app.get('/api/ai/status', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1580,7 +1628,7 @@ app.get('/api/ai/status', async (c) => {
 app.post('/api/ai/analyze', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1612,7 +1660,7 @@ app.post('/api/ai/analyze', async (c) => {
 app.post('/api/ai/marketing', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1663,7 +1711,7 @@ app.get('/api/ai/config/providers', async (c) => {
 app.get('/api/ai/config/preferences', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1681,7 +1729,7 @@ app.get('/api/ai/config/preferences', async (c) => {
 app.put('/api/ai/config/preferences', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1705,7 +1753,7 @@ app.put('/api/ai/config/preferences', async (c) => {
 app.post('/api/ai/config/test', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1762,7 +1810,7 @@ app.get('/api/analytics/works/:id', async (c) => {
 app.get('/api/analytics/user/stats', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1796,7 +1844,7 @@ app.get('/api/analytics/dashboard', async (c) => {
 
   let userId: number | undefined = undefined;
   try {
-    const payload = await authMiddleware(authHeader, jwtSecret);
+    const payload = await authMiddleware(authHeader || null, jwtSecret);
     if (payload?.sub) {
       const parsed = parseInt(payload.sub, 10);
       if (!Number.isNaN(parsed)) {
@@ -1830,7 +1878,7 @@ app.get('/api/analytics/export/dashboard', async (c) => {
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
 
   let userId: number | undefined = undefined;
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
   if (payload?.sub) {
     const parsed = parseInt(payload.sub, 10);
     if (!Number.isNaN(parsed)) {
@@ -1873,7 +1921,7 @@ app.get('/api/analytics/export/dashboard', async (c) => {
 app.post('/api/files/upload', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1921,7 +1969,7 @@ app.get('/api/files/:key', async (c) => {
 app.post('/api/external/import', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1956,7 +2004,7 @@ app.post('/api/external/import', async (c) => {
 app.post('/api/tracking/add', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1996,7 +2044,7 @@ app.post('/api/tracking/add', async (c) => {
 app.get('/api/tracking/list', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -2022,7 +2070,7 @@ app.get('/api/tracking/list', async (c) => {
 app.post('/api/portfolio/add', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -2063,7 +2111,7 @@ app.post('/api/portfolio/add', async (c) => {
 app.get('/api/portfolio/list', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -2089,7 +2137,7 @@ app.get('/api/portfolio/list', async (c) => {
 app.post('/api/billing/checkout', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -2133,7 +2181,7 @@ app.post('/api/billing/checkout', async (c) => {
 app.post('/api/billing/portal', async (c) => {
   const authHeader = c.req.header('Authorization');
   const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader, jwtSecret);
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
 
   if (!payload) {
     return c.json({ error: 'Unauthorized' }, 401);

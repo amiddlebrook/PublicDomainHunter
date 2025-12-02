@@ -1,3 +1,5 @@
+import { KVNamespace } from '@cloudflare/workers-types';
+
 /**
  * Cloudflare-native authentication utilities
  * Handles OAuth flows, session management, and edge validation
@@ -137,12 +139,26 @@ export function getSessionIdFromRequest(request: Request): string | null {
 /**
  * Create a session cookie header
  */
+/**
+ * Create a session cookie header
+ */
 export function createSessionCookie(
   sessionId: string,
   domain: string,
   secure: boolean = true
 ): string {
   const maxAge = 86400 * 7; // 7 days
+
+  // Determine if we should set the Domain attribute
+  // We generally want to set it for the root domain (e.g., .publicdomainhunter.com)
+  // so it's shared between www, api, etc.
+  // But for localhost, we shouldn't set it (or set it to empty)
+  let domainAttr = '';
+  if (domain && !domain.includes('localhost') && !domain.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) {
+    // If it's a real domain, prefix with dot to make it a wildcard for subdomains
+    const rootDomain = domain.startsWith('.') ? domain : `.${domain}`;
+    domainAttr = `Domain=${rootDomain};`;
+  }
 
   return [
     `session=${sessionId}`,
@@ -151,7 +167,7 @@ export function createSessionCookie(
     'HttpOnly',
     'SameSite=Lax',
     secure ? 'Secure' : '',
-    // Domain removed for debugging/compatibility
+    domainAttr
   ]
     .filter(Boolean)
     .join('; ');
@@ -159,9 +175,20 @@ export function createSessionCookie(
 
 /**
  * Clear session cookie header
+ * Returns an array of cookie strings to ensure we clear both host-only and domain cookies
  */
-export function clearSessionCookie(): string {
-  return 'session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax';
+export function clearSessionCookie(domain?: string): string[] {
+  const base = 'session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax';
+
+  const cookies = [base];
+
+  // Also try to clear domain-scoped cookie if a domain is provided
+  if (domain && !domain.includes('localhost') && !domain.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) {
+    const rootDomain = domain.startsWith('.') ? domain : `.${domain}`;
+    cookies.push(`${base}; Domain=${rootDomain}`);
+  }
+
+  return cookies;
 }
 
 /**
