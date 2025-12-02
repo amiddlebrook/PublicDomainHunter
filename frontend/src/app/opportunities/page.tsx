@@ -487,12 +487,15 @@ export default function OpportunitiesPage() {
                                                 </>
                                             )}
                                         </Button>
-                                    </Button>
-                                </CardContent>
+
+                                    </CardContent>
                                 </Card>
-                    )
+                            )
                         })}
+                    </div>
                 </div>
-                </div>
+            )
+            }
+        </div>
     )
 }
