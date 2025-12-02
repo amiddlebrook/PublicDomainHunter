@@ -49,20 +49,23 @@ export default function PortfolioPage() {
     const fetchPortfolio = async () => {
         try {
             const token = localStorage.getItem('token')
-            if (!token) {
-                setLoading(false)
-                return
+
+            const headers: HeadersInit = {}
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`
             }
 
             const response = await fetch(`${API_BASE_URL}/api/portfolio/list`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers,
+                credentials: 'include' // Support session cookies for OAuth users
             })
 
             if (response.ok) {
                 const data = await response.json()
                 setSavedWorks(data.portfolio || [])
+            } else if (response.status === 401) {
+                // User not authenticated
+                setSavedWorks([])
             }
         } catch (error) {
             console.error('Failed to fetch portfolio:', error)
@@ -74,11 +77,16 @@ export default function PortfolioPage() {
     const removeFromPortfolio = async (portfolioId: number) => {
         try {
             const token = localStorage.getItem('token')
+
+            const headers: HeadersInit = {}
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`
+            }
+
             const response = await fetch(`${API_BASE_URL}/api/portfolio/${portfolioId}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers,
+                credentials: 'include' // Support session cookies for OAuth users
             })
 
             if (response.ok) {
