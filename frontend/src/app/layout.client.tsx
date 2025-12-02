@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import clsx from 'clsx'
 import {
@@ -46,23 +46,19 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
 
-  // Ensure we're on the client before rendering
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    // Return a minimal loading state during SSR
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
-      </div>
-    )
-  }
-
-  return <ClientLayoutContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} userMenuOpen={userMenuOpen} setUserMenuOpen={setUserMenuOpen}>{children}</ClientLayoutContent>
+  return (
+    <ClientLayoutContent
+      sidebarOpen={sidebarOpen}
+      setSidebarOpen={setSidebarOpen}
+      sidebarCollapsed={sidebarCollapsed}
+      setSidebarCollapsed={setSidebarCollapsed}
+      userMenuOpen={userMenuOpen}
+      setUserMenuOpen={setUserMenuOpen}
+    >
+      {children}
+    </ClientLayoutContent>
+  )
 }
 
 interface ClientLayoutContentProps extends ClientLayoutProps {
