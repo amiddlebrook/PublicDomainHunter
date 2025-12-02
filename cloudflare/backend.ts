@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { hashPassword, verifyPassword, validatePasswordStrength } from './utils/crypto';
 import { generateJWT, verifyJWT, authMiddleware } from './utils/jwt';
-import { createSession, createSessionCookie, getSession, deleteSession } from './auth';
+import { createSession, createSessionCookie, getSession, deleteSession, getSessionIdFromRequest } from './auth';
 import { UserService } from './services/db/user.service';
 import { WorkService } from './services/db/work.service';
 import { MetricsService } from './services/db/metrics.service';
@@ -410,7 +410,7 @@ app.get('/auth/google/callback', async (c) => {
  */
 app.get('/auth/session', async (c) => {
   try {
-    const sessionId = c.req.cookie('session');
+    const sessionId = getSessionIdFromRequest(c.req.raw);
     console.log('Checking session. Cookie present:', !!sessionId);
     console.log('Session ID from cookie:', sessionId ? sessionId.substring(0, 10) + '...' : 'none');
 
@@ -447,7 +447,7 @@ app.get('/auth/session', async (c) => {
  */
 app.post('/auth/logout', async (c) => {
   try {
-    const sessionId = c.req.cookie('session');
+    const sessionId = getSessionIdFromRequest(c.req.raw);
 
     if (sessionId && c.env.SESSIONS) {
       await deleteSession(c.env.SESSIONS, sessionId);
