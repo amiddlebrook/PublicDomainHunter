@@ -24,7 +24,9 @@ import {
   Zap,
   Search,
   Settings,
-  Sparkles
+  Sparkles,
+  BookmarkPlus,
+  Check
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -100,6 +102,35 @@ export default function AIInsightsPage() {
   const [loading, setLoading] = useState(false)
   const [selectedWorkId, setSelectedWorkId] = useState<number | null>(null)
   const [aiStatus, setAiStatus] = useState<any>(null)
+  const [savedWorks, setSavedWorks] = useState<Set<number>>(new Set())
+
+  const handleSaveToPortfolio = async (workId: number) => {
+    try {
+      const token = localStorage.getItem('token')
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/portfolio/add`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ work_id: workId }),
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        setSavedWorks(prev => new Set(prev).add(workId))
+      } else {
+        console.error('Failed to save to portfolio')
+      }
+    } catch (error) {
+      console.error('Error saving to portfolio:', error)
+    }
+  }
 
   const loadRecommendations = async () => {
     try {
@@ -367,6 +398,19 @@ export default function AIInsightsPage() {
                             }}
                           >
                             View Insights
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2"
+                            onClick={() => handleSaveToPortfolio(rec.work_id)}
+                            disabled={savedWorks.has(rec.work_id)}
+                          >
+                            {savedWorks.has(rec.work_id) ? (
+                              <Check className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <BookmarkPlus className="h-4 w-4" />
+                            )}
                           </Button>
                         </div>
                       </CardContent>

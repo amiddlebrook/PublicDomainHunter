@@ -2068,17 +2068,15 @@ app.get('/api/tracking/list', async (c) => {
  * Add work to portfolio
  */
 app.post('/api/portfolio/add', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader || null, jwtSecret);
+  const user = await getAuthenticatedUser(c);
 
-  if (!payload) {
+  if (!user) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
   try {
     const { work_id } = await c.req.json();
-    const userId = parseInt(payload.sub);
+    const userId = user.id;
 
     // Create Portfolio table if not exists
     await c.env.DB.prepare(`
@@ -2109,15 +2107,13 @@ app.post('/api/portfolio/add', async (c) => {
  * Get user's portfolio
  */
 app.get('/api/portfolio/list', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
-  const payload = await authMiddleware(authHeader || null, jwtSecret);
+  const user = await getAuthenticatedUser(c);
 
-  if (!payload) {
+  if (!user) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  const userId = parseInt(payload.sub);
+  const userId = user.id;
   const { results } = await c.env.DB.prepare(`
     SELECT p.*, w.title, w.author, w.media_type
     FROM Portfolio p

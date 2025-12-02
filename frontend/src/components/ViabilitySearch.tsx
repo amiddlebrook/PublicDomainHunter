@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Sparkles, ArrowRight, Loader2, TrendingUp, BarChart3, AlertCircle, Zap } from 'lucide-react'
+import { Search, Sparkles, ArrowRight, Loader2, TrendingUp, BarChart3, AlertCircle, Zap, BookmarkPlus, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -53,6 +53,38 @@ export function ViabilitySearch({
     const [results, setResults] = useState<ViabilityResult[]>([])
     const [loading, setLoading] = useState(false)
     const [searched, setSearched] = useState(false)
+    const [savedWorks, setSavedWorks] = useState<Set<number>>(new Set())
+
+    const handleSaveToPortfolio = async (workId: number) => {
+        try {
+            const token = localStorage.getItem('token')
+            // For OAuth users, we might not have a token but we have a session cookie
+            // The backend now supports session cookies for this endpoint
+
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json'
+            }
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/portfolio/add`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ work_id: workId }),
+                credentials: 'include' // Important for session cookies
+            })
+
+            if (response.ok) {
+                setSavedWorks(prev => new Set(prev).add(workId))
+                // You might want to show a toast here
+            } else {
+                console.error('Failed to save to portfolio')
+            }
+        } catch (error) {
+            console.error('Error saving to portfolio:', error)
+        }
+    }
 
     useEffect(() => {
         if (initialQuery && initialQuery !== query) {
@@ -273,6 +305,24 @@ export function ViabilitySearch({
                                         SEE THE MAGIC
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                                     </Link>
+                                </Button>
+                                <Button
+                                    className="w-full mt-2"
+                                    variant="outline"
+                                    onClick={() => handleSaveToPortfolio(result.work.id)}
+                                    disabled={savedWorks.has(result.work.id)}
+                                >
+                                    {savedWorks.has(result.work.id) ? (
+                                        <>
+                                            <Check className="h-4 w-4 mr-2 text-green-500" />
+                                            Saved
+                                        </>
+                                    ) : (
+                                        <>
+                                            <BookmarkPlus className="h-4 w-4 mr-2" />
+                                            Save to Portfolio
+                                        </>
+                                    )}
                                 </Button>
                             </CardContent>
                         </Card>

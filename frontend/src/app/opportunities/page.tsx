@@ -24,7 +24,9 @@ import {
     Filter,
     BarChart3,
     Users,
-    Clock
+    Clock,
+    BookmarkPlus,
+    Check
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -58,6 +60,35 @@ export default function OpportunitiesPage() {
     const [opportunities, setOpportunities] = useState<Opportunity[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [savedWorks, setSavedWorks] = useState<Set<number>>(new Set())
+
+    const handleSaveToPortfolio = async (workId: number) => {
+        try {
+            const token = localStorage.getItem('token')
+
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json'
+            }
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/portfolio/add`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ work_id: workId }),
+                credentials: 'include'
+            })
+
+            if (response.ok) {
+                setSavedWorks(prev => new Set(prev).add(workId))
+            } else {
+                console.error('Failed to save to portfolio')
+            }
+        } catch (error) {
+            console.error('Error saving to portfolio:', error)
+        }
+    }
 
     // Filters
     const [minScore, setMinScore] = useState(70)
@@ -438,13 +469,30 @@ export default function OpportunitiesPage() {
                                                 View Full Analysis
                                             </Button>
                                         </Link>
-                                    </CardContent>
+                                        <Button
+                                            className="w-full"
+                                            variant="outline"
+                                            onClick={() => handleSaveToPortfolio(opp.id)}
+                                            disabled={savedWorks.has(opp.id)}
+                                        >
+                                            {savedWorks.has(opp.id) ? (
+                                                <>
+                                                    <Check className="h-4 w-4 mr-2 text-green-500" />
+                                                    Saved
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <BookmarkPlus className="h-4 w-4 mr-2" />
+                                                    Save to Portfolio
+                                                </>
+                                            )}
+                                        </Button>
+                                    </Button>
+                                </CardContent>
                                 </Card>
-                            )
+                    )
                         })}
-                    </div>
                 </div>
-            )}
-        </div>
+                </div>
     )
 }
