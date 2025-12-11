@@ -9,6 +9,7 @@
 
 > **A sophisticated SaaS platform for monitoring newly released public domain works and helping publishers identify monetization opportunities through AI-powered analytics and multi-source content discovery.**
 
+LIVE: https://publicdomainhunter.com/
 ---
 
 ## 🌟 Overview
