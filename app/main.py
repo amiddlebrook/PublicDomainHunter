@@ -17,6 +17,7 @@ from .business_intelligence_api import router as bi_router
 from .database import create_tables
 from .factory_api import router as factory_router
 from .file_api import router as file_router
+from .patent_routes import router as patent_router
 from .real_time_service import get_real_time_service
 from .reporting_api import router as reporting_router
 from .search_api import router as search_router
@@ -50,8 +51,20 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Public Domain Hunter API",
-    description="A SaaS platform for monitoring newly released public domain works",
-    version="1.0.0",
+    description="""
+    Comprehensive API for discovering and analyzing public domain intellectual property.
+
+    **Supported IP Types:**
+    - Patents (20M+ expired US patents)
+    - Trademarks (abandoned/expired marks)
+    - Books & Literature (Project Gutenberg, Internet Archive)
+    - Scientific Papers (open access research)
+    - Music & Scores (IMSLP, public domain recordings)
+    - Art & Images (museum collections)
+
+    **Pricing:** Pay-per-use API credits. No subscriptions.
+    """,
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -65,6 +78,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 app.include_router(api_router, prefix="/api/v1", tags=["works"])
+app.include_router(patent_router, tags=["patents"])  # /api/patents routes
 app.include_router(factory_router, prefix="/api/factory", tags=["factory"])
 app.include_router(bi_router, prefix="/api/bi", tags=["business-intelligence"])
 app.include_router(file_router, prefix="/api/files", tags=["files"])

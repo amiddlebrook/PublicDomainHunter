@@ -41,7 +41,19 @@ class User(Base):
     )
 
 class Work(Base):
-    """Public domain work model."""
+    """
+    Public domain work/IP asset model.
+
+    Supports multiple IP types:
+    - book, document, image, audio, video (original types)
+    - patent (utility, design, plant, reissue)
+    - trademark (word, design, combined, sound)
+    - scientific_paper (journal articles, preprints)
+    - music_score (sheet music, compositions)
+    - design (industrial designs)
+    - software (public domain code)
+    - dataset (government/research data)
+    """
 
     __tablename__ = "works"
 
@@ -53,7 +65,7 @@ class Work(Base):
     description = Column(Text)
     source_url = Column(String(500))
     download_url = Column(String(500))
-    media_type = Column(String(50))  # book, document, image, audio, video
+    media_type = Column(String(50))  # book, document, image, audio, video, patent, trademark, scientific_paper, music_score
     language = Column(String(10), default="en")
     page_count = Column(Integer)
     file_size = Column(Integer)  # in bytes
@@ -61,6 +73,46 @@ class Work(Base):
     status = Column(String(20), default="active")  # active, archived, deleted
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # ===== PATENT-SPECIFIC FIELDS =====
+    patent_number = Column(String(50), index=True)
+    patent_type = Column(String(20))  # utility, design, plant, reissue
+    filing_date = Column(DateTime(timezone=True))
+    grant_date = Column(DateTime(timezone=True))
+    expiration_date = Column(DateTime(timezone=True), index=True)
+    inventors = Column(JSON)  # [{name, city, country}]
+    assignee = Column(String(255))
+    cpc_codes = Column(JSON)  # Array of CPC classification codes
+    claims_count = Column(Integer)
+    citation_count = Column(Integer)
+    abstract = Column(Text)
+
+    # ===== TRADEMARK-SPECIFIC FIELDS =====
+    registration_number = Column(String(50), index=True)
+    serial_number = Column(String(50))
+    mark_type = Column(String(20))  # word, design, combined, sound
+    trademark_status = Column(String(20), index=True)  # live, dead, cancelled, expired, abandoned
+    abandonment_date = Column(DateTime(timezone=True))
+    word_mark = Column(String(500))
+    nice_classes = Column(JSON)  # Array of Nice classification integers
+    goods_services = Column(JSON)  # Array of goods/services descriptions
+
+    # ===== SCIENTIFIC PAPER FIELDS =====
+    doi = Column(String(100), index=True)
+    pmid = Column(String(20))
+    arxiv_id = Column(String(50))
+    journal = Column(String(255))
+    publication_date = Column(DateTime(timezone=True))
+    authors = Column(JSON)  # [{name, affiliation}]
+    keywords = Column(JSON)  # Array of keywords
+    oa_status = Column(String(20))  # gold, green, bronze, hybrid, closed
+
+    # ===== MUSIC-SPECIFIC FIELDS =====
+    composer = Column(String(255), index=True)
+    opus_number = Column(String(50))
+    instrumentation = Column(JSON)  # Array of instruments
+    duration_seconds = Column(Integer)
+    score_url = Column(String(500))
 
     user_id = Column(Integer, ForeignKey("users.id"))
 
@@ -72,14 +124,18 @@ class Work(Base):
         back_populates="work",
         cascade="all, delete-orphan",
     )
+    patent_claims = relationship("PatentClaim", back_populates="work", cascade="all, delete-orphan")
+    patent_drawings = relationship("PatentDrawing", back_populates="work", cascade="all, delete-orphan")
 
 class WorkMetric(Base):
-    """Metrics and analytics for public domain works."""
+    """Metrics and analytics for public domain works/IP assets."""
     __tablename__ = "work_metrics"
 
     id = Column(Integer, primary_key=True, index=True)
     work_id = Column(Integer, ForeignKey("works.id"), nullable=False)
     metric_date = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Legacy metrics
     search_volume = Column(Integer, default=0)
     trend_score = Column(Float, default=0.0)
     competition_score = Column(Float, default=0.0)
@@ -87,11 +143,137 @@ class WorkMetric(Base):
     monetization_potential = Column(Float, default=0.0)
     amazon_sales_rank = Column(Integer)
     google_trends_interest = Column(Float, default=0.0)
-    additional_metadata = Column(JSON)  # Additional metrics data
+
+    # Core monetization engine metrics
+    master_monetization_score = Column(Float, default=0.0)
+    market_saturation_index = Column(Float, default=0.0)
+    cross_platform_score = Column(Float, default=0.0)
+    demographic_match_score = Column(Float, default=0.0)
+    temporal_window_score = Column(Float, default=0.0)
+    derivative_potential = Column(Float, default=0.0)
+    competitive_moat_score = Column(Float, default=0.0)
+    ai_prediction_score = Column(Float, default=0.0)
+    patent_invention_score = Column(Float, default=0.0)
+
+    # Platform-specific scores
+    film_tv_potential = Column(Float, default=0.0)
+    game_potential = Column(Float, default=0.0)
+    audiobook_potential = Column(Float, default=0.0)
+    merchandise_potential = Column(Float, default=0.0)
+    educational_potential = Column(Float, default=0.0)
+    app_potential = Column(Float, default=0.0)
+    book_republish_potential = Column(Float, default=0.0)
+
+    # Demographic appeal
+    gen_z_appeal = Column(Float, default=0.0)
+    millennial_appeal = Column(Float, default=0.0)
+    gen_x_appeal = Column(Float, default=0.0)
+    boomer_appeal = Column(Float, default=0.0)
+
+    # ===== PATENT-SPECIFIC METRICS =====
+    manufacturing_complexity = Column(Float, default=0.0)  # 0-100 (lower is easier)
+    component_availability = Column(Float, default=0.0)  # 0-100 (higher is better)
+    regulatory_barriers = Column(Float, default=0.0)  # 0-100 (lower is better)
+    technology_readiness_level = Column(Integer)  # TRL 1-9
+    licensing_potential = Column(Float, default=0.0)
+    direct_manufacturing_score = Column(Float, default=0.0)
+    improvement_patents_count = Column(Integer, default=0)
+    workaround_complexity = Column(Float, default=0.0)
+
+    # ===== TRADEMARK-SPECIFIC METRICS =====
+    mark_strength = Column(String(20))  # generic, descriptive, suggestive, arbitrary, fanciful
+    revival_risk = Column(Float, default=0.0)  # 0-100 (lower is better)
+    domain_availability = Column(Float, default=0.0)  # 0-100
+    social_handle_availability = Column(Float, default=0.0)  # 0-100
+    conflict_risk = Column(Float, default=0.0)  # 0-100 (lower is better)
+
+    # ===== SCIENTIFIC PAPER METRICS =====
+    citation_velocity = Column(Float, default=0.0)  # Citations per year
+    altmetric_score = Column(Float, default=0.0)
+    practical_application_score = Column(Float, default=0.0)
+
+    # JSON data fields
+    saturation_data = Column(JSON)
+    ai_analysis = Column(JSON)
+    opportunity_angles = Column(JSON)
+    comparable_works = Column(JSON)
+    additional_metadata = Column(JSON)
+
+    calculation_version = Column(String(20), default="v2.0")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     work = relationship("Work", back_populates="metrics")
+
+
+class PatentClaim(Base):
+    """Individual patent claims for detailed analysis."""
+    __tablename__ = "patent_claims"
+
+    id = Column(Integer, primary_key=True, index=True)
+    work_id = Column(Integer, ForeignKey("works.id"), nullable=False)
+    claim_number = Column(Integer, nullable=False)
+    claim_type = Column(String(20), nullable=False)  # independent, dependent
+    claim_text = Column(Text, nullable=False)
+    parent_claim_id = Column(Integer, ForeignKey("patent_claims.id"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    work = relationship("Work", back_populates="patent_claims")
+    parent_claim = relationship("PatentClaim", remote_side=[id])
+
+
+class PatentDrawing(Base):
+    """Patent drawings/figures."""
+    __tablename__ = "patent_drawings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    work_id = Column(Integer, ForeignKey("works.id"), nullable=False)
+    drawing_number = Column(Integer, nullable=False)
+    description = Column(Text)
+    image_url = Column(String(500))
+    thumbnail_url = Column(String(500))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    work = relationship("Work", back_populates="patent_drawings")
+
+
+class PublicDomainEntry(Base):
+    """Track works entering the public domain."""
+    __tablename__ = "public_domain_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    work_id = Column(Integer, ForeignKey("works.id"))
+    ip_type = Column(String(20), nullable=False)  # patent, copyright, trademark
+    entry_year = Column(Integer, nullable=False, index=True)
+    entry_date = Column(DateTime(timezone=True))
+    jurisdiction = Column(String(10), default="US")
+    reason = Column(String(50))  # expiration, abandonment, dedication
+    original_term_years = Column(Integer)
+    notable = Column(Boolean, default=False, index=True)
+    notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    work = relationship("Work")
+
+
+class SavedSearch(Base):
+    """User saved searches with optional alerts."""
+    __tablename__ = "saved_searches"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    search_type = Column(String(20), nullable=False)  # patent, trademark, scientific, all
+    query = Column(Text, nullable=False)
+    filters = Column(JSON)
+    alert_enabled = Column(Boolean, default=False)
+    alert_frequency = Column(String(20), default="weekly")  # daily, weekly, monthly
+    last_alert_sent = Column(DateTime(timezone=True))
+    result_count = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User")
 
 class Alert(Base):
     """Alert configuration for users."""
