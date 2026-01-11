@@ -66,15 +66,15 @@ export default function Models3DFactoryPage() {
                         <div className="p-2 bg-orange-100 rounded-lg">
                             <Box className="h-6 w-6 text-orange-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-white">3D Models Factory</h1>
+                        <h1 className="text-3xl font-bold text-white">Prototyping Studio</h1>
                     </div>
                     <p className="text-gray-400 ml-12">
-                        Create stunning 3D models and visualizations from public domain works
+                        Create commercialization-ready 3D models for manufacturing and product validation
                     </p>
                 </div>
                 <Badge variant="outline" className="border-orange-500/50 text-orange-400">
                     <Zap className="h-3 w-3 mr-1" />
-                    High-Impact Visuals
+                    Manufacturing Ready
                 </Badge>
             </div>
 
@@ -84,10 +84,10 @@ export default function Models3DFactoryPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Settings className="h-5 w-5 text-orange-400" />
-                            3D Model Configuration
+                            Prototype Configuration
                         </CardTitle>
                         <CardDescription className="text-gray-400">
-                            Configure your 3D model specifications and visual style
+                            Configure production specs, surface detail, and output readiness
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

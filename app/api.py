@@ -66,6 +66,25 @@ async def get_works(
     works = query.offset(skip).limit(limit).all()
     return works
 
+@router.get("/works/entering-public-domain", response_model=List[WorkResponse])
+async def get_entering_public_domain(
+    year: int = Query(datetime.utcnow().year, ge=1000, le=9999),
+    limit: int = Query(100, ge=1, le=500),
+    media_type: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Get works entering the public domain for a specific year."""
+    query = db.query(Work).filter(
+        Work.status == "active",
+        Work.public_domain_year == year
+    )
+
+    if media_type:
+        query = query.filter(Work.media_type == media_type)
+
+    works = query.order_by(Work.title.asc()).limit(limit).all()
+    return works
+
 @router.get("/works/{work_id}", response_model=WorkResponse)
 async def get_work(work_id: int, db: Session = Depends(get_db)):
     """Get a specific work by ID with full details."""

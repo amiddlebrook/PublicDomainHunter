@@ -16,6 +16,13 @@ class MediaType(str, Enum):
     IMAGE = "image"
     AUDIO = "audio"
     VIDEO = "video"
+    PATENT = "patent"
+    TRADEMARK = "trademark"
+    SCIENTIFIC_PAPER = "scientific_paper"
+    MUSIC_SCORE = "music_score"
+    DESIGN = "design"
+    SOFTWARE = "software"
+    DATASET = "dataset"
 
 class WorkStatus(str, Enum):
     """Enum for work status."""

@@ -23,7 +23,7 @@ class PublicDomainWork:
     author: str
     publication_year: Optional[int]
     public_domain_year: Optional[int]
-    media_type: str  # book, document, image, audio, video
+    media_type: str  # book, document, image, audio, video, patent, trademark, scientific_paper, music_score
     language: str
     description: str
     download_url: Optional[str]
@@ -196,7 +196,13 @@ class InternetArchiveAPI(PublicDomainAPI):
         # Check subjects for media type hints
         subject_text = ' '.join(subjects).lower()
 
-        if any(word in subject_text for word in ['audio', 'sound', 'music', 'recording']):
+        if any(word in subject_text for word in ['patent', 'patents', 'invention', 'inventor']):
+            return 'patent'
+        elif any(word in subject_text for word in ['trademark', 'trade mark', 'brand']):
+            return 'trademark'
+        elif any(word in subject_text for word in ['research', 'journal', 'scientific', 'paper', 'study']):
+            return 'scientific_paper'
+        elif any(word in subject_text for word in ['audio', 'sound', 'music', 'recording', 'score', 'sheet music']):
             return 'audio'
         elif any(word in subject_text for word in ['video', 'film', 'movie']):
             return 'video'
