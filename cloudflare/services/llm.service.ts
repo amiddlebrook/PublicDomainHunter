@@ -104,8 +104,68 @@ export const PROVIDER_CONFIGS: Record<AIProvider, ProviderConfig> = {
   },
 };
 
+export interface UserApiKeys {
+  openai?: string;
+  claude?: string;
+  gemini?: string;
+  openrouter?: string;
+}
+
 export class LLMService {
+  private userApiKeys: UserApiKeys | null = null;
+
   constructor(private env: any) {}
+
+  /**
+   * Set user-provided API keys (BYOK model)
+   */
+  setUserApiKeys(keys: UserApiKeys): void {
+    this.userApiKeys = keys;
+  }
+
+  /**
+   * Get API key for a provider - prioritizes user keys over env vars
+   */
+  private getApiKey(provider: AIProvider): string | null {
+    const config = PROVIDER_CONFIGS[provider];
+
+    // Map provider to user key
+    const providerKeyMap: Record<string, keyof UserApiKeys> = {
+      [AIProvider.OPENAI]: 'openai',
+      [AIProvider.CLAUDE]: 'claude',
+      [AIProvider.GEMINI]: 'gemini',
+      [AIProvider.OPENROUTER_QWEN3_CODER]: 'openrouter',
+      [AIProvider.OPENROUTER_DEEPSEEK_R1T2]: 'openrouter',
+      [AIProvider.OPENROUTER_DEEPSEEK_CHAT]: 'openrouter',
+      [AIProvider.OPENROUTER_MINIMAX_M2]: 'openrouter',
+      [AIProvider.OPENROUTER_GLM_45_AIR]: 'openrouter',
+      [AIProvider.OPENROUTER_QWEN3_235B]: 'openrouter',
+    };
+
+    const userKeyName = providerKeyMap[provider];
+
+    // First try user-provided keys
+    if (this.userApiKeys && userKeyName && this.userApiKeys[userKeyName]) {
+      return this.userApiKeys[userKeyName]!;
+    }
+
+    // Fall back to environment variable (for admin/system use)
+    return this.env[config.apiKeyEnv] || null;
+  }
+
+  /**
+   * Check if a provider is available (has a valid API key)
+   */
+  isProviderAvailable(provider: AIProvider): boolean {
+    return !!this.getApiKey(provider);
+  }
+
+  /**
+   * Get list of available providers based on configured keys
+   */
+  getAvailableProviders(): AIProvider[] {
+    return Object.values(AIProvider).filter(p => this.isProviderAvailable(p));
+  }
 
   /**
    * Generate a completion using the specified provider
@@ -116,10 +176,10 @@ export class LLMService {
     options?: { temperature?: number; maxTokens?: number }
   ): Promise<LLMResponse> {
     const config = PROVIDER_CONFIGS[provider];
-    const apiKey = this.env[config.apiKeyEnv];
+    const apiKey = this.getApiKey(provider);
 
     if (!apiKey) {
-      throw new Error(`API key not found for provider: ${provider}`);
+      throw new Error(`API key not configured for provider: ${provider}. Please add your API key in Settings.`);
     }
 
     const temperature = options?.temperature || config.temperature || 0.7;

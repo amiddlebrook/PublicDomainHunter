@@ -2125,6 +2125,217 @@ app.get('/api/portfolio/list', async (c) => {
   return c.json({ portfolio: results });
 });
 
+// ===== USER SETUP & API KEY MANAGEMENT =====
+
+/**
+ * Get user's setup status - used for gating functionality
+ * Returns whether setup is complete and which providers are configured
+ */
+app.get('/api/user/setup-status', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const aiPrefService = new AIPreferenceService(c.env.DB);
+    const status = await aiPrefService.getSetupStatus(parseInt(payload.sub));
+    return c.json(status);
+  } catch (error: any) {
+    console.error('Setup status error:', error);
+    return c.json({ error: 'Failed to get setup status' }, 500);
+  }
+});
+
+/**
+ * Get configured API key providers (does not return actual keys)
+ */
+app.get('/api/user/api-keys', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const aiPrefService = new AIPreferenceService(c.env.DB);
+    const prefs = await aiPrefService.getPreferences(parseInt(payload.sub));
+
+    // Return provider status without exposing actual keys
+    const providers = {
+      openai: { configured: !!prefs.api_keys.openai, masked: prefs.api_keys.openai ? '••••' + prefs.api_keys.openai.slice(-4) : null },
+      claude: { configured: !!prefs.api_keys.claude, masked: prefs.api_keys.claude ? '••••' + prefs.api_keys.claude.slice(-4) : null },
+      gemini: { configured: !!prefs.api_keys.gemini, masked: prefs.api_keys.gemini ? '••••' + prefs.api_keys.gemini.slice(-4) : null },
+      openrouter: { configured: !!prefs.api_keys.openrouter, masked: prefs.api_keys.openrouter ? '••••' + prefs.api_keys.openrouter.slice(-4) : null },
+    };
+
+    return c.json({
+      providers,
+      setupCompleted: prefs.setup_completed,
+      defaultProvider: prefs.default_provider
+    });
+  } catch (error: any) {
+    console.error('Get API keys error:', error);
+    return c.json({ error: 'Failed to get API key status' }, 500);
+  }
+});
+
+/**
+ * Save user's API keys
+ */
+app.post('/api/user/api-keys', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const { apiKeys } = await c.req.json();
+    const aiPrefService = new AIPreferenceService(c.env.DB);
+    const updated = await aiPrefService.saveApiKeys(parseInt(payload.sub), apiKeys);
+
+    return c.json({
+      message: 'API keys saved successfully',
+      setupCompleted: updated.setup_completed,
+      configuredProviders: updated.enabled_providers
+    });
+  } catch (error: any) {
+    console.error('Save API keys error:', error);
+    return c.json({ error: 'Failed to save API keys' }, 500);
+  }
+});
+
+/**
+ * Test an API key by making a simple request
+ */
+app.post('/api/user/api-keys/test', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const { provider, apiKey } = await c.req.json();
+
+    if (!provider || !apiKey) {
+      return c.json({ error: 'Provider and API key are required' }, 400);
+    }
+
+    // Test the API key by making a minimal request
+    let isValid = false;
+    let errorMessage = '';
+
+    switch (provider) {
+      case 'openai':
+        try {
+          const response = await fetch('https://api.openai.com/v1/models', {
+            headers: { 'Authorization': `Bearer ${apiKey}` }
+          });
+          isValid = response.ok;
+          if (!isValid) errorMessage = 'Invalid OpenAI API key';
+        } catch (e: any) {
+          errorMessage = e.message;
+        }
+        break;
+
+      case 'claude':
+        try {
+          const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'claude-3-haiku-20240307',
+              max_tokens: 1,
+              messages: [{ role: 'user', content: 'Hi' }]
+            })
+          });
+          // Claude returns 200 for valid key, 401 for invalid
+          isValid = response.ok || response.status === 400; // 400 might mean valid key but bad request
+          if (response.status === 401) errorMessage = 'Invalid Claude API key';
+        } catch (e: any) {
+          errorMessage = e.message;
+        }
+        break;
+
+      case 'gemini':
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
+          isValid = response.ok;
+          if (!isValid) errorMessage = 'Invalid Gemini API key';
+        } catch (e: any) {
+          errorMessage = e.message;
+        }
+        break;
+
+      case 'openrouter':
+        try {
+          const response = await fetch('https://openrouter.ai/api/v1/models', {
+            headers: { 'Authorization': `Bearer ${apiKey}` }
+          });
+          isValid = response.ok;
+          if (!isValid) errorMessage = 'Invalid OpenRouter API key';
+        } catch (e: any) {
+          errorMessage = e.message;
+        }
+        break;
+
+      default:
+        return c.json({ error: 'Unsupported provider' }, 400);
+    }
+
+    return c.json({ valid: isValid, error: errorMessage || undefined });
+  } catch (error: any) {
+    console.error('Test API key error:', error);
+    return c.json({ error: 'Failed to test API key' }, 500);
+  }
+});
+
+/**
+ * Delete a specific API key
+ */
+app.delete('/api/user/api-keys/:provider', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const jwtSecret = c.env.JWT_SECRET || 'default-secret-change-in-production';
+  const payload = await authMiddleware(authHeader || null, jwtSecret);
+
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const provider = c.req.param('provider');
+
+  try {
+    const aiPrefService = new AIPreferenceService(c.env.DB);
+    const prefs = await aiPrefService.getPreferences(parseInt(payload.sub));
+
+    // Remove the specified key
+    const updatedKeys = { ...prefs.api_keys };
+    delete updatedKeys[provider];
+
+    await aiPrefService.saveApiKeys(parseInt(payload.sub), updatedKeys);
+
+    return c.json({ message: `${provider} API key removed` });
+  } catch (error: any) {
+    console.error('Delete API key error:', error);
+    return c.json({ error: 'Failed to delete API key' }, 500);
+  }
+});
+
 // ===== BILLING ENDPOINTS =====
 
 /**
