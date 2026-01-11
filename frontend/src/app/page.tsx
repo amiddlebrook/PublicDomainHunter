@@ -43,6 +43,58 @@ interface Work {
   }
 }
 
+const factoryIpCoverage = [
+  {
+    title: 'Literary Works',
+    description: 'Books, manuscripts, serialized stories, and essays.',
+    outputs: ['eBooks', 'Print-ready PDFs', 'Audiobooks', 'Courses'],
+    accent: 'text-blue-400'
+  },
+  {
+    title: 'Visual Art & Design',
+    description: 'Posters, illustrations, maps, and archival artwork.',
+    outputs: ['Brand assets', 'Marketing kits', 'Licensable bundles'],
+    accent: 'text-indigo-400'
+  },
+  {
+    title: 'Audio & Performance',
+    description: 'Scripts, plays, speeches, and recordings.',
+    outputs: ['Narrated audio', 'Performance scripts', 'Sound packs'],
+    accent: 'text-emerald-400'
+  },
+  {
+    title: 'Industrial & Product IP',
+    description: 'Design patents, prototypes, and technical schematics.',
+    outputs: ['3D models', 'AR previews', 'Manufacturing specs'],
+    accent: 'text-amber-400'
+  },
+  {
+    title: 'Educational IP',
+    description: 'Lectures, textbooks, and training materials.',
+    outputs: ['Curriculum kits', 'Lesson plans', 'Assessment banks'],
+    accent: 'text-pink-400'
+  }
+]
+
+const factoryCapabilities = [
+  {
+    label: 'Metadata & Rights',
+    detail: 'Auto-generate rights summaries, attribution files, and licensing notes.'
+  },
+  {
+    label: 'Multi-format Output',
+    detail: 'Export ready-to-sell files for print, audio, web, and marketplace distribution.'
+  },
+  {
+    label: 'Brand Packaging',
+    detail: 'Produce marketing kits, launch pages, and investor-ready decks.'
+  },
+  {
+    label: 'Quality Assurance',
+    detail: 'AI-driven checks for formatting, compliance, and commercial viability.'
+  }
+]
+
 export default function Dashboard() {
   const pathname = usePathname()
   const [recentWorks, setRecentWorks] = useState<Work[]>([])
@@ -271,6 +323,52 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </Link>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="bg-dark-900 border-dark-700">
+            <CardHeader>
+              <CardTitle>IP Coverage Map</CardTitle>
+              <CardDescription>
+                Match each public domain IP type with ready-to-package outputs.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {factoryIpCoverage.map((ip) => (
+                <div key={ip.title} className="rounded-lg border border-dark-700 bg-dark-800/60 p-4">
+                  <div className={`text-sm font-semibold ${ip.accent}`}>{ip.title}</div>
+                  <p className="text-sm text-muted-foreground mt-2">{ip.description}</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {ip.outputs.map((output) => (
+                      <Badge key={output} variant="secondary" className="bg-dark-700 text-gray-200">
+                        {output}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-dark-900 border-dark-700">
+            <CardHeader>
+              <CardTitle>Factory Capabilities</CardTitle>
+              <CardDescription>
+                Standardized features applied across every Factory workflow.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {factoryCapabilities.map((capability) => (
+                <div
+                  key={capability.label}
+                  className="flex flex-col gap-2 rounded-lg border border-dark-700 bg-dark-800/60 p-4"
+                >
+                  <div className="text-sm font-semibold text-white">{capability.label}</div>
+                  <p className="text-sm text-muted-foreground">{capability.detail}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
 

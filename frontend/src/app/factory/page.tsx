@@ -65,6 +65,58 @@ const factories = [
     }
 ]
 
+const ipCoverage = [
+    {
+        title: 'Literary Works',
+        description: 'Books, manuscripts, serialized stories, and essays.',
+        formats: ['eBooks', 'Print-ready PDFs', 'Audiobooks', 'Courses'],
+        color: 'text-blue-400'
+    },
+    {
+        title: 'Visual Art & Design',
+        description: 'Posters, illustrations, maps, and archival artwork.',
+        formats: ['Brand assets', 'Marketing kits', 'Licensable bundles'],
+        color: 'text-purple-400'
+    },
+    {
+        title: 'Audio & Performance',
+        description: 'Scripts, plays, speeches, and recordings.',
+        formats: ['Narrated audio', 'Performance scripts', 'Sound packs'],
+        color: 'text-green-400'
+    },
+    {
+        title: 'Industrial & Product IP',
+        description: 'Design patents, prototypes, and technical schematics.',
+        formats: ['3D models', 'AR previews', 'Manufacturing specs'],
+        color: 'text-orange-400'
+    },
+    {
+        title: 'Educational IP',
+        description: 'Lectures, textbooks, and training materials.',
+        formats: ['Curriculum kits', 'Lesson plans', 'Assessment banks'],
+        color: 'text-pink-400'
+    }
+]
+
+const capabilityMatrix = [
+    {
+        label: 'Metadata & Rights',
+        detail: 'Auto-generate rights summaries, attribution files, and licensing notes.'
+    },
+    {
+        label: 'Multi-format Output',
+        detail: 'Export ready-to-sell files for print, audio, web, and marketplace distribution.'
+    },
+    {
+        label: 'Brand Packaging',
+        detail: 'Produce marketing kits, launch pages, and investor-ready decks.'
+    },
+    {
+        label: 'Quality Assurance',
+        detail: 'AI-driven checks for formatting, compliance, and commercial viability.'
+    }
+]
+
 const stats = [
     { label: 'Active Factories', value: '2', icon: Sparkles, color: 'text-purple-400' },
     { label: 'Products Created', value: '847', icon: TrendingUp, color: 'text-green-400' },
@@ -168,6 +220,54 @@ export default function FactoryPage() {
                     )
                 })}
             </div>
+
+            {/* IP Coverage */}
+            <Card className="bg-dark-900 border-dark-700">
+                <CardHeader>
+                    <CardTitle className="text-white">IP Coverage Map</CardTitle>
+                    <CardDescription className="text-gray-400">
+                        Every factory maps to a public domain IP type with tailored outputs and packaging.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {ipCoverage.map((ip) => (
+                            <div key={ip.title} className="rounded-lg border border-dark-700 bg-dark-800/60 p-4">
+                                <div className={`text-sm font-semibold ${ip.color}`}>{ip.title}</div>
+                                <p className="text-sm text-gray-400 mt-2">{ip.description}</p>
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {ip.formats.map((format) => (
+                                        <Badge key={format} variant="secondary" className="bg-dark-700 text-gray-200">
+                                            {format}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Capability Matrix */}
+            <Card className="bg-dark-900 border-dark-700">
+                <CardHeader>
+                    <CardTitle className="text-white">Factory Capabilities</CardTitle>
+                    <CardDescription className="text-gray-400">
+                        Standardized features applied across every IP type.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {capabilityMatrix.map((capability) => (
+                        <div
+                            key={capability.label}
+                            className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-lg border border-dark-700 bg-dark-800/60 p-4"
+                        >
+                            <div className="text-white font-semibold">{capability.label}</div>
+                            <div className="text-sm text-gray-400 md:max-w-2xl">{capability.detail}</div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
 
             {/* Info Section */}
             <Card className="bg-dark-900 border-dark-700">
