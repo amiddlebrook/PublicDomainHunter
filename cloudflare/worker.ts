@@ -2,7 +2,6 @@
 // Main Cloudflare Worker entry point
 
 import { D1Database, KVNamespace, R2Bucket, Queue, AnalyticsEngineDataset, Fetcher } from '@cloudflare/workers-types';
-import backend from './backend';
 import { handleQueue } from './queue-consumer';
 
 // Define the bindings expected from the environment
@@ -29,50 +28,8 @@ export default {
   /**
    * HTTP Request Handler
    */
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url);
-
-    // API routes are handled by the backend
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
-      const response = await backend.fetch(request, env, ctx);
-      response.headers.set('X-Debug-Version', 'v1');
-      return response;
-    }
-
-    // All other requests are static assets
-    try {
-      if (!env.ASSETS) {
-        return new Response(
-          JSON.stringify({
-            message: 'Public Domain Hunter worker is running in API-only mode',
-            nextSteps: 'Bind the ASSETS fetcher by deploying through Cloudflare Pages to serve the frontend.',
-          }),
-          {
-            status: 200,
-            headers: {
-              'content-type': 'application/json; charset=utf-8',
-              'cache-control': 'no-store',
-            },
-          }
-        );
-      }
-
-      const response = await env.ASSETS.fetch(request);
-
-      // For SPA routing, serve index.html on 404
-      if (response.status === 404) {
-        const notFoundRequest = new Request(new URL('/index.html', request.url), request);
-        const notFoundResponse = await env.ASSETS.fetch(notFoundRequest);
-        if (notFoundResponse.status === 200) {
-          return notFoundResponse;
-        }
-      }
-
-      return response;
-    } catch (e) {
-      console.error('Failed to fetch asset:', e);
-      return new Response('An unexpected error occurred', { status: 500 });
-    }
+  async fetch(_request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
+    return new Response('Under construction', { status: 404 });
   },
 
   /**
