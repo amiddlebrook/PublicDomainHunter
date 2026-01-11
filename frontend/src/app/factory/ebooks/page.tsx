@@ -132,15 +132,15 @@ export default function EbookFactoryPage() {
                         <div className="p-2 bg-blue-100 rounded-lg">
                             <BookOpen className="h-6 w-6 text-blue-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-white">eBook Factory</h1>
+                        <h1 className="text-3xl font-bold text-white">Publication Studio</h1>
                     </div>
                     <p className="text-gray-400 ml-12">
-                        Convert public domain works into modern, formatted eBooks
+                        Package public domain works into distribution-ready digital publications
                     </p>
                 </div>
                 <Badge variant="outline" className="border-blue-500/50 text-blue-400">
                     <Sparkles className="h-3 w-3 mr-1" />
-                    Professional Format
+                    Distribution Ready
                 </Badge>
             </div>
 
@@ -150,10 +150,10 @@ export default function EbookFactoryPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Settings className="h-5 w-5 text-blue-400" />
-                            eBook Configuration
+                            Publication Configuration
                         </CardTitle>
                         <CardDescription className="text-gray-400">
-                            Customize your eBook format and appearance
+                            Customize formats, metadata, and packaging for sales channels
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

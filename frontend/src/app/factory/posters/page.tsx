@@ -117,10 +117,10 @@ export default function PosterFactoryPage() {
                         <div className="p-2 bg-purple-100 rounded-lg">
                             <ImageIcon className="h-6 w-6 text-purple-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-white">Poster Factory</h1>
+                        <h1 className="text-3xl font-bold text-white">Brand Asset Studio</h1>
                     </div>
                     <p className="text-gray-400 ml-12">
-                        Generate stunning promotional posters for public domain works
+                        Generate campaign-ready visuals for pitching and go-to-market launches
                     </p>
                 </div>
                 <Badge variant="outline" className="border-purple-500/50 text-purple-400">
@@ -135,10 +135,10 @@ export default function PosterFactoryPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Palette className="h-5 w-5 text-purple-400" />
-                            Design Configuration
+                            Brand Asset Configuration
                         </CardTitle>
                         <CardDescription className="text-gray-400">
-                            Customize your poster design
+                            Customize visuals for investor decks, storefronts, and marketing campaigns
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

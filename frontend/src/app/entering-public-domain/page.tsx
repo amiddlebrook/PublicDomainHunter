@@ -172,6 +172,64 @@ export default function EnteringPublicDomainPage() {
   const [entries, setEntries] = useState<PublicDomainEntry[]>(PUBLIC_DOMAIN_2026)
   const [loading, setLoading] = useState(false)
 
+  const normalizeType = (mediaType?: string): PublicDomainEntry['type'] => {
+    switch ((mediaType || '').toLowerCase()) {
+      case 'patent':
+        return 'patent'
+      case 'trademark':
+        return 'trademark'
+      case 'video':
+        return 'film'
+      case 'audio':
+        return 'music'
+      case 'image':
+        return 'art'
+      default:
+        return 'book'
+    }
+  }
+
+  const fetchEntries = useCallback(async () => {
+    setLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/works/entering-public-domain?year=${selectedYear}&limit=200`)
+      if (!response.ok) {
+        throw new Error('Failed to load entering public domain feed')
+      }
+      const data = await response.json()
+      if (Array.isArray(data) && data.length > 0) {
+        const mapped = data.map((work: any, index: number): PublicDomainEntry => ({
+          id: work.id ?? index,
+          title: work.title,
+          author: work.author || undefined,
+          creator: work.author || undefined,
+          type: normalizeType(work.media_type),
+          year_created: work.original_publication_year || undefined,
+          entry_year: work.public_domain_year || selectedYear,
+          entry_date: work.public_domain_year ? `${work.public_domain_year}-01-01` : undefined,
+          reason: 'Public domain year reached',
+          notable: (work.monetization_score || 0) >= 80,
+          description: work.description || undefined,
+          source_url: work.source_url || undefined,
+          thumbnail_url: undefined,
+          significance: work.description ? undefined : 'Catalog entry with verified public domain status',
+        }))
+        setEntries(mapped)
+      } else {
+        setEntries(PUBLIC_DOMAIN_2026)
+      }
+    } catch (error) {
+      console.error('Failed to fetch public domain entries', error)
+      setEntries(PUBLIC_DOMAIN_2026)
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedYear])
+
+  useEffect(() => {
+    fetchEntries()
+  }, [fetchEntries])
+
   const filteredEntries = entries.filter(entry => {
     if (selectedType !== 'all' && entry.type !== selectedType) return false
     return entry.entry_year === selectedYear
@@ -343,6 +401,13 @@ export default function EnteringPublicDomainPage() {
             </CardContent>
           </Card>
         </div>
+
+        {loading && (
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+            <Clock className="h-4 w-4" />
+            Refreshing the public domain feed for {selectedYear}...
+          </div>
+        )}
 
         {/* Notable Entries */}
         {notableEntries.length > 0 && (

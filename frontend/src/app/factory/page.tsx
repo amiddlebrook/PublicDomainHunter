@@ -20,8 +20,8 @@ import {
 const factories = [
     {
         id: 'posters',
-        title: 'Poster Factory',
-        description: 'Generate stunning promotional posters for public domain works with AI-powered design',
+        title: 'Brand Asset Studio',
+        description: 'Generate investor-ready visuals, pitch graphics, and promo assets for public domain IP',
         icon: ImageIcon,
         color: 'purple',
         status: 'available',
@@ -29,8 +29,8 @@ const factories = [
     },
     {
         id: 'ebooks',
-        title: 'eBook Factory',
-        description: 'Convert public domain works into professionally formatted eBooks for all devices',
+        title: 'Publication Studio',
+        description: 'Package public domain works into professional eBooks with metadata, styling, and distribution-ready files',
         icon: BookOpen,
         color: 'blue',
         status: 'available',
@@ -38,8 +38,8 @@ const factories = [
     },
     {
         id: 'audiobooks',
-        title: 'Audiobook Factory',
-        description: 'Transform public domain texts into high-quality audiobooks with AI narration',
+        title: 'Audio Production Studio',
+        description: 'Transform public domain texts into studio-ready audiobooks with narration and mastering',
         icon: Music,
         color: 'green',
         status: 'coming-soon',
@@ -47,8 +47,8 @@ const factories = [
     },
     {
         id: '3d-models',
-        title: '3D Models Factory',
-        description: 'Create detailed 3D models and visualizations from public domain works',
+        title: 'Prototyping Studio',
+        description: 'Create detailed 3D models and visualizations for manufacturing, AR, and product validation',
         icon: Box,
         color: 'orange',
         status: 'coming-soon',
@@ -56,8 +56,8 @@ const factories = [
     },
     {
         id: 'courses',
-        title: 'Course Factory',
-        description: 'Build comprehensive online courses from public domain educational content',
+        title: 'Curriculum Studio',
+        description: 'Build professional learning products from public domain educational content',
         icon: Play,
         color: 'pink',
         status: 'coming-soon',
@@ -81,10 +81,10 @@ export default function FactoryPage() {
                         <Link href="/" className="text-gray-400 hover:text-white">
                             <ArrowLeft className="h-5 w-5" />
                         </Link>
-                        <h1 className="text-3xl font-bold text-white">The Factory</h1>
+                        <h1 className="text-3xl font-bold text-white">Commercialization Studio</h1>
                     </div>
                     <p className="text-gray-400 ml-8">
-                        Transform public domain works into marketable products with AI-powered tools
+                        Transform public domain IP into commercialization-ready assets with AI-powered tools
                     </p>
                 </div>
                 <Badge variant="outline" className="border-green-500/50 text-green-400">
@@ -172,44 +172,44 @@ export default function FactoryPage() {
             {/* Info Section */}
             <Card className="bg-dark-900 border-dark-700">
                 <CardHeader>
-                    <CardTitle className="text-white">How The Factory Works</CardTitle>
+                    <CardTitle className="text-white">How The Studio Works</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-purple-400 font-medium">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-xs">1</span>
-                                Select Content
+                                Select IP
                             </div>
                             <p className="text-gray-400 text-sm pl-8">
-                                Choose from our curated collection of public domain works
+                                Choose public domain IP assets with clear commercialization paths
                             </p>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-purple-400 font-medium">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-xs">2</span>
-                                Configure Product
+                                Configure Deliverables
                             </div>
                             <p className="text-gray-400 text-sm pl-8">
-                                Customize your product with our intuitive configuration tools
+                                Customize assets, outputs, and formats for your target market
                             </p>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-purple-400 font-medium">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-xs">3</span>
-                                AI Generation
+                                AI Production
                             </div>
                             <p className="text-gray-400 text-sm pl-8">
-                                Our AI creates professional-quality products instantly
+                                Our AI assembles professional-grade assets instantly
                             </p>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-purple-400 font-medium">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-xs">4</span>
-                                Download & Use
+                                Deploy & Launch
                             </div>
                             <p className="text-gray-400 text-sm pl-8">
-                                Download your product and start selling immediately
+                                Download deliverables and move directly to market
                             </p>
                         </div>
                     </div>

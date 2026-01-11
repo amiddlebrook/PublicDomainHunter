@@ -29,7 +29,8 @@ import {
   Activity,
   Sparkles,
   Info,
-  Star
+  Star,
+  ExternalLink
 } from 'lucide-react'
 import { format } from 'date-fns'
 import Link from 'next/link'
@@ -78,6 +79,20 @@ export default function SearchPage() {
     minScore: 0,
     maxSaturation: 100
   })
+  const mediaTypeOptions = [
+    { label: 'Book', value: 'book' },
+    { label: 'Document', value: 'document' },
+    { label: 'Image', value: 'image' },
+    { label: 'Audio', value: 'audio' },
+    { label: 'Video', value: 'video' },
+    { label: 'Patent', value: 'patent' },
+    { label: 'Trademark', value: 'trademark' },
+    { label: 'Research', value: 'scientific_paper' },
+    { label: 'Music Score', value: 'music_score' },
+    { label: 'Design', value: 'design' },
+    { label: 'Software', value: 'software' },
+    { label: 'Dataset', value: 'dataset' },
+  ]
 
   const performSearch = useCallback(async (searchQuery: string, page: number = 1) => {
     if (!searchQuery.trim()) {
@@ -311,19 +326,19 @@ export default function SearchPage() {
                 <div className="space-y-3">
                   <Label className="text-sm font-medium text-gray-300">Media Type</Label>
                   <div className="space-y-2">
-                    {['Book', 'Image', 'Audio', 'Video'].map((type) => (
-                      <div key={type} className="flex items-center space-x-2">
+                    {mediaTypeOptions.map((type) => (
+                      <div key={type.value} className="flex items-center space-x-2">
                         <Checkbox
-                          id={type}
-                          checked={filters.mediaTypes.includes(type.toLowerCase())}
-                          onCheckedChange={() => toggleMediaType(type.toLowerCase())}
+                          id={type.value}
+                          checked={filters.mediaTypes.includes(type.value)}
+                          onCheckedChange={() => toggleMediaType(type.value)}
                           className="border-gray-600 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                         />
                         <label
-                          htmlFor={type}
+                          htmlFor={type.value}
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400"
                         >
-                          {type}
+                          {type.label}
                         </label>
                       </div>
                     ))}
@@ -419,6 +434,21 @@ export default function SearchPage() {
                   Search
                 </Button>
               </div>
+              {query.trim() && (
+                <div className="flex items-center gap-3 text-xs text-gray-500 mb-6">
+                  <span>Expand your search:</span>
+                  <Button variant="outline" size="sm" asChild className="text-xs">
+                    <a
+                      href={`https://patents.google.com/?q=${encodeURIComponent(query)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      Search Google Patents
+                    </a>
+                  </Button>
+                </div>
+              )}
 
               {/* Results Area */}
               <div className="flex-1 min-h-0 overflow-y-auto pr-2">
