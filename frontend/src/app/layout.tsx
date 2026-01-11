@@ -3,7 +3,9 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Inter, Outfit, JetBrains_Mono } from 'next/font/google'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { SetupProvider } from '@/contexts/SetupContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { SetupGate } from '@/components/SetupGate'
 import ClientLayout from './layout.client'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -21,7 +23,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen bg-dark-950 text-white font-sans antialiased selection:bg-primary-500/30">
         <ErrorBoundary>
           <AuthProvider>
-            <ClientLayout>{children}</ClientLayout>
+            <SetupProvider>
+              <SetupGate>
+                <ClientLayout>{children}</ClientLayout>
+              </SetupGate>
+            </SetupProvider>
           </AuthProvider>
         </ErrorBoundary>
       </body>
