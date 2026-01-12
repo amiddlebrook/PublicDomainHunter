@@ -22,14 +22,36 @@ export interface Env {
   CLAUDE_API_KEY?: string;
   GEMINI_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
+
+  // Deployment configuration
+  BACKEND_URL?: string;
 }
 
 export default {
   /**
    * HTTP Request Handler
    */
-  async fetch(_request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
-    return new Response('Under construction', { status: 404 });
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (url.pathname.startsWith('/api')) {
+      if (!env.BACKEND_URL) {
+        return new Response('BACKEND_URL is not configured', { status: 502 });
+      }
+
+      const backendUrl = new URL(env.BACKEND_URL);
+      const proxyUrl = new URL(request.url);
+      proxyUrl.protocol = backendUrl.protocol;
+      proxyUrl.host = backendUrl.host;
+
+      return fetch(new Request(proxyUrl.toString(), request));
+    }
+
+    if (!env.ASSETS) {
+      return new Response('ASSETS binding is not configured', { status: 500 });
+    }
+
+    return env.ASSETS.fetch(request);
   },
 
   /**
