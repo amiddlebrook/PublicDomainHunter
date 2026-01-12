@@ -4,9 +4,8 @@ import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from .alert_processor import get_alert_processor
 from .ai_config_api import router as ai_config_router
@@ -69,15 +68,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
-@app.middleware("http")
-async def maintenance_mode(request: Request, call_next):
-    """Return 404 for all requests while the app is under construction."""
-
-    return JSONResponse(
-        status_code=404,
-        content={"detail": "Under construction"},
-    )
 
 app.add_middleware(
     CORSMiddleware,
