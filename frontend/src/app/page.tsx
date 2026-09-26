@@ -1,384 +1,58 @@
 'use client'
 
-import { API_BASE_URL } from '@/lib/utils'
-import { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
-import dynamic from 'next/dynamic'
-import {
-  BookOpen,
-  TrendingUp,
-  Users,
-  Bell,
-  Search,
-  ArrowUpRight,
-  ArrowDownRight,
-  Star,
-  Calendar
-} from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { StatsSourceModal } from '@/components/StatsSourceModal'
+import { ArrowRight, BadgeCheck, Database, Gauge, Radar, Scale, Sparkles } from 'lucide-react'
+import { OpportunityExplorer } from '@/components/opportunity/OpportunityExplorer'
 
-// Dynamically import WorkDetailClient to handle work detail routes
-const WorkDetailClient = dynamic(() => import('./works/[id]/WorkDetailClient'), { ssr: false })
-
-interface DashboardStats {
-  total_works: number
-  new_works_today: number
-  average_trend_score: number
-  top_performing_works: any[]
-}
-
-interface Work {
-  id: number
-  title: string
-  author: string
-  public_domain_year: number
-  media_type: string
-  metadata?: {
-    trend_score?: number
-  }
-}
-
-const factoryIpCoverage = [
-  {
-    title: 'Literary Works',
-    description: 'Books, manuscripts, serialized stories, and essays.',
-    outputs: ['eBooks', 'Print-ready PDFs', 'Audiobooks', 'Courses'],
-    accent: 'text-blue-400'
-  },
-  {
-    title: 'Visual Art & Design',
-    description: 'Posters, illustrations, maps, and archival artwork.',
-    outputs: ['Brand assets', 'Marketing kits', 'Licensable bundles'],
-    accent: 'text-indigo-400'
-  },
-  {
-    title: 'Audio & Performance',
-    description: 'Scripts, plays, speeches, and recordings.',
-    outputs: ['Narrated audio', 'Performance scripts', 'Sound packs'],
-    accent: 'text-emerald-400'
-  },
-  {
-    title: 'Industrial & Product IP',
-    description: 'Design patents, prototypes, and technical schematics.',
-    outputs: ['3D models', 'AR previews', 'Manufacturing specs'],
-    accent: 'text-amber-400'
-  },
-  {
-    title: 'Educational IP',
-    description: 'Lectures, textbooks, and training materials.',
-    outputs: ['Curriculum kits', 'Lesson plans', 'Assessment banks'],
-    accent: 'text-pink-400'
-  }
-]
-
-const factoryCapabilities = [
-  {
-    label: 'Metadata & Rights',
-    detail: 'Auto-generate rights summaries, attribution files, and licensing notes.'
-  },
-  {
-    label: 'Multi-format Output',
-    detail: 'Export ready-to-sell files for print, audio, web, and marketplace distribution.'
-  },
-  {
-    label: 'Brand Packaging',
-    detail: 'Produce marketing kits, launch pages, and investor-ready decks.'
-  },
-  {
-    label: 'Quality Assurance',
-    detail: 'AI-driven checks for formatting, compliance, and commercial viability.'
-  }
+const pillars = [
+  { icon: Database, label: 'Live source evidence', detail: 'Project Gutenberg now; Internet Archive candidate search included.' },
+  { icon: Scale, label: 'Rights-aware', detail: 'Rights certainty affects ranking and uncertain works are explicitly flagged.' },
+  { icon: Gauge, label: 'Transparent scoring', detail: 'Every score expands into the actual signals, weights, and missing evidence.' },
 ]
 
 export default function Dashboard() {
-  const pathname = usePathname()
-  const [recentWorks, setRecentWorks] = useState<Work[]>([])
-  const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState({ total: "15M+", newToday: 0 })
-  const [sources, setSources] = useState({ database: 0, gutenberg: 0, archive: 0 })
-  const [sourceModalOpen, setSourceModalOpen] = useState(false)
-  const [portfolioCount, setPortfolioCount] = useState(0)
-  const [recentSearches, setRecentSearches] = useState<any[]>([])
-
-  // Manual client-side routing for work detail pages (SPA fallback workaround)
-  if (pathname && pathname.startsWith('/works/') && pathname !== '/works') {
-    const workId = pathname.split('/works/')[1]
-    return <WorkDetailClient workId={workId} />
-  }
-
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
-
-  const fetchDashboardData = async () => {
-    try {
-      // 1. Fetch Stats
-      const [totalRes, newRes, recentRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/stats/total`),
-        fetch(`${API_BASE_URL}/api/stats/new-today`),
-        fetch(`${API_BASE_URL}/api/works?limit=6&sort_by=created_at&sort_order=desc`)
-      ])
-
-      const totalData = await totalRes.json()
-      const newData = await newRes.json()
-
-      if (recentRes.ok) {
-        const recentData = await recentRes.json()
-        setRecentWorks(Array.isArray(recentData) ? recentData : [])
-      }
-
-      setStats({
-        total: totalData.display || "15M+",
-        newToday: newData.count || 0
-      })
-
-      // Store sources if available
-      if (totalData.sources) {
-        setSources(totalData.sources)
-      }
-
-      // 2. Fetch Portfolio Count (Local Storage for now)
-      const savedPortfolio = localStorage.getItem('pdh_portfolio')
-      if (savedPortfolio) {
-        setPortfolioCount(JSON.parse(savedPortfolio).length)
-      }
-
-      // 3. Fetch Recent Searches (Local Storage)
-      const savedSearches = localStorage.getItem('pdh_recent_searches')
-      if (savedSearches) {
-        setRecentSearches(JSON.parse(savedSearches).slice(0, 5))
-      }
-
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-      setRecentWorks([])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-2 text-gray-400">
-            Welcome to your Opportunity Engine.
+    <div className="mx-auto max-w-7xl space-y-8">
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0b0b10] p-6 md:p-9">
+        <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-violet-600/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-1/3 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="relative max-w-4xl">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-xs font-medium text-violet-200">
+            <Radar className="h-3.5 w-3.5" /> Opportunity Engine 2.0
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-white md:text-6xl">
+            Find old IP with <span className="bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">new commercial potential.</span>
+          </h1>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-400 md:text-lg">
+            Public Domain Hunter searches reusable source material, measures the evidence that actually exists, and ranks what deserves deeper business research next.
           </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/opportunities" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black hover:bg-slate-200">Open Explorer <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/methodology" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10"><BadgeCheck className="h-4 w-4" /> See methodology</Link>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
-            <Link href="/search">
-              <Search className="mr-2 h-4 w-4" />
-              Find Opportunities
-            </Link>
-          </Button>
-        </div>
+      </section>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {pillars.map(({ icon: Icon, label, detail }) => (
+          <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+            <div className="mb-3 grid h-9 w-9 place-items-center rounded-xl bg-violet-500/10 text-violet-300"><Icon className="h-4 w-4" /></div>
+            <div className="text-sm font-semibold text-white">{label}</div>
+            <div className="mt-1 text-xs leading-5 text-slate-500">{detail}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card
-          className="hover:bg-dark-800 transition-colors cursor-pointer"
-          onClick={() => setSourceModalOpen(true)}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Works</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              Click to see data sources
-            </p>
-          </CardContent>
-        </Card>
-
-        <Link href="/new-arrivals">
-          <Card className="hover:bg-dark-800 transition-colors cursor-pointer h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
-              <Calendar className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-500">+{stats.newToday}</div>
-              <p className="text-xs text-muted-foreground">
-                Added to the database today
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/portfolio">
-          <Card className="hover:bg-dark-800 transition-colors cursor-pointer h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">My Opportunities</CardTitle>
-              <Star className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-500">{portfolioCount}</div>
-              <p className="text-xs text-muted-foreground">
-                High-potential works saved
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/search">
-          <Card className="hover:bg-dark-800 transition-colors cursor-pointer h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Recent Searches</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-500">{recentSearches.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Active research sessions
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      {/* The Factory - Quick Start */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">The Factory</h2>
-          <Badge variant="outline" className="text-indigo-400 border-indigo-400">Beta</Badge>
+      <section>
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-violet-300"><Sparkles className="h-3.5 w-3.5" /> Live radar</div>
+            <h2 className="mt-2 text-2xl font-bold text-white">Research candidates</h2>
+          </div>
+          <Link href="/opportunities" className="hidden items-center gap-1 text-sm text-slate-400 hover:text-white sm:flex">Full explorer <ArrowRight className="h-4 w-4" /></Link>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          <Link href="/factory/posters">
-            <Card className="group hover:border-indigo-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950 h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                    <ArrowUpRight className="h-5 w-5" />
-                  </div>
-                  Create Poster Series
-                </CardTitle>
-                <CardDescription>
-                  Turn vintage illustrations into high-res wall art.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="ghost" className="w-full justify-between group-hover:text-indigo-400">
-                  Start Project <ArrowUpRight className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/factory/ebooks">
-            <Card className="group hover:border-pink-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950 h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-pink-500/10 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-colors">
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  Publish E-Book
-                </CardTitle>
-                <CardDescription>
-                  Format classic texts for Kindle & print-on-demand.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="ghost" className="w-full justify-between group-hover:text-pink-400">
-                  Start Project <ArrowUpRight className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/factory/3d-models">
-            <Card className="group hover:border-emerald-500 transition-all cursor-pointer bg-gradient-to-br from-dark-900 to-dark-950 h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                    <TrendingUp className="h-5 w-5" />
-                  </div>
-                  3D Print Model
-                </CardTitle>
-                <CardDescription>
-                  Convert patent drawings into 3D printable files.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="ghost" className="w-full justify-between group-hover:text-emerald-400">
-                  Start Project <ArrowUpRight className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="bg-dark-900 border-dark-700">
-            <CardHeader>
-              <CardTitle>IP Coverage Map</CardTitle>
-              <CardDescription>
-                Match each public domain IP type with ready-to-package outputs.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {factoryIpCoverage.map((ip) => (
-                <div key={ip.title} className="rounded-lg border border-dark-700 bg-dark-800/60 p-4">
-                  <div className={`text-sm font-semibold ${ip.accent}`}>{ip.title}</div>
-                  <p className="text-sm text-muted-foreground mt-2">{ip.description}</p>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {ip.outputs.map((output) => (
-                      <Badge key={output} variant="secondary" className="bg-dark-700 text-gray-200">
-                        {output}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-dark-900 border-dark-700">
-            <CardHeader>
-              <CardTitle>Factory Capabilities</CardTitle>
-              <CardDescription>
-                Standardized features applied across every Factory workflow.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {factoryCapabilities.map((capability) => (
-                <div
-                  key={capability.label}
-                  className="flex flex-col gap-2 rounded-lg border border-dark-700 bg-dark-800/60 p-4"
-                >
-                  <div className="text-sm font-semibold text-white">{capability.label}</div>
-                  <p className="text-sm text-muted-foreground">{capability.detail}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Stats Source Modal */}
-      <StatsSourceModal
-        open={sourceModalOpen}
-        onOpenChange={setSourceModalOpen}
-        sources={sources}
-        total={stats.total}
-      />
+        <OpportunityExplorer compact />
+      </section>
     </div>
   )
 }

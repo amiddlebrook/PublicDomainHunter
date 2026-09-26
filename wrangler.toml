@@ -1,100 +1,9 @@
-# Deployment triggered: 2026-01-11
 name = "publicdomainhunter"
 main = "cloudflare/worker.ts"
-compatibility_date = "2025-12-01"
+compatibility_date = "2026-09-26"
 
-[vars]
-# ⚠️  IMPORTANT: Update this to your FastAPI backend URL
-#
-# For Cloudflare Pages deployment:
-#   Set this in Cloudflare Dashboard → Pages → Settings → Environment Variables
-#   Variable name: BACKEND_URL
-#   Example value: https://api.yourdomain.com
-#
-# For local development:
-#   Set this in .dev.vars file (create from .dev.vars.example)
-#   Example: BACKEND_URL=http://localhost:8000
-#
-# See CLOUDFLARE_PAGES_SETUP.md for complete deployment instructions
-
-# OAuth Configuration
-# IMPORTANT: For security, set these as secrets (not in this file!)
-#
-# For LOCAL development:
-#   1. Copy .dev.vars.example to .dev.vars
-#   2. Add your OAuth credentials to .dev.vars
-#   3. Never commit .dev.vars to git
-#
-# For PRODUCTION deployment (Cloudflare Pages):
-#   Set these in Cloudflare Dashboard → Pages → Settings → Environment Variables
-#   Mark GOOGLE_CLIENT_SECRET and GITHUB_CLIENT_SECRET as "Encrypt" for security
-#   OR use Wrangler: wrangler secret put GOOGLE_CLIENT_ID
-#
-# See CLOUDFLARE_AUTH_SETUP.md for complete OAuth setup instructions
-
-# ⚠️  KV Namespace for session storage - CONFIGURE VIA DASHBOARD
-#
-# For Cloudflare Pages deployment (RECOMMENDED):
-#   The KV namespace section below is COMMENTED OUT to allow initial deployment.
-#   After deployment succeeds, configure KV binding through the dashboard:
-#
-#   1. Create KV namespace: Dashboard → Workers & Pages → KV → Create namespace (name: "SESSIONS")
-#   2. Bind it to your Pages project:
-#      - Go to: Dashboard → Pages → publicdomainhunter → Settings → Functions
-#      - Scroll to: KV namespace bindings
-#      - Click "Add binding"
-#      - Variable name: SESSIONS
-#      - KV namespace: Select the namespace you created
-#   3. Redeploy (happens automatically on next push)
-#
-# For local development with wrangler CLI:
-#   1. Run: wrangler kv namespace create "SESSIONS"
-#   2. Run: wrangler kv namespace create "SESSIONS" --preview
-#   3. Uncomment the section below and update with the IDs from those commands
-#
-# See CLOUDFLARE_PAGES_SETUP.md for detailed instructions
-
-[[kv_namespaces]]
-binding = "SESSIONS"
-id = "25c5b93996de4bce81e0b336471b4141"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "publicdomainhunter_db"
-database_id = "519084b3-f731-4fbf-80ff-c5e14e05e512"
-
-# R2 Bucket for file storage (EPUB, PDF uploads)
-# Configure in Dashboard: Workers & Pages → R2 → Create bucket
-# Then bind it in: Pages → Settings → Functions → R2 bucket bindings
-[[r2_buckets]]
-binding = "FILES"
-bucket_name = "publicdomainhunter-files"
-preview_bucket_name = "publicdomainhunter-files-preview"
-
-# KV namespace for caching (replaces Redis)
-# Used for: API response caching, rate limiting, temporary data
-[[kv_namespaces]]
-binding = "CACHE"
-id = "3d23c156c574450dbe4a9cbadf4ec86e"
-preview_id = "3d23c156c574450dbe4a9cbadf4ec86e"
-
-# Queue for background job processing
-# Configure in Dashboard: Workers & Pages → Queues → Create queue
-# Used for: Alert processing, metrics updates, email sending
-[[queues.producers]]
-binding = "JOBS_QUEUE"
-queue = "publicdomainhunter-jobs"
-
-[[queues.consumers]]
-queue = "publicdomainhunter-jobs"
-max_batch_size = 10
-max_batch_timeout = 30
-max_retries = 3
-dead_letter_queue = "publicdomainhunter-jobs-dlq"
-
-# Analytics Engine for tracking (optional but recommended)
-[[analytics_engine_datasets]]
-binding = "ANALYTICS"
+# Public Domain Hunter v2 has no required database or separate backend service.
+# Optional: bind a KV namespace named CACHE for 15-minute API response caching.
 
 [assets]
 directory = "frontend/out"
@@ -103,7 +12,7 @@ html_handling = "drop-trailing-slash"
 not_found_handling = "single-page-application"
 
 [build]
-command = "npm install && npm --prefix frontend install && npm --prefix frontend run cf:build"
+command = "npm run build"
 
 [observability.logs]
 enabled = true

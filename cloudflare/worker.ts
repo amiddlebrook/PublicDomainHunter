@@ -1,87 +1,80 @@
-// cloudflare/worker.ts
-// Main Cloudflare Worker entry point
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import type { Fetcher, KVNamespace } from '@cloudflare/workers-types';
+import { scoreOpportunity } from './services/opportunity-engine.service';
+import { getGutendexBook, searchGutendex } from './services/sources/gutendex.source';
+import { searchInternetArchive } from './services/sources/internet-archive.source';
 
-import { D1Database, KVNamespace, R2Bucket, Queue, AnalyticsEngineDataset, Fetcher } from '@cloudflare/workers-types';
-import { handleQueue } from './queue-consumer';
-
-// Define the bindings expected from the environment
 export interface Env {
   ASSETS?: Fetcher;
-  DB: D1Database;
-  SESSIONS: KVNamespace;
-  CACHE: KVNamespace;
-  FILES: R2Bucket;
-  JOBS_QUEUE: Queue;
-  ANALYTICS?: AnalyticsEngineDataset;
-
-  // Secrets
-  JWT_SECRET: string;
-
-  // API Keys for external services
-  OPENAI_API_KEY?: string;
-  CLAUDE_API_KEY?: string;
-  GEMINI_API_KEY?: string;
-  OPENROUTER_API_KEY?: string;
-
-  // Deployment configuration
-  BACKEND_URL?: string;
+  CACHE?: KVNamespace;
 }
 
+const app = new Hono<{ Bindings: Env }>();
+app.use('/api/*', cors({ origin: '*', allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS'] }));
+
+app.get('/api/health', (c) => c.json({ ok: true, product: 'Public Domain Hunter', version: '2.0.0', architecture: 'cloudflare-native' }));
+
+app.get('/api/opportunities', async (c) => {
+  const query = c.req.query('q') || '';
+  const source = c.req.query('source') || 'gutenberg';
+  const limit = Math.max(1, Math.min(30, Number(c.req.query('limit') || 20)));
+  const minScore = Math.max(0, Math.min(100, Number(c.req.query('min_score') || 0)));
+  const cacheKey = `opp:v2:${source}:${query.toLowerCase()}:${limit}:${minScore}`;
+  const cached = await c.env.CACHE?.get(cacheKey);
+  if (cached) return c.json(JSON.parse(cached));
+
+  try {
+    const result = source === 'archive'
+      ? await searchInternetArchive(query, limit)
+      : await searchGutendex(query, limit);
+    const opportunities = result.candidates
+      .map(scoreOpportunity)
+      .filter(o => o.score.overall >= minScore)
+      .sort((a, b) => b.score.overall - a.score.overall || (b.downloads || 0) - (a.downloads || 0));
+
+    const payload = {
+      query, source, total_source_results: result.total, returned: opportunities.length,
+      generated_at: new Date().toISOString(), methodology: 'evidence-first-v2', opportunities
+    };
+    await c.env.CACHE?.put(cacheKey, JSON.stringify(payload), { expirationTtl: 900 });
+    return c.json(payload);
+  } catch (error) {
+    console.error('opportunity search failed', error);
+    return c.json({ error: error instanceof Error ? error.message : 'Search failed' }, 502);
+  }
+});
+
+app.get('/api/opportunities/gutenberg/:id', async (c) => {
+  try {
+    const candidate = await getGutendexBook(c.req.param('id'));
+    if (!candidate) return c.json({ error: 'Opportunity not found' }, 404);
+    return c.json(scoreOpportunity(candidate));
+  } catch (error) {
+    return c.json({ error: error instanceof Error ? error.message : 'Lookup failed' }, 502);
+  }
+});
+
+app.get('/api/methodology', (c) => c.json({
+  version: 'evidence-first-v2',
+  principle: 'Unknown signals remain unknown; the system does not manufacture market data.',
+  scoring: {
+    observed_demand: '35% when source download counts are available',
+    rights_clarity: '30%',
+    derivative_fit: '20% transparent metadata heuristic',
+    metadata_quality: '15%',
+    competition: 'not scored until a real connector is available'
+  },
+  disclaimer: 'Scores rank research priority and are not revenue forecasts or legal opinions.'
+}));
+
+app.all('/api/*', (c) => c.json({ error: 'API route not found' }, 404));
+
+app.all('*', async (c) => {
+  if (!c.env.ASSETS) return c.text('Public Domain Hunter API is online.', 200);
+  return c.env.ASSETS.fetch(c.req.raw);
+});
+
 export default {
-  /**
-   * HTTP Request Handler
-   */
-  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url);
-
-    if (url.pathname.startsWith('/api')) {
-      if (!env.BACKEND_URL) {
-        return new Response('BACKEND_URL is not configured', { status: 502 });
-      }
-
-      const backendUrl = new URL(env.BACKEND_URL);
-      const proxyUrl = new URL(request.url);
-      proxyUrl.protocol = backendUrl.protocol;
-      proxyUrl.host = backendUrl.host;
-
-      return fetch(new Request(proxyUrl.toString(), request));
-    }
-
-    if (!env.ASSETS) {
-      return new Response('ASSETS binding is not configured', { status: 500 });
-    }
-
-    return env.ASSETS.fetch(request);
-  },
-
-  /**
-   * Queue Consumer Handler
-   * Processes background jobs from Cloudflare Queues
-   */
-  async queue(batch: MessageBatch, env: Env, ctx: ExecutionContext): Promise<void> {
-    await handleQueue(batch, env);
-  },
-
-  /**
-   * Scheduled Handler (Cron Triggers)
-   * Runs periodic background tasks
-   */
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    // Example: Run metrics updates daily
-    console.log('Running scheduled task:', event.cron);
-
-    // Queue metrics updates for all active works
-    const { results } = await env.DB.prepare(
-      'SELECT id FROM Work WHERE status = ? LIMIT 100'
-    ).bind('active').all();
-
-    for (const work of results || []) {
-      await env.JOBS_QUEUE.send({
-        type: 'metrics_update',
-        payload: { workId: (work as any).id },
-      });
-    }
-
-    console.log(`Queued metrics updates for ${results?.length || 0} works`);
-  },
+  fetch: app.fetch
 };

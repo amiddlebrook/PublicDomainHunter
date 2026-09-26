@@ -141,3 +141,7 @@ frontend/.env.local
 # Cloudflare Worker development variables (with real OAuth credentials)
 .dev.vars
 node_modules/
+
+.env.production
+
+frontend/lint_output.txt

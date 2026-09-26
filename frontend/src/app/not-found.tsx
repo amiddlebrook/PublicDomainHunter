@@ -1,21 +1,13 @@
-'use client'
-
-import { useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, Radar } from 'lucide-react'
 
 export default function NotFound() {
-    const pathname = usePathname()
-    const router = useRouter()
-
-    useEffect(() => {
-        // For work detail routes, force client-side rendering by staying on the route
-        if (pathname?.startsWith('/works/') && pathname !== '/works') {
-            // The page will render via the dynamic route at /works/[id]
-            // Just refresh to trigger the client component
-            router.replace(pathname)
-        }
-    }, [pathname, router])
-
-    // Return null to avoid flash, the router will handle the redirect
-    return null
+  return (
+    <div className="mx-auto flex min-h-[65vh] max-w-2xl flex-col items-center justify-center text-center">
+      <Radar className="h-10 w-10 text-violet-300" />
+      <h1 className="mt-5 text-3xl font-bold text-white">Nothing on the radar here.</h1>
+      <p className="mt-3 text-sm leading-6 text-slate-500">This route was either removed in the v2 rebuild or never existed.</p>
+      <Link href="/" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-violet-500 px-4 py-2 text-sm font-medium text-white hover:bg-violet-400"><ArrowLeft className="h-4 w-4" /> Back to radar</Link>
+    </div>
+  )
 }

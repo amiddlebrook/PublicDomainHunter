@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ES2022", "WebWorker"],
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": [
+    "cloudflare/worker.ts",
+    "cloudflare/services/opportunity-engine.service.ts",
+    "cloudflare/services/sources/**/*.ts"
+  ]
+}
