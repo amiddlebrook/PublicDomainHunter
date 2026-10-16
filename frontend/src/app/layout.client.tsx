@@ -32,7 +32,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               <div className="hidden text-xs text-slate-600 sm:block">Evidence first. Unknown means unknown.</div>
             </div>
             <div className="flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/5 px-3 py-1.5 text-xs text-emerald-300">
-              <Radar className="h-3.5 w-3.5" /> Live source research
+              <Radar className="h-3.5 w-3.5" /> Gutenberg + Archive research
             </div>
           </div>
         </header>

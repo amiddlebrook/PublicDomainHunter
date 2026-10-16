@@ -1,19 +1,16 @@
 name = "publicdomainhunter"
 main = "cloudflare/worker.ts"
-compatibility_date = "2026-09-26"
+compatibility_date = "2026-10-16"
 
-# Public Domain Hunter v2 has no required database or separate backend service.
-# Optional: bind a KV namespace named CACHE for 15-minute API response caching.
+# Free-tier baseline: one Worker serves both the API and prebuilt static assets.
+# No database, queues, or paid AI model is required.
 
 [assets]
-directory = "frontend/out"
+directory = "./frontend/out"
 binding = "ASSETS"
+run_worker_first = ["/api/*"]
 html_handling = "drop-trailing-slash"
-not_found_handling = "single-page-application"
-
-[build]
-command = "npm run build"
+not_found_handling = "404-page"
 
 [observability.logs]
 enabled = true
-invocation_logs = true

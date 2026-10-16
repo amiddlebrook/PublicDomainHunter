@@ -5,11 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// API Base URL - uses deployed worker in production, env var for local dev
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? 'https://publicdomainhunter.com'
-    : '');
+// Requests use the same origin as the Cloudflare Worker by default.
+// Override only when running the frontend on a separate local port.
+export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
 
 /**
  * Sanitize text by removing HTML entities, extra whitespace, and formatting issues

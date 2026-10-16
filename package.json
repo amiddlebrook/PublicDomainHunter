@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.worker.json && npm --workspace frontend run typecheck",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
-    "dev:frontend": "npm --workspace frontend run dev"
+    "dev:frontend": "npm --workspace frontend run dev",
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "hono": "^4.13.9"
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260926.1",
     "typescript": "^5.9.2",
-    "wrangler": "^4.140.0"
+    "wrangler": "^4.140.0",
+    "tsx": "^4.20.5"
   }
 }

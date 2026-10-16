@@ -24,11 +24,15 @@ function kind(media?: string): OpportunityCandidate['kind'] {
   return 'other';
 }
 
-function rightsFromLicense(url?: string | string[]): OpportunityCandidate['rights_status'] {
-  const value = asArray(url).join(' ').toLowerCase();
-  if (value.includes('publicdomain') || value.includes('public-domain')) return 'public_domain_us';
-  if (value.includes('creativecommons.org/publicdomain/zero') || value.includes('/cc0')) return 'open_license';
-  if (value.includes('creativecommons.org/licenses')) return 'open_license';
+export function rightsFromLicense(url?: string | string[]): OpportunityCandidate['rights_status'] {
+  const entries = asArray(url).map(item => item.toLowerCase());
+  if (entries.length === 0) return 'verify_rights';
+  // License URLs must be unambiguous. NC prohibits many commercial uses;
+  // ND prohibits derivative works, so neither is cleared for adaptation.
+  if (entries.some(u => /creativecommons\.org\/licenses\/[^/]*(?:nc|nd)/.test(u))) return 'verify_rights';
+  if (entries.some(u => /creativecommons\.org\/licenses\/(?:by|by-sa)\//.test(u))) return 'open_license';
+  if (entries.some(u => /creativecommons\.org\/publicdomain\/(?:zero|mark)\//.test(u))) return 'open_license';
+  // Unknown / ambiguous claims are NOT proof of public-domain status.
   return 'verify_rights';
 }
 
