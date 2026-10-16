@@ -64,7 +64,17 @@ jobs:
         # The compatibility queue handler preserves queued messages if
         # this step lacks Cloudflare Queues permissions.
         continue-on-error: true
-        run: npx wrangler queues consumer remove publicdomainhunter-jobs publicdomainhunter
+        run: |
+          result=$(npx wrangler queues consumer remove publicdomainhunter-jobs publicdomainhunter 2>&1) && {
+            echo "$result"
+            exit 0
+          }
+          if echo "$result" | grep -q "No worker consumer 'publicdomainhunter' exists"; then
+            echo "Retired Queue consumer was previously detached."
+            exit 0
+          fi
+          echo "$result"
+          exit 1
       - name: Deploy Worker and static Next.js assets
         run: npx wrangler deploy
       - name: Smoke test deployed homepage and live API
@@ -77,7 +87,7 @@ jobs:
           curl --fail --show-error --silent --retry 5 --retry-delay 3 --max-time 30 "$PUBLIC_URL/api/health" -o /tmp/pdh-health.json
           node -e 'const h = require("/tmp/pdh-health.json"); if (!h.ok || h.architecture !== "cloudflare-native") process.exit(1); console.log("Health:",h.version)'
           curl --fail --show-error --silent --retry 5 --retry-delay 3 --max-time 30 "$PUBLIC_URL/" -o /tmp/pdh-home.html
-          grep -q 'Valuable ideas' /tmp/pdh-home.html
+          node -e 'const fs = require("fs"); const html = fs.readFileSync("/tmp/pdh-home.html", "utf8"); console.log("Homepage length:", html.length, "Preview:", html.slice(0, 240)); if (!html.includes("Public Domain Hunter") || !html.includes("<html")) process.exit(1)'
           curl --fail --show-error --silent --retry 5 --retry-delay 3 --max-time 30 "$PUBLIC_URL/api/methodology" -o /tmp/pdh-methodology.json
           node -e 'const m = require("/tmp/pdh-methodology.json"); if (m.version !== "evidence-first-v2") process.exit(1)'
           curl --fail --show-error --silent --retry 3 --retry-delay 3 --max-time 40 "$PUBLIC_URL/api/opportunities?q=folklore&source=gutenberg&limit=2" -o /tmp/pdh-opportunities.json
