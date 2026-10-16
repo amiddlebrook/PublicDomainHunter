@@ -6,7 +6,7 @@
 
 ## Features
 
-- Live Gutenberg/Gutendex and Internet Archive research
+- Live Internet Archive research, with Gutendex when accessible and an Internet Archive Gutenberg collection fallback when Gutendex is blocked
 - Rights-aware scoring: observed downloads 35%, rights clarity 30%, derivative fit 20%, metadata quality 15%
 - Explicitly missing competition, customer demand and economics evidence (no fictional sales figures)
 - Creator, source, rights status, metrics, adaptation concepts, and expandable evidence on each result
@@ -54,7 +54,7 @@ The project is named `publicdomainhunter` in `wrangler.toml`. By default the liv
 | `GET /api/opportunities/gutenberg/:id` | Single Gutenberg record |
 | `GET /api/methodology` | Score definitions |
 
-Both the Next.js site and the API are served by the **same Worker hostname**, so the UI uses relative `/api/*` requests by default. Avoid hardcoding custom domains into frontend code.
+Internet Archive candidate metadata may not establish public-domain status; records without clear evidence are labeled `Verify rights`. Gutenberg/Gutendex is currently blocked by a Cloudflare challenge from the deployed Worker, so the Gutenberg search falls back to Archive catalog records. Both the Next.js site and the API are served by the **same Worker hostname**, so the UI uses relative `/api/*` requests by default. Avoid hardcoding custom domains into frontend code.
 
 ## Project layout
 

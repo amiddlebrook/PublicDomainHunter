@@ -49,6 +49,8 @@ export interface Opportunity {
 export interface OpportunitySearchResponse {
   query: string
   source: string
+  provider?: string
+  notice?: string | null
   total_source_results: number
   returned: number
   generated_at: string

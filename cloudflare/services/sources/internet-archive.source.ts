@@ -36,8 +36,9 @@ export function rightsFromLicense(url?: string | string[]): OpportunityCandidate
   return 'verify_rights';
 }
 
-export async function searchInternetArchive(query: string, limit = 20): Promise<{ total: number; candidates: OpportunityCandidate[] }> {
-  const q = query.trim() ? `(${query.trim()})` : '*:*';
+export async function searchInternetArchive(query: string, limit = 20, collection?: 'gutenberg'): Promise<{ total: number; candidates: OpportunityCandidate[] }> {
+  const baseQuery = query.trim() ? `(${query.trim()})` : '*:*';
+  const q = collection ? `(${baseQuery}) AND collection:${collection}` : baseQuery;
   const params = new URLSearchParams();
   params.set('q', q);
   for (const field of ['identifier','title','creator','description','downloads','year','mediatype','subject','licenseurl','language']) {

@@ -67,3 +67,27 @@ test('Internet Archive marks unlicensed records as needing verification', async 
     assert.equal(result.candidates[0].source_url, 'https://archive.org/details/sample-book');
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test('Gutenberg 403 falls back to the Archive Gutenberg collection without asserting unverified rights', async () => {
+  const { default: worker } = await import('../cloudflare/worker');
+  const originalFetch = globalThis.fetch;
+  const requested: string[] = [];
+  globalThis.fetch = async (input: RequestInfo | URL) => {
+    const url = String(input);
+    requested.push(url);
+    if (url.includes('gutendex.com')) return new Response('Forbidden', { status: 403 });
+    return new Response(JSON.stringify({
+      response: { numFound: 1, docs: [{ identifier: 'gutenberg-book', title: 'Archive Gutenberg book', downloads: 29 }] }
+    }), { headers: { 'content-type': 'application/json' } });
+  };
+  try {
+    const response = await worker.fetch(new Request('https://pdh.test/api/opportunities?source=gutenberg&q=folklore'), {} as any, {} as any);
+    assert.equal(response.status, 200);
+    const payload = await response.json() as any;
+    assert.equal(payload.provider, 'internet-archive-gutenberg');
+    assert.equal(payload.opportunities[0].rights_status, 'verify_rights');
+    assert.ok(requested.some(u => u.includes('collection%3Agutenberg')));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

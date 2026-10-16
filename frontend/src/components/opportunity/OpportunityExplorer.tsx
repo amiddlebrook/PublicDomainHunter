@@ -10,8 +10,8 @@ const suggestions = ['airships', 'fairy tales', 'architecture', 'electricity', '
 
 export function OpportunityExplorer({ compact = false }: { compact?: boolean }) {
   const [query, setQuery] = useState('')
-  const [source, setSource] = useState<'gutenberg' | 'archive'>('gutenberg')
-  const [minScore, setMinScore] = useState(55)
+  const [source, setSource] = useState<'gutenberg' | 'archive'>('archive')
+  const [minScore, setMinScore] = useState(20)
   const [data, setData] = useState<OpportunitySearchResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -38,7 +38,7 @@ export function OpportunityExplorer({ compact = false }: { compact?: boolean }) 
     if (saved) {
       try { setSavedIds((JSON.parse(saved) as Opportunity[]).map(o => `${o.source}:${o.source_id}`)) } catch { /* ignore */ }
     }
-    search('', 'gutenberg')
+    search('', 'archive')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -66,8 +66,8 @@ export function OpportunityExplorer({ compact = false }: { compact?: boolean }) 
             <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search themes, authors, technologies, stories…" className="h-12 w-full rounded-xl border border-white/10 bg-black/30 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400/60 focus:ring-2 focus:ring-violet-400/10" />
           </div>
           <select value={source} onChange={e => setSource(e.target.value as 'gutenberg' | 'archive')} className="h-12 rounded-xl border border-white/10 bg-black/40 px-3 text-sm text-slate-200 outline-none focus:border-violet-400/60">
-            <option value="gutenberg">Verified PD · Gutenberg</option>
-            <option value="archive">Broad candidates · Internet Archive</option>
+            <option value="gutenberg">Gutenberg catalog · Archive fallback</option>
+            <option value="archive">Internet Archive · Broad candidates</option>
           </select>
           <button className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:bg-violet-400" type="submit">
             <Radar className="h-4 w-4" /> Hunt opportunities
@@ -92,7 +92,8 @@ export function OpportunityExplorer({ compact = false }: { compact?: boolean }) 
         </div>
       )}
 
-      {error && <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
+      {error && <div role="alert" className="rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
+      {data?.notice && <div role="status" className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-100">{data.notice}</div>}
 
       <div className="flex items-center justify-between">
         <div>

@@ -90,6 +90,8 @@ jobs:
           node -e 'const fs = require("fs"); const html = fs.readFileSync("/tmp/pdh-home.html", "utf8"); console.log("Homepage length:", html.length, "Preview:", html.slice(0, 240)); if (!html.includes("Public Domain Hunter") || !html.includes("<html")) process.exit(1)'
           curl --fail --show-error --silent --retry 5 --retry-delay 3 --max-time 30 "$PUBLIC_URL/api/methodology" -o /tmp/pdh-methodology.json
           node -e 'const m = require("/tmp/pdh-methodology.json"); if (m.version !== "evidence-first-v2") process.exit(1)'
-          curl --fail --show-error --silent --retry 3 --retry-delay 3 --max-time 40 "$PUBLIC_URL/api/opportunities?q=folklore&source=gutenberg&limit=2" -o /tmp/pdh-opportunities.json
+          curl --fail --show-error --silent --retry 3 --retry-delay 3 --max-time 40 "$PUBLIC_URL/api/opportunities?q=folklore&source=archive&limit=2" -o /tmp/pdh-opportunities.json
           node -e 'const r = require("/tmp/pdh-opportunities.json"); if (!Array.isArray(r.opportunities) || !r.methodology) process.exit(1); console.log("Search returned",r.opportunities.length,"opportunities")'
+          curl --fail --show-error --silent --retry 3 --retry-delay 3 --max-time 40 "$PUBLIC_URL/api/opportunities?q=folklore&source=gutenberg&limit=2" -o /tmp/pdh-gutenberg.json
+          node -e 'const r = require("/tmp/pdh-gutenberg.json"); if (!Array.isArray(r.opportunities) || !["gutendex","internet-archive-gutenberg"].includes(r.provider)) process.exit(1); console.log("Gutenberg provider:",r.provider)'
           echo "Live website and API smoke tests passed."
