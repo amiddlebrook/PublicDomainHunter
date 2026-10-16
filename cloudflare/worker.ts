@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import type { Fetcher, KVNamespace } from '@cloudflare/workers-types';
+import type { KVNamespace } from '@cloudflare/workers-types';
 import { scoreOpportunity } from './services/opportunity-engine.service';
 import { getGutendexBook, searchGutendex } from './services/sources/gutendex.source';
 import { searchInternetArchive } from './services/sources/internet-archive.source';
 
 export interface Env {
-  ASSETS?: Fetcher;
+  ASSETS?: { fetch(request: string): Promise<Response> };
   CACHE?: KVNamespace;
 }
 
@@ -72,7 +72,7 @@ app.all('/api/*', (c) => c.json({ error: 'API route not found' }, 404));
 
 app.all('*', async (c) => {
   if (!c.env.ASSETS) return c.text('Public Domain Hunter API is online.', 200);
-  return c.env.ASSETS.fetch(c.req.raw);
+  return c.env.ASSETS.fetch(c.req.url);
 });
 
 export default {
