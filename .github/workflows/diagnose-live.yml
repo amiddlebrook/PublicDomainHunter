@@ -14,7 +14,7 @@ jobs:
         run: |
           set -u
           BASE="https://publicdomainhunter.averymiddlebrook2014.workers.dev"
-          for path in "/" "/index.html" "/opportunities" "/opportunities.html" "/api/health" "/api/methodology" "/api/opportunities?q=folklore&source=gutenberg&limit=2"; do
+          for path in "/" "/index.html" "/opportunities" "/opportunities.html" "/api/health" "/api/methodology" "/api/opportunities?q=folklore&source=gutenberg&limit=2" "/api/opportunities?q=folklore&source=archive&limit=2"; do
             echo "::group::GET $path"
             curl -sS --max-time 25 -D /tmp/pdh-headers -o /tmp/pdh-body -w 'status=%{http_code} size=%{size_download} redirect=%{redirect_url}\n' "$BASE$path" || true
             head -n 15 /tmp/pdh-headers
