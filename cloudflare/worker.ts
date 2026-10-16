@@ -76,5 +76,15 @@ app.all('*', async (c) => {
 });
 
 export default {
-  fetch: app.fetch
+  fetch: app.fetch,
+  // The v1 Cloudflare deployment registered this script as a Queue consumer.
+  // Keep a compatibility handler until its old trigger is detached. Do not
+  // acknowledge or silently discard unprocessed legacy messages.
+  queue(batch: { queue: string; messages: Array<{ retry(options?: { delaySeconds?: number }): void }> }) {
+    console.warn('Retired v1 queue attachment received a batch; deferring legacy jobs', {
+      queue: batch.queue,
+      messages: batch.messages.length
+    });
+    for (const message of batch.messages) message.retry({ delaySeconds: 3600 });
+  }
 };

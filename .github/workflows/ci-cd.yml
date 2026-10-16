@@ -58,6 +58,13 @@ jobs:
           fi
       - run: npm install --no-audit --no-fund
       - run: npm run build
+      - name: Detach obsolete v1 Queue consumer without deleting the queue
+        # The old Worker registered itself against publicdomainhunter-jobs.
+        # That consumer prevents a fetch-only Worker from being deployed.
+        # The compatibility queue handler preserves queued messages if
+        # this step lacks Cloudflare Queues permissions.
+        continue-on-error: true
+        run: npx wrangler queues consumer remove publicdomainhunter-jobs publicdomainhunter
       - name: Deploy Worker and static Next.js assets
         run: npx wrangler deploy
       - name: Health check (when public URL is configured)
