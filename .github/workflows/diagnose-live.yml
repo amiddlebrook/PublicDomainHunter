@@ -1,0 +1,25 @@
+name: Diagnose public Worker URL
+on:
+  push:
+    paths: [.github/workflows/diagnose-live.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect public routes
+        shell: bash
+        run: |
+          set -u
+          BASE="https://publicdomainhunter.averymiddlebrook2014.workers.dev"
+          for path in "/" "/index.html" "/opportunities" "/opportunities.html" "/api/health" "/api/methodology" "/api/opportunities?q=folklore&source=gutenberg&limit=2"; do
+            echo "::group::GET $path"
+            curl -sS --max-time 25 -D /tmp/pdh-headers -o /tmp/pdh-body -w 'status=%{http_code} size=%{size_download} redirect=%{redirect_url}\n' "$BASE$path" || true
+            head -n 15 /tmp/pdh-headers
+            echo "body-bytes=$(wc -c < /tmp/pdh-body)"
+            head -c 500 /tmp/pdh-body
+            echo
+            echo "::endgroup::"
+          done
