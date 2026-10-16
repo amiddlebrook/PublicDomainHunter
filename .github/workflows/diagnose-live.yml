@@ -23,3 +23,11 @@ jobs:
             echo
             echo "::endgroup::"
           done
+          for url in 'https://gutendex.com/books/?search=folklore' 'https://gutendex.com/books?search=folklore' 'https://archive.org/advancedsearch.php?q=folklore%20AND%20mediatype:texts&rows=1&output=json' 'https://openlibrary.org/search.json?q=folklore&limit=1' 'https://www.gutenberg.org/ebooks/search/?query=folklore'; do
+            echo "::group::UPSTREAM $url"
+            curl -sS --max-time 20 -D /tmp/upstream-headers -o /tmp/upstream-body -w 'status=%{http_code} size=%{size_download}\n' "$url" || true
+            head -n 5 /tmp/upstream-headers
+            head -c 260 /tmp/upstream-body
+            echo
+            echo "::endgroup::"
+          done
