@@ -8,8 +8,8 @@ compatibility_date = "2026-10-16"
 [assets]
 directory = "./frontend/out"
 binding = "ASSETS"
-run_worker_first = ["/api/*"]
-html_handling = "drop-trailing-slash"
+run_worker_first = ["/api/*", "/", "/opportunities", "/portfolio", "/methodology", "/patents"]
+html_handling = "none"
 not_found_handling = "404-page"
 
 [observability.logs]

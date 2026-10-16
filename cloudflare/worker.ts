@@ -83,9 +83,19 @@ app.get('/api/methodology', (c) => c.json({
 
 app.all('/api/*', (c) => c.json({ error: 'API route not found' }, 404));
 
+const staticRoutes: Record<string, string> = {
+  '/': '/index.html',
+  '/opportunities': '/opportunities.html',
+  '/portfolio': '/portfolio.html',
+  '/methodology': '/methodology.html',
+  '/patents': '/patents.html'
+};
 app.all('*', async (c) => {
   if (!c.env.ASSETS) return c.text('Public Domain Hunter API is online.', 200);
-  return c.env.ASSETS.fetch(c.req.url);
+  const assetUrl = new URL(c.req.url);
+  const path = assetUrl.pathname.replace(/\/+$/, '') || '/';
+  if (staticRoutes[path]) assetUrl.pathname = staticRoutes[path];
+  return c.env.ASSETS.fetch(assetUrl.toString());
 });
 
 export default {
