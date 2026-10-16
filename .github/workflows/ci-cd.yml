@@ -67,9 +67,19 @@ jobs:
         run: npx wrangler queues consumer remove publicdomainhunter-jobs publicdomainhunter
       - name: Deploy Worker and static Next.js assets
         run: npx wrangler deploy
-      - name: Health check (when public URL is configured)
-        if: vars.PUBLIC_URL != ''
+      - name: Smoke test deployed homepage and live API
         env:
-          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+          PUBLIC_URL: ${{ vars.PUBLIC_URL || 'https://publicdomainhunter.averymiddlebrook2014.workers.dev' }}
         run: |
-          curl --fail --show-error --silent --retry 5 --retry-delay 3 "$PUBLIC_URL/api/health" | grep '"ok":true'
+          set -euo pipefail
+          PUBLIC_URL="${PUBLIC_URL%/}"
+          echo "Checking public Worker deployment at $PUBLIC_URL"
+          curl --fail --show-error --silent --retry 5 --retry-delay 3 --max-time 30 "$PUBLIC_URL/api/health" -o /tmp/pdh-health.json
+          node -e 'const h = require("/tmp/pdh-health.json"); if (!h.ok || h.architecture !== "cloudflare-native") process.exit(1); console.log("Health:",h.version)'
+          curl --fail --show-error --silent --retry 5 --retry-delay 3 --max-time 30 "$PUBLIC_URL/" -o /tmp/pdh-home.html
+          grep -q 'Valuable ideas' /tmp/pdh-home.html
+          curl --fail --show-error --silent --retry 5 --retry-delay 3 --max-time 30 "$PUBLIC_URL/api/methodology" -o /tmp/pdh-methodology.json
+          node -e 'const m = require("/tmp/pdh-methodology.json"); if (m.version !== "evidence-first-v2") process.exit(1)'
+          curl --fail --show-error --silent --retry 3 --retry-delay 3 --max-time 40 "$PUBLIC_URL/api/opportunities?q=folklore&source=gutenberg&limit=2" -o /tmp/pdh-opportunities.json
+          node -e 'const r = require("/tmp/pdh-opportunities.json"); if (!Array.isArray(r.opportunities) || !r.methodology) process.exit(1); console.log("Search returned",r.opportunities.length,"opportunities")'
+          echo "Live website and API smoke tests passed."
